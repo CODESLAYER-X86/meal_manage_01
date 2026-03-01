@@ -4,6 +4,12 @@ import { auth } from "@/lib/auth";
 
 // GET washroom cleaning schedule
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.messId) {
+    return NextResponse.json({ error: "Not in a mess" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -12,7 +18,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(Number(year), Number(month) - 1, 1);
     const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
     const duties = await prisma.washroomCleaning.findMany({
-      where: { date: { gte: startDate, lte: endDate } },
+      where: { date: { gte: startDate, lte: endDate }, messId },
       include: { member: { select: { id: true, name: true } } },
       orderBy: { date: "asc" },
     });
@@ -26,7 +32,7 @@ export async function GET(request: NextRequest) {
   nextWeek.setDate(nextWeek.getDate() + 7);
 
   const duties = await prisma.washroomCleaning.findMany({
-    where: { date: { gte: today, lte: nextWeek } },
+    where: { date: { gte: today, lte: nextWeek }, messId },
     include: { member: { select: { id: true, name: true } } },
     orderBy: { date: "asc" },
   });
@@ -36,9 +42,10 @@ export async function GET(request: NextRequest) {
 // POST - assign washroom duties (manager only)
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "MANAGER") {
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+  const messId = session.user.messId;
 
   const body = await request.json();
   const { assignments } = body;
@@ -57,6 +64,7 @@ export async function POST(request: NextRequest) {
       create: {
         date: new Date(assignment.date),
         memberId: assignment.memberId,
+        messId,
       },
     });
     results.push(duty);

@@ -32,6 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          messId: user.messId,
         };
       },
     }),
@@ -41,17 +42,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as { role: string }).role;
+        token.messId = (user as { messId: string | null }).messId;
       }
-      // Always refresh role from DB so handover takes effect immediately
+      // Always refresh role and messId from DB
       if (token.id) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true },
+            select: { role: true, messId: true },
           });
-          if (dbUser) token.role = dbUser.role;
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.messId = dbUser.messId;
+          }
         } catch {
-          // If DB is unreachable, keep existing role
+          // If DB is unreachable, keep existing values
         }
       }
       return token;
@@ -60,6 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as { role: string }).role = token.role as string;
+        (session.user as { messId: string | null }).messId = token.messId as string | null;
       }
       return session;
     },

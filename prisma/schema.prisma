@@ -17,6 +17,25 @@ enum CleaningStatus {
   SKIPPED
 }
 
+model Mess {
+  id          String   @id @default(cuid())
+  name        String
+  inviteCode  String   @unique
+  createdById String
+  createdBy   User     @relation("MessCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members           User[]             @relation("MessMembers")
+  mealEntries       MealEntry[]
+  deposits          Deposit[]
+  bazarTrips        BazarTrip[]
+  washroomDuties    WashroomCleaning[]
+  managerRotations  ManagerRotation[]
+  auditLogs         AuditLog[]
+  disputes          Dispute[]
+}
+
 model User {
   id          String   @id @default(cuid())
   name        String
@@ -25,18 +44,23 @@ model User {
   password    String
   role        Role     @default(MEMBER)
   isActive    Boolean  @default(true)
+  messId      String?
+  mess        Mess?    @relation("MessMembers", fields: [messId], references: [id])
   joinDate    DateTime @default(now())
   leaveDate   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  createdMesses     Mess[]             @relation("MessCreator")
   mealEntries       MealEntry[]
   deposits          Deposit[]
   bazarTrips        BazarTrip[]
   washroomDuties    WashroomCleaning[]
   managerRotations  ManagerRotation[]
-  auditLogs         AuditLog[]       @relation("EditedBy")
+  auditLogs         AuditLog[]         @relation("EditedBy")
   disputes          Dispute[]
+
+  @@index([messId])
 }
 
 model MealEntry {
@@ -44,6 +68,8 @@ model MealEntry {
   date      DateTime
   memberId  String
   member    User     @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
   breakfast Float    @default(0)
   lunch     Float    @default(0)
   dinner    Float    @default(0)
@@ -54,6 +80,7 @@ model MealEntry {
   @@unique([date, memberId])
   @@index([date])
   @@index([memberId])
+  @@index([messId])
 }
 
 model Deposit {
@@ -61,6 +88,8 @@ model Deposit {
   date      DateTime
   memberId  String
   member    User     @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
   amount    Float
   note      String?
   createdAt DateTime @default(now())
@@ -68,6 +97,7 @@ model Deposit {
 
   @@index([date])
   @@index([memberId])
+  @@index([messId])
 }
 
 model BazarTrip {
@@ -75,6 +105,8 @@ model BazarTrip {
   date      DateTime
   buyerId   String
   buyer     User        @relation(fields: [buyerId], references: [id])
+  messId    String
+  mess      Mess        @relation(fields: [messId], references: [id])
   totalCost Float       @default(0)
   note      String?
   items     BazarItem[]
@@ -82,6 +114,7 @@ model BazarTrip {
   updatedAt DateTime    @updatedAt
 
   @@index([date])
+  @@index([messId])
 }
 
 model BazarItem {
@@ -101,6 +134,8 @@ model WashroomCleaning {
   date      DateTime
   memberId  String
   member    User           @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess           @relation(fields: [messId], references: [id])
   status    CleaningStatus @default(PENDING)
   note      String?
   createdAt DateTime       @default(now())
@@ -108,23 +143,28 @@ model WashroomCleaning {
 
   @@unique([date, memberId])
   @@index([date])
+  @@index([messId])
 }
 
 model ManagerRotation {
   id        String   @id @default(cuid())
   memberId  String
   member    User     @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
   month     Int
   year      Int
   createdAt DateTime @default(now())
 
-  @@unique([month, year])
+  @@unique([month, year, messId])
 }
 
 model AuditLog {
   id         String   @id @default(cuid())
   editedById String
   editedBy   User     @relation("EditedBy", fields: [editedById], references: [id])
+  messId     String
+  mess       Mess     @relation(fields: [messId], references: [id])
   tableName  String
   recordId   String
   fieldName  String
@@ -135,16 +175,21 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([tableName])
+  @@index([messId])
 }
 
 model Dispute {
   id         String   @id @default(cuid())
   memberId   String
   member     User     @relation(fields: [memberId], references: [id])
+  messId     String
+  mess       Mess     @relation(fields: [messId], references: [id])
   tableName  String
   recordId   String
   message    String
   resolved   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([messId])
 }

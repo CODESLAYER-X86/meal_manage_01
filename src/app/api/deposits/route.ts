@@ -5,6 +5,12 @@ import { createAuditLog } from "@/lib/audit";
 
 // GET deposits
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.messId) {
+    return NextResponse.json({ error: "Not in a mess" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
   const year = searchParams.get("year");
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(Number(year), Number(month) - 1, 1);
     const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
     const deposits = await prisma.deposit.findMany({
-      where: { date: { gte: startDate, lte: endDate } },
+      where: { date: { gte: startDate, lte: endDate }, messId },
       include: { member: { select: { id: true, name: true } } },
       orderBy: { date: "asc" },
     });
@@ -21,6 +27,7 @@ export async function GET(request: NextRequest) {
   }
 
   const deposits = await prisma.deposit.findMany({
+    where: { messId },
     include: { member: { select: { id: true, name: true } } },
     orderBy: { date: "desc" },
     take: 50,
@@ -31,9 +38,10 @@ export async function GET(request: NextRequest) {
 // POST - record a deposit (manager only)
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "MANAGER") {
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+  const messId = session.user.messId;
 
   const body = await request.json();
   const { date, memberId, amount, note } = body;
@@ -42,6 +50,7 @@ export async function POST(request: NextRequest) {
     data: {
       date: new Date(date),
       memberId,
+      messId,
       amount,
       note,
     },
@@ -51,6 +60,7 @@ export async function POST(request: NextRequest) {
 
   await createAuditLog({
     editedById: session.user.id,
+    messId,
     tableName: "Deposit",
     recordId: deposit.id,
     fieldName: "amount",

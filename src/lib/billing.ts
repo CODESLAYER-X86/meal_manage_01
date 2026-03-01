@@ -16,14 +16,16 @@ export interface MonthlyBillResult {
 
 export async function calculateMonthlyBill(
   month: number,
-  year: number
+  year: number,
+  messId: string
 ): Promise<MonthlyBillResult> {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0, 23, 59, 59);
 
-  // Get all active members (or those active during this month)
+  // Get all active members in this mess
   const members = await prisma.user.findMany({
     where: {
+      messId,
       OR: [
         { isActive: true },
         {
@@ -33,24 +35,27 @@ export async function calculateMonthlyBill(
     },
   });
 
-  // Get total bazar expenses for the month
+  // Get total bazar expenses for the month in this mess
   const bazarTrips = await prisma.bazarTrip.findMany({
     where: {
+      messId,
       date: { gte: startDate, lte: endDate },
     },
   });
   const totalExpense = bazarTrips.reduce((sum, trip) => sum + trip.totalCost, 0);
 
-  // Get all meal entries for the month
+  // Get all meal entries for the month in this mess
   const mealEntries = await prisma.mealEntry.findMany({
     where: {
+      messId,
       date: { gte: startDate, lte: endDate },
     },
   });
 
-  // Get all deposits for the month
+  // Get all deposits for the month in this mess
   const deposits = await prisma.deposit.findMany({
     where: {
+      messId,
       date: { gte: startDate, lte: endDate },
     },
   });

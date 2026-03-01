@@ -5,6 +5,12 @@ import { createBulkAuditLogs } from "@/lib/audit";
 
 // GET meals for a date
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.messId) {
+    return NextResponse.json({ error: "Not in a mess" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
   const month = searchParams.get("month");
@@ -12,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   if (date) {
     const meals = await prisma.mealEntry.findMany({
-      where: { date: new Date(date) },
+      where: { date: new Date(date), messId },
       include: { member: { select: { id: true, name: true } } },
     });
     return NextResponse.json(meals);
@@ -22,7 +28,7 @@ export async function GET(request: NextRequest) {
     const startDate = new Date(Number(year), Number(month) - 1, 1);
     const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
     const meals = await prisma.mealEntry.findMany({
-      where: { date: { gte: startDate, lte: endDate } },
+      where: { date: { gte: startDate, lte: endDate }, messId },
       include: { member: { select: { id: true, name: true } } },
       orderBy: { date: "asc" },
     });
@@ -35,9 +41,10 @@ export async function GET(request: NextRequest) {
 // POST - save meals for a date (manager only)
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "MANAGER") {
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+  const messId = session.user.messId;
 
   const body = await request.json();
   const { date, entries } = body;
@@ -45,6 +52,7 @@ export async function POST(request: NextRequest) {
 
   const auditLogs: {
     editedById: string;
+    messId: string;
     tableName: string;
     recordId: string;
     fieldName: string;
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
   // Fetch all member names in one query for audit log readability
   const memberIds = entries.map((e: { memberId: string }) => e.memberId);
   const members = await prisma.user.findMany({
-    where: { id: { in: memberIds } },
+    where: { id: { in: memberIds }, messId },
     select: { id: true, name: true },
   });
   const memberNameMap = Object.fromEntries(members.map((m) => [m.id, m.name]));
@@ -80,6 +88,7 @@ export async function POST(request: NextRequest) {
       if (existing.breakfast !== entry.breakfast) {
         auditLogs.push({
           editedById: session.user.id,
+          messId,
           tableName: "MealEntry",
           recordId: existing.id,
           fieldName: `${memberName} - breakfast`,
@@ -91,6 +100,7 @@ export async function POST(request: NextRequest) {
       if (existing.lunch !== entry.lunch) {
         auditLogs.push({
           editedById: session.user.id,
+          messId,
           tableName: "MealEntry",
           recordId: existing.id,
           fieldName: `${memberName} - lunch`,
@@ -102,6 +112,7 @@ export async function POST(request: NextRequest) {
       if (existing.dinner !== entry.dinner) {
         auditLogs.push({
           editedById: session.user.id,
+          messId,
           tableName: "MealEntry",
           recordId: existing.id,
           fieldName: `${memberName} - dinner`,
@@ -125,6 +136,7 @@ export async function POST(request: NextRequest) {
         data: {
           date: new Date(date),
           memberId: entry.memberId,
+          messId,
           breakfast: entry.breakfast || 0,
           lunch: entry.lunch || 0,
           dinner: entry.dinner || 0,
@@ -134,6 +146,7 @@ export async function POST(request: NextRequest) {
 
       auditLogs.push({
         editedById: session.user.id,
+        messId,
         tableName: "MealEntry",
         recordId: created.id,
         fieldName: `${memberName} - all`,

@@ -9,6 +9,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (!session) return null;
+  if (!session.user?.messId) return null; // Don't show navbar during onboarding
 
   const isManager = session.user?.role === "MANAGER";
 
@@ -18,7 +19,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/dashboard" className="text-xl font-bold text-indigo-600">
-              🍛 Mess Manager
+              🍽️ MessMate
             </Link>
             <div className="hidden md:flex ml-8 space-x-4">
               <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 rounded-md hover:bg-gray-50">
@@ -47,9 +48,6 @@ export default function Navbar() {
                   <Link href="/manager/deposits" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
                     💰 Deposits
                   </Link>
-                  <Link href="/manager/members" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
-                    👥 Members
-                  </Link>
                   <Link href="/manager/handover" className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 rounded-md hover:bg-red-50">
                     🔄 Handover
                   </Link>
@@ -57,7 +55,10 @@ export default function Navbar() {
               )}
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-3">
+            <Link href="/mess-info" className="text-sm text-gray-500 hover:text-indigo-600">
+              🏠 Mess
+            </Link>
             <Link href="/profile" className="text-sm text-gray-600 hover:text-indigo-600">
               {session.user?.name}
               {isManager && (
@@ -83,21 +84,27 @@ export default function Navbar() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="md:hidden pb-3 space-y-1">
-            <Link href="/dashboard" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Dashboard</Link>
-            <Link href="/calendar" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Calendar</Link>
-            <Link href="/transparency" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Transparency</Link>
-            <Link href="/audit-log" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Audit Log</Link>
-            <Link href="/billing" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Monthly Bill</Link>
-            <Link href="/bazar" className="block px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded">🛒 Bazar Entry</Link>
-            <Link href="/profile" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">⚙️ Profile</Link>
+            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Dashboard</Link>
+            <Link href="/calendar" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Calendar</Link>
+            <Link href="/transparency" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Transparency</Link>
+            <Link href="/audit-log" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Audit Log</Link>
+            <Link href="/billing" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Monthly Bill</Link>
+            <Link href="/bazar" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded">🛒 Bazar Entry</Link>
+            <Link href="/mess-info" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">🏠 Mess Info</Link>
+            <Link href="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">⚙️ Profile</Link>
             {isManager && (
               <>
-                <Link href="/manager/meals" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">✏️ Meal Entry</Link>
-                <Link href="/manager/deposits" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">💰 Deposits</Link>
-                <Link href="/manager/members" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">👥 Members</Link>
-                <Link href="/manager/handover" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">🔄 Handover</Link>
+                <Link href="/manager/meals" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">✏️ Meal Entry</Link>
+                <Link href="/manager/deposits" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">💰 Deposits</Link>
+                <Link href="/manager/handover" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">🔄 Handover</Link>
               </>
             )}
+            <button
+              onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }}
+              className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
+            >
+              🚪 Logout
+            </button>
           </div>
         )}
       </div>

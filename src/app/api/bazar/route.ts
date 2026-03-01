@@ -5,12 +5,18 @@ import { createAuditLog } from "@/lib/audit";
 
 // GET bazar trips
 export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.messId) {
+    return NextResponse.json({ error: "Not in a mess" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
   const year = searchParams.get("year");
   const date = searchParams.get("date");
 
-  const where: Record<string, unknown> = {};
+  const where: Record<string, unknown> = { messId };
   if (date) {
     where.date = new Date(date);
   } else if (month && year) {
@@ -33,9 +39,10 @@ export async function GET(request: NextRequest) {
 // POST - create a bazar trip with items (any logged-in member)
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session) {
+  if (!session?.user?.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const messId = session.user.messId;
 
   const body = await request.json();
   const { date, buyerId, note, items } = body;
@@ -50,6 +57,7 @@ export async function POST(request: NextRequest) {
     data: {
       date: new Date(date),
       buyerId,
+      messId,
       totalCost,
       note,
       items: {
@@ -72,6 +80,7 @@ export async function POST(request: NextRequest) {
 
   await createAuditLog({
     editedById: session.user.id,
+    messId,
     tableName: "BazarTrip",
     recordId: trip.id,
     fieldName: "all",
