@@ -53,8 +53,17 @@ export async function POST(request: NextRequest) {
     action: "CREATE" | "UPDATE" | "DELETE";
   }[] = [];
 
+  // Fetch all member names in one query for audit log readability
+  const memberIds = entries.map((e: { memberId: string }) => e.memberId);
+  const members = await prisma.user.findMany({
+    where: { id: { in: memberIds } },
+    select: { id: true, name: true },
+  });
+  const memberNameMap = Object.fromEntries(members.map((m) => [m.id, m.name]));
+
   for (const entry of entries) {
     const total = (entry.breakfast || 0) + (entry.lunch || 0) + (entry.dinner || 0);
+    const memberName = memberNameMap[entry.memberId] || "Unknown";
 
     // Check existing entry
     const existing = await prisma.mealEntry.findUnique({
@@ -67,13 +76,13 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      // Track changes for audit log
+      // Track changes for audit log — include member name
       if (existing.breakfast !== entry.breakfast) {
         auditLogs.push({
           editedById: session.user.id,
           tableName: "MealEntry",
           recordId: existing.id,
-          fieldName: "breakfast",
+          fieldName: `${memberName} - breakfast`,
           oldValue: String(existing.breakfast),
           newValue: String(entry.breakfast),
           action: "UPDATE",
@@ -84,7 +93,7 @@ export async function POST(request: NextRequest) {
           editedById: session.user.id,
           tableName: "MealEntry",
           recordId: existing.id,
-          fieldName: "lunch",
+          fieldName: `${memberName} - lunch`,
           oldValue: String(existing.lunch),
           newValue: String(entry.lunch),
           action: "UPDATE",
@@ -95,7 +104,7 @@ export async function POST(request: NextRequest) {
           editedById: session.user.id,
           tableName: "MealEntry",
           recordId: existing.id,
-          fieldName: "dinner",
+          fieldName: `${memberName} - dinner`,
           oldValue: String(existing.dinner),
           newValue: String(entry.dinner),
           action: "UPDATE",
@@ -127,7 +136,7 @@ export async function POST(request: NextRequest) {
         editedById: session.user.id,
         tableName: "MealEntry",
         recordId: created.id,
-        fieldName: "all",
+        fieldName: `${memberName} - all`,
         oldValue: null,
         newValue: `B:${entry.breakfast} L:${entry.lunch} D:${entry.dinner}`,
         action: "CREATE",
