@@ -167,7 +167,7 @@ export default function DashboardPage() {
               auditLogs.map((log) => (
                 <div key={log.id} className="p-2 bg-gray-50 rounded-lg">
                   <div className="flex justify-between">
-                    <span className="font-medium text-gray-700">{log.editedBy.name}</span>
+                    <span className="font-medium text-gray-700">{log.fieldName}</span>
                     <span className="text-xs text-gray-400">
                       {new Date(log.createdAt).toLocaleString()}
                     </span>
@@ -175,13 +175,14 @@ export default function DashboardPage() {
                   <p className="text-gray-600">
                     {log.action === "UPDATE" ? (
                       <>
-                        Changed <span className="font-medium">{log.tableName}.{log.fieldName}</span>:{" "}
                         <span className="text-red-500 line-through">{log.oldValue}</span> →{" "}
                         <span className="text-green-600">{log.newValue}</span>
+                        <span className="text-gray-400 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     ) : (
                       <>
-                        {log.action} {log.tableName}: {log.newValue}
+                        {log.action}: {log.newValue}
+                        <span className="text-gray-400 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     )}
                   </p>

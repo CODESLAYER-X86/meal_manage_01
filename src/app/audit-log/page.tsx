@@ -90,16 +90,15 @@ export default function AuditLogPage() {
                   }`}>
                     {log.action}
                   </span>
-                  <span className="font-medium text-gray-700">{log.editedBy.name}</span>
+                  <span className="text-gray-500 text-xs">by {log.editedBy.name}</span>
                 </div>
                 <span className="text-xs text-gray-400">
                   {new Date(log.createdAt).toLocaleString()}
                 </span>
               </div>
               <div className="mt-2 text-sm text-gray-600">
-                <span className="font-medium">{log.tableName}</span>
-                <span className="text-gray-400"> → </span>
-                <span>{log.fieldName}</span>
+                <span className="font-medium text-gray-800">{log.fieldName}</span>
+                <span className="text-gray-400"> ({log.tableName})</span>
               </div>
               {log.action === "UPDATE" && (
                 <div className="mt-1 text-sm">
