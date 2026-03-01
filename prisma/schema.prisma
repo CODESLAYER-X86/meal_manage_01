@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MANAGER
+  MEMBER
+}
+
+enum CleaningStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String?
+  email       String   @unique
+  password    String
+  role        Role     @default(MEMBER)
+  isActive    Boolean  @default(true)
+  joinDate    DateTime @default(now())
+  leaveDate   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mealEntries       MealEntry[]
+  deposits          Deposit[]
+  bazarTrips        BazarTrip[]
+  washroomDuties    WashroomCleaning[]
+  managerRotations  ManagerRotation[]
+  auditLogs         AuditLog[]       @relation("EditedBy")
+  disputes          Dispute[]
+}
+
+model MealEntry {
+  id        String   @id @default(cuid())
+  date      DateTime
+  memberId  String
+  member    User     @relation(fields: [memberId], references: [id])
+  breakfast Float    @default(0)
+  lunch     Float    @default(0)
+  dinner    Float    @default(0)
+  total     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, memberId])
+  @@index([date])
+  @@index([memberId])
+}
+
+model Deposit {
+  id        String   @id @default(cuid())
+  date      DateTime
+  memberId  String
+  member    User     @relation(fields: [memberId], references: [id])
+  amount    Float
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([memberId])
+}
+
+model BazarTrip {
+  id        String      @id @default(cuid())
+  date      DateTime
+  buyerId   String
+  buyer     User        @relation(fields: [buyerId], references: [id])
+  totalCost Float       @default(0)
+  note      String?
+  items     BazarItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([date])
+}
+
+model BazarItem {
+  id        String    @id @default(cuid())
+  tripId    String
+  trip      BazarTrip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  serialNo  Int
+  itemName  String
+  quantity  Float
+  unit      String
+  price     Float     @default(0)
+  createdAt DateTime  @default(now())
+}
+
+model WashroomCleaning {
+  id        String         @id @default(cuid())
+  date      DateTime
+  memberId  String
+  member    User           @relation(fields: [memberId], references: [id])
+  status    CleaningStatus @default(PENDING)
+  note      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([date, memberId])
+  @@index([date])
+}
+
+model ManagerRotation {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    User     @relation(fields: [memberId], references: [id])
+  month     Int
+  year      Int
+  createdAt DateTime @default(now())
+
+  @@unique([month, year])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  editedById String
+  editedBy   User     @relation("EditedBy", fields: [editedById], references: [id])
+  tableName  String
+  recordId   String
+  fieldName  String
+  oldValue   String?
+  newValue   String?
+  action     String
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([tableName])
+}
+
+model Dispute {
+  id         String   @id @default(cuid())
+  memberId   String
+  member     User     @relation(fields: [memberId], references: [id])
+  tableName  String
+  recordId   String
+  message    String
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
