@@ -36,6 +36,9 @@ export default function Navbar() {
               <Link href="/billing" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 rounded-md hover:bg-gray-50">
                 Monthly Bill
               </Link>
+              <Link href="/bazar" className="px-3 py-2 text-sm font-medium text-orange-600 hover:text-orange-800 rounded-md hover:bg-orange-50">
+                🛒 Bazar
+              </Link>
               {isManager && (
                 <>
                   <Link href="/manager/meals" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
@@ -44,22 +47,25 @@ export default function Navbar() {
                   <Link href="/manager/deposits" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
                     💰 Deposits
                   </Link>
-                  <Link href="/manager/bazar" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
-                    🛒 Bazar
+                  <Link href="/manager/members" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
+                    👥 Members
+                  </Link>
+                  <Link href="/manager/handover" className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 rounded-md hover:bg-red-50">
+                    🔄 Handover
                   </Link>
                 </>
               )}
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <span className="text-sm text-gray-600">
+            <Link href="/profile" className="text-sm text-gray-600 hover:text-indigo-600">
               {session.user?.name}
               {isManager && (
                 <span className="ml-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
                   Manager
                 </span>
               )}
-            </span>
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="text-sm text-red-600 hover:text-red-800"
@@ -82,11 +88,12 @@ export default function Navbar() {
             <Link href="/transparency" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Transparency</Link>
             <Link href="/audit-log" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Audit Log</Link>
             <Link href="/billing" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Monthly Bill</Link>
+            <Link href="/bazar" className="block px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded">🛒 Bazar Entry</Link>
+            <Link href="/profile" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">⚙️ Profile</Link>
             {isManager && (
               <>
                 <Link href="/manager/meals" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">✏️ Meal Entry</Link>
                 <Link href="/manager/deposits" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">💰 Deposits</Link>
-                <Link href="/manager/bazar" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">🛒 Bazar</Link>
                 <Link href="/manager/members" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">👥 Members</Link>
                 <Link href="/manager/handover" className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">🔄 Handover</Link>
               </>

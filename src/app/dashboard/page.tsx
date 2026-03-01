@@ -102,6 +102,14 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Quick Actions — for everyone */}
+      <div className="bg-orange-50 p-5 rounded-xl border border-orange-100">
+        <h2 className="text-lg font-semibold text-orange-800 mb-3">🛒 Bazar</h2>
+        <Link href="/bazar" className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition inline-block">
+          🛒 Add Bazar Entry
+        </Link>
+      </div>
+
       {/* Manager Quick Actions */}
       {isManager && (
         <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
@@ -112,9 +120,6 @@ export default function DashboardPage() {
             </Link>
             <Link href="/manager/deposits" className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
               💰 Record Deposit
-            </Link>
-            <Link href="/manager/bazar" className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition">
-              🛒 Add Bazar Entry
             </Link>
             <Link href="/manager/members" className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition">
               👥 Members
