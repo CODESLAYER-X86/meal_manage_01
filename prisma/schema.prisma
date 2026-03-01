@@ -42,6 +42,8 @@ model Mess {
   auditLogs         AuditLog[]
   disputes          Dispute[]
   joinRequests      JoinRequest[]
+  mealPlans         MealPlan[]
+  mealOffRequests   MealOffRequest[]
 }
 
 model User {
@@ -68,6 +70,7 @@ model User {
   auditLogs         AuditLog[]         @relation("EditedBy")
   disputes          Dispute[]
   joinRequests      JoinRequest[]
+  mealOffRequests   MealOffRequest[]
 
   @@index([messId])
 }
@@ -217,4 +220,45 @@ model JoinRequest {
 
   @@unique([userId, messId])
   @@index([messId, status])
+}
+
+enum MealOffStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model MealPlan {
+  id        String   @id @default(cuid())
+  date      DateTime
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
+  breakfast String?
+  lunch     String?
+  dinner    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, messId])
+  @@index([messId])
+  @@index([date])
+}
+
+model MealOffRequest {
+  id        String        @id @default(cuid())
+  memberId  String
+  member    User          @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess          @relation(fields: [messId], references: [id])
+  fromDate  DateTime
+  toDate    DateTime
+  reason    String?
+  status    MealOffStatus @default(PENDING)
+  reviewedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([messId])
+  @@index([memberId])
+  @@index([fromDate, toDate])
 }
