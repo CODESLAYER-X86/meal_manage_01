@@ -208,13 +208,81 @@ export default function BazarEntryPage() {
           </div>
         </div>
 
-        {/* Items Table */}
+        {/* Items */}
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="p-4 border-b flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-800">📦 Items Purchased</h2>
             <span className="text-lg font-bold text-orange-600">Total: ৳{totalCost}</span>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile card layout */}
+          <div className="md:hidden divide-y">
+            {items.map((item, i) => (
+              <div key={i} className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-500">Item #{i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(i)}
+                    className="text-red-500 hover:text-red-700 text-lg"
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={item.itemName}
+                  onChange={(e) => updateItem(i, "itemName", e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  placeholder="Item name (e.g. Beef, Rice, Oil...)"
+                  required
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(i, "quantity", e.target.value)}
+                      className="w-full px-2 py-2 border rounded-lg text-center text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      placeholder="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Unit</label>
+                    <select
+                      value={item.unit}
+                      onChange={(e) => updateItem(i, "unit", e.target.value)}
+                      className="w-full px-2 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                      <option value="kg">kg</option>
+                      <option value="g">g</option>
+                      <option value="litre">litre</option>
+                      <option value="ml">ml</option>
+                      <option value="pcs">pcs</option>
+                      <option value="packet">packet</option>
+                      <option value="dozen">dozen</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Price ৳</label>
+                    <input
+                      type="number"
+                      value={item.price}
+                      onChange={(e) => updateItem(i, "price", e.target.value)}
+                      className="w-full px-2 py-2 border rounded-lg text-right text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table layout */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
@@ -289,6 +357,7 @@ export default function BazarEntryPage() {
               </tbody>
             </table>
           </div>
+
           <div className="p-3 border-t">
             <button
               type="button"

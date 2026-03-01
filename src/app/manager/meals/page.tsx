@@ -98,8 +98,38 @@ export default function MealEntryPage() {
         />
       </div>
 
-      {/* Meal Entry Table */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+      {/* Meal Entry — Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {entries.map((entry, i) => (
+          <div key={entry.memberId} className="bg-white rounded-xl shadow-sm border p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-gray-800">{entry.memberName}</span>
+              <span className="text-sm font-bold text-indigo-600">
+                Total: {entry.breakfast + entry.lunch + entry.dinner}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {(["breakfast", "lunch", "dinner"] as const).map((field) => (
+                <div key={field}>
+                  <label className="block text-xs text-gray-500 mb-1 text-center capitalize">{field}</label>
+                  <select
+                    value={entry[field]}
+                    onChange={(e) => updateEntry(i, field, parseFloat(e.target.value))}
+                    className="w-full px-2 py-2 border rounded-lg text-center text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  >
+                    {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Meal Entry — Desktop Table */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

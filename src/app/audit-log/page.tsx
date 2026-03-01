@@ -53,7 +53,7 @@ export default function AuditLogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
         <h1 className="text-2xl font-bold text-gray-800">🔍 Audit Log</h1>
         <p className="text-sm text-gray-500">Every change is permanently recorded</p>
       </div>
@@ -66,7 +66,7 @@ export default function AuditLogPage() {
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 filter === t
                   ? "bg-indigo-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -83,14 +83,14 @@ export default function AuditLogPage() {
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-3 py-1.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
           />
           <span className="text-gray-400 text-sm">to</span>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-3 py-1.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
           />
           {(fromDate || toDate) && (
             <button

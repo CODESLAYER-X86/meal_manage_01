@@ -60,7 +60,7 @@ export default function BillingPage() {
       <h1 className="text-2xl font-bold text-gray-800">📊 Monthly Bill</h1>
 
       {/* Month Selector */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4">
+      <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap items-center gap-3 sm:gap-4">
         <select
           value={month}
           onChange={(e) => setMonth(Number(e.target.value))}
@@ -84,18 +84,18 @@ export default function BillingPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-xl shadow-sm border text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
           <p className="text-sm text-gray-500">Total Expense</p>
-          <p className="text-2xl font-bold text-red-600">৳{bill?.totalExpense || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-600">৳{bill?.totalExpense || 0}</p>
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border text-center">
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
           <p className="text-sm text-gray-500">Total Meals</p>
-          <p className="text-2xl font-bold text-indigo-600">{bill?.totalMeals || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-indigo-600">{bill?.totalMeals || 0}</p>
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border text-center">
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
           <p className="text-sm text-gray-500">Meal Rate</p>
-          <p className="text-2xl font-bold text-indigo-600">৳{bill?.mealRate || 0}</p>
+          <p className="text-xl sm:text-2xl font-bold text-indigo-600">৳{bill?.mealRate || 0}</p>
           <p className="text-xs text-gray-400">per meal</p>
         </div>
       </div>

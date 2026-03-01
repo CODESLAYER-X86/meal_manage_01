@@ -40,6 +40,9 @@ export default function Navbar() {
               <Link href="/bazar" className="px-3 py-2 text-sm font-medium text-orange-600 hover:text-orange-800 rounded-md hover:bg-orange-50">
                 🛒 Bazar
               </Link>
+              <Link href="/washroom" className="px-3 py-2 text-sm font-medium text-teal-600 hover:text-teal-800 rounded-md hover:bg-teal-50">
+                🚿 Washroom
+              </Link>
               {isManager && (
                 <>
                   <Link href="/manager/meals" className="px-3 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50">
@@ -76,32 +79,36 @@ export default function Navbar() {
           </div>
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-600">
-              ☰
+            <button onClick={() => setMenuOpen(!menuOpen)} className="p-3 text-gray-600 text-xl">
+              {menuOpen ? "✕" : "☰"}
             </button>
           </div>
         </div>
         {/* Mobile menu */}
         {menuOpen && (
-          <div className="md:hidden pb-3 space-y-1">
-            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Dashboard</Link>
-            <Link href="/calendar" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Calendar</Link>
-            <Link href="/transparency" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Transparency</Link>
-            <Link href="/audit-log" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Audit Log</Link>
-            <Link href="/billing" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Monthly Bill</Link>
-            <Link href="/bazar" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded">🛒 Bazar Entry</Link>
-            <Link href="/mess-info" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">🏠 Mess Info</Link>
-            <Link href="/profile" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">⚙️ Profile</Link>
+          <div className="md:hidden pb-3 space-y-0.5 max-h-[70vh] overflow-y-auto">
+            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">📊 Dashboard</Link>
+            <Link href="/calendar" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">📅 Calendar</Link>
+            <Link href="/transparency" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">👁️ Transparency</Link>
+            <Link href="/audit-log" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">🔍 Audit Log</Link>
+            <Link href="/billing" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">📊 Monthly Bill</Link>
+            <Link href="/bazar" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-orange-600 hover:bg-orange-50 rounded-lg">🛒 Bazar Entry</Link>
+            <Link href="/washroom" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-teal-600 hover:bg-teal-50 rounded-lg">🚿 Washroom</Link>
+            <hr className="my-1 border-gray-100" />
+            <Link href="/mess-info" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">🏠 Mess Info</Link>
+            <Link href="/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">⚙️ Profile</Link>
             {isManager && (
               <>
-                <Link href="/manager/meals" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">✏️ Meal Entry</Link>
-                <Link href="/manager/deposits" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">💰 Deposits</Link>
-                <Link href="/manager/handover" onClick={() => setMenuOpen(false)} className="block px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded">🔄 Handover</Link>
+                <hr className="my-1 border-gray-100" />
+                <Link href="/manager/meals" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg">✏️ Meal Entry</Link>
+                <Link href="/manager/deposits" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg">💰 Deposits</Link>
+                <Link href="/manager/handover" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg">🔄 Handover</Link>
               </>
             )}
+            <hr className="my-1 border-gray-100" />
             <button
               onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/login" }); }}
-              className="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded"
+              className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-lg"
             >
               🚪 Logout
             </button>
