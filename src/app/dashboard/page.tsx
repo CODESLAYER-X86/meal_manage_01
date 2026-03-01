@@ -30,11 +30,21 @@ interface AuditEntry {
   editedBy: { name: string };
 }
 
+interface MealPlan {
+  id: string;
+  date: string;
+  breakfast: string | null;
+  lunch: string | null;
+  dinner: string | null;
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [bill, setBill] = useState<BillData | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
+  const [todayMenu, setTodayMenu] = useState<MealPlan | null>(null);
+  const [tomorrowMenu, setTomorrowMenu] = useState<MealPlan | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,12 +56,22 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "authenticated") {
       const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const tmrw = new Date(now);
+      tmrw.setDate(tmrw.getDate() + 1);
+      const tmrwStr = `${tmrw.getFullYear()}-${String(tmrw.getMonth() + 1).padStart(2, "0")}-${String(tmrw.getDate()).padStart(2, "0")}`;
+
       Promise.all([
         fetch(`/api/billing?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.json()),
         fetch("/api/audit-log?limit=10").then((r) => r.json()),
-      ]).then(([billData, logs]) => {
+        fetch(`/api/meal-plan?date=${todayStr}`).then((r) => r.json()),
+        fetch(`/api/meal-plan?date=${tmrwStr}`).then((r) => r.json()),
+      ]).then(([billData, logs, todayPlan, tmrwPlan]) => {
         setBill(billData);
         setAuditLogs(logs);
+        // API returns single object for ?date= query, or array for month query
+        setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
+        setTomorrowMenu(tmrwPlan && tmrwPlan.id ? tmrwPlan : null);
         setLoading(false);
       });
     }
@@ -99,6 +119,90 @@ export default function DashboardPage() {
           <p className={`text-lg sm:text-2xl font-bold truncate ${(myBill?.netDue || 0) > 0 ? "text-red-600" : "text-green-600"}`}>
             {(myBill?.netDue || 0) > 0 ? `৳${myBill?.netDue} owed` : `৳${Math.abs(myBill?.netDue || 0)} refund`}
           </p>
+        </div>
+      </div>
+
+      {/* Today's & Tomorrow's Menu */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Today */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-indigo-100">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">📅</span>
+            <h2 className="text-base font-semibold text-gray-800">Today&apos;s Menu</h2>
+          </div>
+          {todayMenu && (todayMenu.breakfast || todayMenu.lunch || todayMenu.dinner) ? (
+            <div className="space-y-2">
+              {todayMenu.breakfast && (
+                <div className="flex items-start gap-2">
+                  <span>🌅</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Breakfast</p>
+                    <p className="text-sm text-gray-800">{todayMenu.breakfast}</p>
+                  </div>
+                </div>
+              )}
+              {todayMenu.lunch && (
+                <div className="flex items-start gap-2">
+                  <span>☀️</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Lunch</p>
+                    <p className="text-sm text-gray-800">{todayMenu.lunch}</p>
+                  </div>
+                </div>
+              )}
+              {todayMenu.dinner && (
+                <div className="flex items-start gap-2">
+                  <span>🌙</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Dinner</p>
+                    <p className="text-sm text-gray-800">{todayMenu.dinner}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No menu planned for today</p>
+          )}
+        </div>
+        {/* Tomorrow */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">🔮</span>
+            <h2 className="text-base font-semibold text-gray-800">Tomorrow&apos;s Menu</h2>
+          </div>
+          {tomorrowMenu && (tomorrowMenu.breakfast || tomorrowMenu.lunch || tomorrowMenu.dinner) ? (
+            <div className="space-y-2">
+              {tomorrowMenu.breakfast && (
+                <div className="flex items-start gap-2">
+                  <span>🌅</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Breakfast</p>
+                    <p className="text-sm text-gray-800">{tomorrowMenu.breakfast}</p>
+                  </div>
+                </div>
+              )}
+              {tomorrowMenu.lunch && (
+                <div className="flex items-start gap-2">
+                  <span>☀️</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Lunch</p>
+                    <p className="text-sm text-gray-800">{tomorrowMenu.lunch}</p>
+                  </div>
+                </div>
+              )}
+              {tomorrowMenu.dinner && (
+                <div className="flex items-start gap-2">
+                  <span>🌙</span>
+                  <div>
+                    <p className="text-xs text-gray-400 font-medium">Dinner</p>
+                    <p className="text-sm text-gray-800">{tomorrowMenu.dinner}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No menu planned for tomorrow</p>
+          )}
         </div>
       </div>
 

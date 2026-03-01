@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   const messId = session.user.messId;
 
   const body = await request.json();
-  const { fromDate, toDate, reason } = body;
+  const { fromDate, toDate, reason, skipBreakfast, skipLunch, skipDinner } = body;
 
   if (!fromDate || !toDate) {
     return NextResponse.json({ error: "From date and to date are required" }, { status: 400 });
@@ -51,10 +51,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "End date must be after start date" }, { status: 400 });
   }
 
-  // Max 7 days
-  const diffDays = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  if (diffDays > 7) {
-    return NextResponse.json({ error: "Maximum 7 days allowed per request" }, { status: 400 });
+  // At least one meal must be skipped
+  const skipB = skipBreakfast !== false; // default true
+  const skipL = skipLunch !== false;
+  const skipD = skipDinner !== false;
+  if (!skipB && !skipL && !skipD) {
+    return NextResponse.json({ error: "You must skip at least one meal" }, { status: 400 });
   }
 
   // From date must be today or in the future
@@ -86,6 +88,9 @@ export async function POST(request: NextRequest) {
       messId,
       fromDate: new Date(fromDate),
       toDate: new Date(toDate),
+      skipBreakfast: skipB,
+      skipLunch: skipL,
+      skipDinner: skipD,
       reason: reason?.trim() || null,
     },
     include: {
