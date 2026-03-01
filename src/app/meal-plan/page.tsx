@@ -18,6 +18,9 @@ interface MealOffRequest {
   member: { id: string; name: string };
   fromDate: string;
   toDate: string;
+  skipBreakfast: boolean;
+  skipLunch: boolean;
+  skipDinner: boolean;
   reason: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   reviewedAt: string | null;
@@ -47,6 +50,9 @@ export default function MealPlanPage() {
   const [offFrom, setOffFrom] = useState("");
   const [offTo, setOffTo] = useState("");
   const [offReason, setOffReason] = useState("");
+  const [offSkipBreakfast, setOffSkipBreakfast] = useState(true);
+  const [offSkipLunch, setOffSkipLunch] = useState(true);
+  const [offSkipDinner, setOffSkipDinner] = useState(true);
   const [offSubmitting, setOffSubmitting] = useState(false);
   const [offError, setOffError] = useState("");
 
@@ -150,7 +156,14 @@ export default function MealPlanPage() {
       const res = await fetch("/api/meal-off", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromDate: offFrom, toDate: offTo, reason: offReason.trim() }),
+        body: JSON.stringify({
+          fromDate: offFrom,
+          toDate: offTo,
+          reason: offReason.trim(),
+          skipBreakfast: offSkipBreakfast,
+          skipLunch: offSkipLunch,
+          skipDinner: offSkipDinner,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -161,6 +174,9 @@ export default function MealPlanPage() {
       setOffFrom("");
       setOffTo("");
       setOffReason("");
+      setOffSkipBreakfast(true);
+      setOffSkipLunch(true);
+      setOffSkipDinner(true);
       await fetchData();
     } catch {
       setOffError("Something went wrong");
@@ -272,7 +288,7 @@ export default function MealPlanPage() {
         <div className="bg-amber-50 rounded-xl shadow-sm border border-amber-200 p-4 sm:p-6 space-y-4">
           <h2 className="text-lg font-semibold text-amber-900">🏖️ Request Meal Off</h2>
           <p className="text-sm text-amber-700">
-            Going on vacation or won't eat? Request up to 7 days off. The manager will approve it.
+            Going on vacation or skipping specific meals? Select the dates and which meals to skip. The manager will approve it.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -297,6 +313,39 @@ export default function MealPlanPage() {
                 onChange={(e) => setOffTo(e.target.value)}
                 className="w-full px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
               />
+            </div>
+          </div>
+          {/* Per-meal skip checkboxes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Which meals to skip?</label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={offSkipBreakfast}
+                  onChange={(e) => setOffSkipBreakfast(e.target.checked)}
+                  className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">🌅 Breakfast</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={offSkipLunch}
+                  onChange={(e) => setOffSkipLunch(e.target.checked)}
+                  className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">☀️ Lunch</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={offSkipDinner}
+                  onChange={(e) => setOffSkipDinner(e.target.checked)}
+                  className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">🌙 Dinner</span>
+              </label>
             </div>
           </div>
           <div>
@@ -357,6 +406,9 @@ export default function MealPlanPage() {
                             {" "}({days} day{days > 1 ? "s" : ""})
                           </span>
                         </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Skip: {[mo.skipBreakfast && "🌅 Breakfast", mo.skipLunch && "☀️ Lunch", mo.skipDinner && "🌙 Dinner"].filter(Boolean).join(", ") || "All meals"}
+                        </p>
                         {mo.reason && (
                           <p className="text-sm text-gray-500 mt-0.5">💬 {mo.reason}</p>
                         )}
@@ -416,6 +468,7 @@ export default function MealPlanPage() {
                 const from = new Date(mo.fromDate);
                 const to = new Date(mo.toDate);
                 const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                const skipped = [mo.skipBreakfast && "B", mo.skipLunch && "L", mo.skipDinner && "D"].filter(Boolean).join("");
                 return (
                   <div key={mo.id} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
                     <span className="font-medium text-green-800">{mo.member.name}</span>
@@ -423,6 +476,9 @@ export default function MealPlanPage() {
                       {from.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                       {days > 1 && ` → ${to.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
                     </span>
+                    {skipped !== "BLD" && (
+                      <span className="text-green-500 ml-1 text-xs">({skipped} off)</span>
+                    )}
                   </div>
                 );
               })}
@@ -473,7 +529,10 @@ export default function MealPlanPage() {
                 <div className="flex items-center gap-2">
                   {offMembers.length > 0 && (
                     <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                      🏖️ {offMembers.map((m) => m.member.name).join(", ")} off
+                      🏖️ {offMembers.map((m) => {
+                        const skipped = [m.skipBreakfast && "B", m.skipLunch && "L", m.skipDinner && "D"].filter(Boolean).join("");
+                        return skipped === "BLD" ? m.member.name : `${m.member.name}(${skipped})`;
+                      }).join(", ")} off
                     </span>
                   )}
                   {isManager && !isEditing && (

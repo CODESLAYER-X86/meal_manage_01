@@ -94,14 +94,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Generate rotation: cycle through members across days
-  // Each day has `washroomCount` assignments (one member per washroom)
+  // Generate rotation: clean every 14 days
+  // Each cleaning day has `washroomCount` assignments (one member per washroom)
+  const INTERVAL_DAYS = 14;
   const daysInMonth = new Date(year, month, 0).getDate();
   const wcCount = Math.min(mess.washroomCount, members.length);
   const assignments: { date: Date; washroomNumber: number; memberId: string; messId: string }[] = [];
 
   let memberIndex = 0;
-  for (let day = 1; day <= daysInMonth; day++) {
+  for (let day = 1; day <= daysInMonth; day += INTERVAL_DAYS) {
     const date = new Date(year, month - 1, day);
     for (let wn = 1; wn <= wcCount; wn++) {
       assignments.push({

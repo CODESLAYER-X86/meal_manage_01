@@ -204,7 +204,7 @@ export default function WashroomPage() {
         </div>
 
         <p className="text-sm text-gray-500 mb-4">
-          {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · {members.length} members · Rotating daily duties
+          {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · {members.length} members · Cleaning every 14 days
         </p>
 
         {error && (
@@ -294,7 +294,10 @@ export default function WashroomPage() {
                 </tr>
               </thead>
               <tbody>
-                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+                {Object.keys(dutiesByDate)
+                  .map(Number)
+                  .sort((a, b) => a - b)
+                  .map((day) => {
                   const dayDuties = dutiesByDate[day.toString()] || [];
                   const dateObj = new Date(year, month - 1, day);
                   const isToday = dateObj.getTime() === today.getTime();
