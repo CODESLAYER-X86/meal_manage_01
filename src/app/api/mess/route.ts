@@ -240,6 +240,10 @@ export async function DELETE() {
   await prisma.$transaction([
     // Delete join requests
     prisma.joinRequest.deleteMany({ where: { messId } }),
+    // Delete meal-off requests
+    prisma.mealOffRequest.deleteMany({ where: { messId } }),
+    // Delete meal plans
+    prisma.mealPlan.deleteMany({ where: { messId } }),
     // Delete disputes
     prisma.dispute.deleteMany({ where: { messId } }),
     // Delete audit logs
