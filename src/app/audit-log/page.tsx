@@ -21,6 +21,8 @@ export default function AuditLogPage() {
   const [logs, setLogs] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -28,15 +30,18 @@ export default function AuditLogPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      const query = filter === "all" ? "" : `&table=${filter}`;
-      fetch(`/api/audit-log?limit=100${query}`)
+      setLoading(true);
+      let query = filter === "all" ? "" : `&table=${filter}`;
+      if (fromDate) query += `&from=${fromDate}`;
+      if (toDate) query += `&to=${toDate}`;
+      fetch(`/api/audit-log?limit=200${query}`)
         .then((r) => r.json())
         .then((data) => {
           setLogs(data);
           setLoading(false);
         });
     }
-  }, [status, filter]);
+  }, [status, filter, fromDate, toDate]);
 
   if (status === "loading" || loading) {
     return (
@@ -53,21 +58,49 @@ export default function AuditLogPage() {
         <p className="text-sm text-gray-500">Every change is permanently recorded</p>
       </div>
 
-      {/* Filter */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border flex gap-2">
-        {["all", "MealEntry", "Deposit", "BazarTrip", "ManagerRotation"].map((t) => (
-          <button
-            key={t}
-            onClick={() => setFilter(t)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-              filter === t
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {t === "all" ? "All" : t}
-          </button>
-        ))}
+      {/* Filters */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+        {/* Table filter */}
+        <div className="flex flex-wrap gap-2">
+          {["all", "MealEntry", "Deposit", "BazarTrip", "ManagerRotation"].map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilter(t)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                filter === t
+                  ? "bg-indigo-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {t === "all" ? "All" : t}
+            </button>
+          ))}
+        </div>
+        {/* Date range filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">📅 Date range:</span>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="px-3 py-1.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+          />
+          <span className="text-gray-400 text-sm">to</span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="px-3 py-1.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+          />
+          {(fromDate || toDate) && (
+            <button
+              onClick={() => { setFromDate(""); setToDate(""); }}
+              className="px-3 py-1.5 text-sm text-red-600 hover:text-red-800 font-medium"
+            >
+              ✕ Clear dates
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Log Entries */}

@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(trips);
 }
 
-// POST - create a bazar trip with items (manager only)
+// POST - create a bazar trip with items (any logged-in member)
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "MANAGER") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
