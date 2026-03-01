@@ -58,13 +58,12 @@ export default function OnboardingPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to join mess");
+        setError(data.error || "Failed to send request");
         return;
       }
 
-      // Refresh session and go to dashboard
-      await update();
-      router.push("/dashboard");
+      // Request sent — go to pending page
+      router.push("/pending");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -135,7 +134,7 @@ export default function OnboardingPage() {
             <p className="text-gray-500 mt-1">
               {step === "choose" && "Create a new mess or join an existing one"}
               {step === "create" && "Set up your mess and invite your roommates"}
-              {step === "join" && "Enter the invite code shared by your manager"}
+              {step === "join" && "Enter the invite code — manager will approve your request"}
             </p>
           </div>
 
@@ -235,7 +234,7 @@ export default function OnboardingPage() {
                 disabled={loading}
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50"
               >
-                {loading ? "Joining..." : "🤝 Join Mess"}
+                {loading ? "Sending Request..." : "📩 Request to Join"}
               </button>
 
               <button

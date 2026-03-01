@@ -123,9 +123,7 @@ export async function POST(request: Request) {
 
     const mess = await prisma.mess.findUnique({
       where: { inviteCode: inviteCode.trim().toUpperCase() },
-      include: {
-        members: { where: { isActive: true } },
-      },
+      select: { id: true, name: true },
     });
 
     if (!mess) {
@@ -135,22 +133,49 @@ export async function POST(request: Request) {
       );
     }
 
-    // Join the mess as MEMBER
-    await prisma.user.update({
-      where: { id: session.user.id },
+    // Check if already has a pending/approved request for this mess
+    const existingRequest = await prisma.joinRequest.findUnique({
+      where: { userId_messId: { userId: session.user.id, messId: mess.id } },
+    });
+
+    if (existingRequest) {
+      if (existingRequest.status === "PENDING") {
+        return NextResponse.json(
+          { error: "You already have a pending request for this mess." },
+          { status: 400 }
+        );
+      }
+      if (existingRequest.status === "APPROVED") {
+        return NextResponse.json(
+          { error: "You are already a member of this mess." },
+          { status: 400 }
+        );
+      }
+      // If rejected, allow re-request by updating
+      await prisma.joinRequest.update({
+        where: { id: existingRequest.id },
+        data: { status: "PENDING", reviewedAt: null },
+      });
+
+      return NextResponse.json({
+        success: true,
+        pending: true,
+        mess: { id: mess.id, name: mess.name },
+      });
+    }
+
+    // Create a new join request (pending manager approval)
+    await prisma.joinRequest.create({
       data: {
+        userId: session.user.id,
         messId: mess.id,
-        role: "MEMBER",
       },
     });
 
     return NextResponse.json({
       success: true,
-      mess: {
-        id: mess.id,
-        name: mess.name,
-        memberCount: mess.members.length + 1,
-      },
+      pending: true,
+      mess: { id: mess.id, name: mess.name },
     });
   }
 

@@ -17,6 +17,12 @@ enum CleaningStatus {
   SKIPPED
 }
 
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Mess {
   id          String   @id @default(cuid())
   name        String
@@ -34,6 +40,7 @@ model Mess {
   managerRotations  ManagerRotation[]
   auditLogs         AuditLog[]
   disputes          Dispute[]
+  joinRequests      JoinRequest[]
 }
 
 model User {
@@ -59,6 +66,7 @@ model User {
   managerRotations  ManagerRotation[]
   auditLogs         AuditLog[]         @relation("EditedBy")
   disputes          Dispute[]
+  joinRequests      JoinRequest[]
 
   @@index([messId])
 }
@@ -192,4 +200,19 @@ model Dispute {
   updatedAt  DateTime @updatedAt
 
   @@index([messId])
+}
+
+model JoinRequest {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id])
+  messId     String
+  mess       Mess              @relation(fields: [messId], references: [id])
+  status     JoinRequestStatus @default(PENDING)
+  reviewedAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@unique([userId, messId])
+  @@index([messId, status])
 }

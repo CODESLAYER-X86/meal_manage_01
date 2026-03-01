@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -19,33 +19,100 @@ interface MessInfo {
   }[];
 }
 
+interface JoinRequestInfo {
+  id: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  };
+}
+
 export default function MessInfoPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [mess, setMess] = useState<MessInfo | null>(null);
+  const [pendingRequests, setPendingRequests] = useState<JoinRequestInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [kickConfirm, setKickConfirm] = useState<string | null>(null);
+
+  const isManager = session?.user?.role === "MANAGER";
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [messRes, requestsRes] = await Promise.all([
+        fetch("/api/mess"),
+        isManager ? fetch("/api/join-requests") : Promise.resolve(null),
+      ]);
+
+      const messData = await messRes.json();
+      setMess(messData.mess);
+
+      if (requestsRes) {
+        const reqData = await requestsRes.json();
+        setPendingRequests(reqData.requests || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, [isManager]);
 
   useEffect(() => {
     if (session && !session.user?.messId) {
       router.push("/onboarding");
       return;
     }
-
-    fetch("/api/mess")
-      .then((res) => res.json())
-      .then((data) => {
-        setMess(data.mess);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [session, router]);
+    fetchData();
+  }, [session, router, fetchData]);
 
   const copyCode = () => {
     if (mess) {
       navigator.clipboard.writeText(mess.inviteCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleRequest = async (requestId: string, action: "approve" | "reject") => {
+    setActionLoading(requestId);
+    try {
+      const res = await fetch("/api/join-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, requestId }),
+      });
+      if (res.ok) {
+        await fetchData();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleKick = async (memberId: string) => {
+    setActionLoading(memberId);
+    try {
+      const res = await fetch("/api/join-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "kick", memberId }),
+      });
+      if (res.ok) {
+        setKickConfirm(null);
+        await fetchData();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -86,8 +153,54 @@ export default function MessInfoPage() {
               {copied ? "✅ Copied!" : "📋 Copy"}
             </button>
           </div>
+          <p className="text-xs text-gray-400 mt-2">Members who use this code will need your approval to join</p>
         </div>
       </div>
+
+      {/* Pending Join Requests - Manager Only */}
+      {isManager && pendingRequests.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border-2 border-yellow-300 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
+            ⏳ Pending Join Requests
+            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+              {pendingRequests.length}
+            </span>
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">These people want to join your mess</p>
+          <div className="space-y-3">
+            {pendingRequests.map((req) => (
+              <div
+                key={req.id}
+                className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+              >
+                <div>
+                  <p className="font-medium text-gray-900">{req.user.name}</p>
+                  <p className="text-sm text-gray-500">{req.user.email}</p>
+                  {req.user.phone && (
+                    <p className="text-xs text-gray-400">📱 {req.user.phone}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRequest(req.id, "approve")}
+                    disabled={actionLoading === req.id}
+                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {actionLoading === req.id ? "..." : "✅ Approve"}
+                  </button>
+                  <button
+                    onClick={() => handleRequest(req.id, "reject")}
+                    disabled={actionLoading === req.id}
+                    className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    ❌ Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Members List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -106,12 +219,47 @@ export default function MessInfoPage() {
                       👑 Manager
                     </span>
                   )}
+                  {member.id === session?.user?.id && (
+                    <span className="ml-1 text-xs text-gray-400">(you)</span>
+                  )}
                 </p>
                 <p className="text-sm text-gray-500">{member.email}</p>
               </div>
-              {member.phone && (
-                <span className="text-sm text-gray-400">📱 {member.phone}</span>
-              )}
+              <div className="flex items-center gap-3">
+                {member.phone && (
+                  <span className="text-sm text-gray-400">📱 {member.phone}</span>
+                )}
+                {/* Kick button - manager only, not for self, not for other managers */}
+                {isManager && member.role !== "MANAGER" && member.id !== session?.user?.id && (
+                  <>
+                    {kickConfirm === member.id ? (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleKick(member.id)}
+                          disabled={actionLoading === member.id}
+                          className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading === member.id ? "..." : "Confirm"}
+                        </button>
+                        <button
+                          onClick={() => setKickConfirm(null)}
+                          className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium rounded transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setKickConfirm(member.id)}
+                        className="px-2 py-1 text-red-400 hover:text-red-600 hover:bg-red-50 text-xs font-medium rounded transition-colors"
+                        title={`Remove ${member.name} from mess`}
+                      >
+                        🚫 Kick
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
