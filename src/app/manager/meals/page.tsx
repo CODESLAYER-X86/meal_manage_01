@@ -121,9 +121,9 @@ export default function MealEntryPage() {
                       onChange={(e) => updateEntry(i, field, parseFloat(e.target.value))}
                       className="px-3 py-1.5 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 outline-none"
                     >
-                      <option value={0}>0</option>
-                      <option value={0.5}>0.5</option>
-                      <option value={1}>1</option>
+                      {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
                     </select>
                   </td>
                 ))}
