@@ -81,6 +81,20 @@ export default function BillingPage() {
             <option key={y} value={y}>{y}</option>
           ))}
         </select>
+        <a
+          href={`/api/export?month=${month}&year=${year}`}
+          download
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors ml-auto"
+        >
+          📤 Export CSV
+        </a>
+        <a
+          href={`/api/archive/export?month=${month}&year=${year}`}
+          download
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          📦 Archive .messmate
+        </a>
       </div>
 
       {/* Summary Cards */}
@@ -99,6 +113,57 @@ export default function BillingPage() {
           <p className="text-xs text-gray-400">per meal</p>
         </div>
       </div>
+
+      {/* Expense Chart — Visual Bar Comparison */}
+      {bill && bill.members.length > 0 && (
+        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">📊 Member Expense Comparison</h2>
+          <div className="space-y-3">
+            {bill.members.map((m) => {
+              const maxCost = Math.max(...bill.members.map((x) => x.mealCost), 1);
+              const costPct = (m.mealCost / maxCost) * 100;
+              const maxDeposit = Math.max(...bill.members.map((x) => x.totalDeposit), 1);
+              const depositPct = (m.totalDeposit / maxDeposit) * 100;
+              return (
+                <div key={m.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-gray-700 truncate">{m.name}</span>
+                    <span className={`text-xs font-medium ${m.netDue > 0 ? "text-red-600" : "text-green-600"}`}>
+                      {m.netDue > 0 ? `৳${m.netDue} owed` : `৳${Math.abs(m.netDue)} refund`}
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-12">Cost</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-red-400 h-3 rounded-full transition-all"
+                          style={{ width: `${costPct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500 w-14 text-right">৳{m.mealCost}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-12">Deposit</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                        <div
+                          className="bg-green-400 h-3 rounded-full transition-all"
+                          style={{ width: `${depositPct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500 w-14 text-right">৳{m.totalDeposit}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 mt-4 text-xs text-gray-400">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-400 rounded-full" /> Meal Cost</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-400 rounded-full" /> Deposited</div>
+          </div>
+        </div>
+      )}
 
       {/* Bill Breakdown Table */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">

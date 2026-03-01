@@ -45,6 +45,7 @@ export async function GET() {
       name: user.mess.name,
       inviteCode: user.mess.inviteCode,
       washroomCount: user.mess.washroomCount,
+      dueThreshold: (user.mess as Record<string, unknown>).dueThreshold ?? 500,
       createdBy: user.mess.createdBy.name,
       memberCount: user.mess.members.length,
       members: user.mess.members,
@@ -200,22 +201,34 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { washroomCount } = body;
+  const { washroomCount, dueThreshold } = body;
+
+  const updateData: Record<string, unknown> = {};
 
   if (washroomCount !== undefined) {
     if (typeof washroomCount !== "number" || washroomCount < 0 || washroomCount > 10) {
       return NextResponse.json({ error: "Washroom count must be a number between 0 and 10" }, { status: 400 });
     }
-
-    await prisma.mess.update({
-      where: { id: session.user.messId },
-      data: { washroomCount },
-    });
-
-    return NextResponse.json({ success: true, washroomCount });
+    updateData.washroomCount = washroomCount;
   }
 
-  return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  if (dueThreshold !== undefined) {
+    if (typeof dueThreshold !== "number" || dueThreshold < 0) {
+      return NextResponse.json({ error: "Due threshold must be a positive number" }, { status: 400 });
+    }
+    updateData.dueThreshold = dueThreshold;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  }
+
+  await prisma.mess.update({
+    where: { id: session.user.messId },
+    data: updateData,
+  });
+
+  return NextResponse.json({ success: true, ...updateData });
 }
 
 // DELETE - Delete the entire mess (manager only)
@@ -238,6 +251,16 @@ export async function DELETE() {
 
   // Delete all mess data in the correct order (respecting FK constraints)
   await prisma.$transaction([
+    // Delete meal votes (FK to MealVoteTopic)
+    prisma.mealVote.deleteMany({ where: { topic: { messId } } }),
+    // Delete meal vote topics
+    prisma.mealVoteTopic.deleteMany({ where: { messId } }),
+    // Delete meal ratings
+    prisma.mealRating.deleteMany({ where: { messId } }),
+    // Delete notifications
+    prisma.notification.deleteMany({ where: { messId } }),
+    // Delete announcements
+    prisma.announcement.deleteMany({ where: { messId } }),
     // Delete join requests
     prisma.joinRequest.deleteMany({ where: { messId } }),
     // Delete meal-off requests

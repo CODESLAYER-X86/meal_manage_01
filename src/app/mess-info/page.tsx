@@ -9,6 +9,7 @@ interface MessInfo {
   name: string;
   inviteCode: string;
   washroomCount: number;
+  dueThreshold: number;
   createdBy: string;
   memberCount: number;
   members: {
@@ -46,6 +47,9 @@ export default function MessInfoPage() {
   const [washroomInput, setWashroomInput] = useState(0);
   const [washroomSaving, setWashroomSaving] = useState(false);
   const [washroomMsg, setWashroomMsg] = useState("");
+  const [thresholdInput, setThresholdInput] = useState(500);
+  const [thresholdSaving, setThresholdSaving] = useState(false);
+  const [thresholdMsg, setThresholdMsg] = useState("");
 
   const isManager = session?.user?.role === "MANAGER";
 
@@ -60,6 +64,7 @@ export default function MessInfoPage() {
       setMess(messData.mess);
       if (messData.mess) {
         setWashroomInput(messData.mess.washroomCount || 0);
+        setThresholdInput(messData.mess.dueThreshold ?? 500);
       }
 
       if (requestsRes) {
@@ -149,6 +154,32 @@ export default function MessInfoPage() {
     } finally {
       setWashroomSaving(false);
       setTimeout(() => setWashroomMsg(""), 3000);
+    }
+  };
+
+  const handleThresholdSave = async () => {
+    setThresholdSaving(true);
+    setThresholdMsg("");
+    try {
+      const res = await fetch("/api/mess", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueThreshold: thresholdInput }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setThresholdMsg(thresholdInput === 0 ? "Deposit reminder disabled" : `Threshold set to ৳${thresholdInput}`);
+        if (mess) {
+          setMess({ ...mess, dueThreshold: thresholdInput });
+        }
+      } else {
+        setThresholdMsg(data.error || "Failed to save");
+      }
+    } catch {
+      setThresholdMsg("Something went wrong");
+    } finally {
+      setThresholdSaving(false);
+      setTimeout(() => setThresholdMsg(""), 3000);
     }
   };
 
@@ -352,6 +383,43 @@ export default function MessInfoPage() {
             {mess && mess.washroomCount > 0
               ? `Currently: ${mess.washroomCount} washroom${mess.washroomCount !== 1 ? "s" : ""} · Rotation is active`
               : "Currently: Disabled · Members won't see the washroom page"}
+          </p>
+        </div>
+      )}
+
+      {/* Deposit Reminder Threshold - Manager Only */}
+      {isManager && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">💰 Deposit Reminder</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Set the net-due threshold (৳). Members with dues above this amount will see a reminder on their dashboard. Set to 0 to disable.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-gray-700 font-medium">Threshold (৳):</label>
+            <input
+              type="number"
+              min={0}
+              max={10000}
+              step={100}
+              value={thresholdInput}
+              onChange={(e) => setThresholdInput(Math.max(0, Math.min(10000, parseInt(e.target.value) || 0)))}
+              className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <button
+              onClick={handleThresholdSave}
+              disabled={thresholdSaving || thresholdInput === (mess?.dueThreshold ?? 500)}
+              className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {thresholdSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+          {thresholdMsg && (
+            <p className="mt-2 text-sm text-green-600">✅ {thresholdMsg}</p>
+          )}
+          <p className="mt-3 text-xs text-gray-400">
+            {mess && mess.dueThreshold > 0
+              ? `Currently: ৳${mess.dueThreshold} · Members owing more than this will see a warning`
+              : "Currently: Disabled · No deposit reminders will be shown"}
           </p>
         </div>
       )}

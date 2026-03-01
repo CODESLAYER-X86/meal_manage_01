@@ -28,6 +28,7 @@ model Mess {
   name           String
   inviteCode     String   @unique
   washroomCount  Int      @default(0)
+  dueThreshold   Float    @default(500)
   createdById    String
   createdBy      User     @relation("MessCreator", fields: [createdById], references: [id])
   createdAt      DateTime @default(now())
@@ -44,6 +45,10 @@ model Mess {
   joinRequests      JoinRequest[]
   mealPlans         MealPlan[]
   mealOffRequests   MealOffRequest[]
+  announcements     Announcement[]
+  notifications     Notification[]
+  mealRatings       MealRating[]
+  mealVoteTopics    MealVoteTopic[]
 }
 
 model User {
@@ -71,6 +76,10 @@ model User {
   disputes          Dispute[]
   joinRequests      JoinRequest[]
   mealOffRequests   MealOffRequest[]
+  announcements     Announcement[]
+  notifications     Notification[]
+  mealRatings       MealRating[]
+  mealVotes         MealVote[]
 
   @@index([messId])
 }
@@ -264,4 +273,85 @@ model MealOffRequest {
   @@index([messId])
   @@index([memberId])
   @@index([fromDate, toDate])
+}
+
+// ========== ANNOUNCEMENT (Notice Board) ==========
+model Announcement {
+  id        String   @id @default(cuid())
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  title     String
+  body      String
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([messId])
+  @@index([createdAt])
+}
+
+// ========== NOTIFICATION (In-App) ==========
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
+  type      String   // "deposit_reminder", "meal_off_approved", "announcement", "vote", etc.
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([messId])
+}
+
+// ========== MEAL RATING ==========
+model MealRating {
+  id        String   @id @default(cuid())
+  date      DateTime
+  meal      String   // "breakfast", "lunch", "dinner"
+  rating    Int      // 1-5
+  comment   String?
+  memberId  String
+  member    User     @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([date, meal, memberId])
+  @@index([messId])
+  @@index([date])
+}
+
+// ========== MEAL VOTING ==========
+model MealVoteTopic {
+  id          String     @id @default(cuid())
+  messId      String
+  mess        Mess       @relation(fields: [messId], references: [id])
+  title       String     // e.g. "What should we cook on Friday dinner?"
+  options     String[]   // Array of options: ["Biryani", "Khichuri", "Pasta"]
+  targetDate  DateTime?  // Optional: which date is this vote for
+  targetMeal  String?    // Optional: "breakfast", "lunch", "dinner"
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  votes       MealVote[]
+
+  @@index([messId])
+}
+
+model MealVote {
+  id        String        @id @default(cuid())
+  topicId   String
+  topic     MealVoteTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  voterId   String
+  voter     User          @relation(fields: [voterId], references: [id])
+  option    String        // The chosen option
+  createdAt DateTime      @default(now())
+
+  @@unique([topicId, voterId])
 }
