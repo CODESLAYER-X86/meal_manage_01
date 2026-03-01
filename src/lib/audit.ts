@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 
 interface AuditLogParams {
   editedById: string;
+  messId: string;
   tableName: string;
   recordId: string;
   fieldName: string;
@@ -14,6 +15,7 @@ export async function createAuditLog(params: AuditLogParams) {
   return prisma.auditLog.create({
     data: {
       editedById: params.editedById,
+      messId: params.messId,
       tableName: params.tableName,
       recordId: params.recordId,
       fieldName: params.fieldName,
@@ -28,6 +30,7 @@ export async function createBulkAuditLogs(logs: AuditLogParams[]) {
   return prisma.auditLog.createMany({
     data: logs.map((log) => ({
       editedById: log.editedById,
+      messId: log.messId,
       tableName: log.tableName,
       recordId: log.recordId,
       fieldName: log.fieldName,

@@ -20,9 +20,27 @@ async function main() {
       name: "Omar",
       email: "omar@mess.com",
       password,
-      role: "MANAGER", // Omar is the first manager
+      role: "MANAGER",
       phone: "01700000001",
     },
+  });
+
+  // Create the default mess
+  const mess = await prisma.mess.upsert({
+    where: { inviteCode: "MESS-DEFAULT" },
+    update: {},
+    create: {
+      id: "mess_default",
+      name: "42/A Mirpur Mess",
+      inviteCode: "MESS-DEFAULT",
+      createdById: omar.id,
+    },
+  });
+
+  // Update Omar to be in the mess
+  await prisma.user.update({
+    where: { id: omar.id },
+    data: { messId: mess.id },
   });
 
   const jahid = await prisma.user.upsert({
@@ -34,6 +52,7 @@ async function main() {
       password,
       role: "MEMBER",
       phone: "01700000002",
+      messId: mess.id,
     },
   });
 
@@ -46,6 +65,7 @@ async function main() {
       password,
       role: "MEMBER",
       phone: "01700000003",
+      messId: mess.id,
     },
   });
 
@@ -58,6 +78,7 @@ async function main() {
       password,
       role: "MEMBER",
       phone: "01700000004",
+      messId: mess.id,
     },
   });
 
@@ -70,21 +91,27 @@ async function main() {
       password,
       role: "MEMBER",
       phone: "01700000005",
+      messId: mess.id,
     },
   });
 
   // Set Omar as manager for March 2026
   await prisma.managerRotation.upsert({
-    where: { month_year: { month: 3, year: 2026 } },
+    where: { month_year_messId: { month: 3, year: 2026, messId: mess.id } },
     update: {},
     create: {
       memberId: omar.id,
+      messId: mess.id,
       month: 3,
       year: 2026,
     },
   });
 
+  // Suppress unused variable warnings
+  void jahid; void zobayer; void kabbo; void mahbub;
+
   console.log("✅ Seeded 5 members: Omar (Manager), Jahid, Zobayer, Kabbo, Mahbub");
+  console.log("🏠 Default mess: 42/A Mirpur Mess (invite: MESS-DEFAULT)");
   console.log("🔑 Default password for all: 123456");
   console.log("📧 Login emails: omar@mess.com, jahid@mess.com, zobayer@mess.com, kabbo@mess.com, mahbub@mess.com");
 }
