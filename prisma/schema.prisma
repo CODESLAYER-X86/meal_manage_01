@@ -24,13 +24,14 @@ enum JoinRequestStatus {
 }
 
 model Mess {
-  id          String   @id @default(cuid())
-  name        String
-  inviteCode  String   @unique
-  createdById String
-  createdBy   User     @relation("MessCreator", fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  inviteCode     String   @unique
+  washroomCount  Int      @default(0)
+  createdById    String
+  createdBy      User     @relation("MessCreator", fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   members           User[]             @relation("MessMembers")
   mealEntries       MealEntry[]
@@ -138,18 +139,19 @@ model BazarItem {
 }
 
 model WashroomCleaning {
-  id        String         @id @default(cuid())
-  date      DateTime
-  memberId  String
-  member    User           @relation(fields: [memberId], references: [id])
-  messId    String
-  mess      Mess           @relation(fields: [messId], references: [id])
-  status    CleaningStatus @default(PENDING)
-  note      String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id             String         @id @default(cuid())
+  date           DateTime
+  washroomNumber Int            @default(1)
+  memberId       String
+  member         User           @relation(fields: [memberId], references: [id])
+  messId         String
+  mess            Mess           @relation(fields: [messId], references: [id])
+  status         CleaningStatus @default(PENDING)
+  note           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  @@unique([date, memberId])
+  @@unique([date, washroomNumber, messId])
   @@index([date])
   @@index([messId])
 }

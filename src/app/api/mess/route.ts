@@ -44,6 +44,7 @@ export async function GET() {
       id: user.mess.id,
       name: user.mess.name,
       inviteCode: user.mess.inviteCode,
+      washroomCount: user.mess.washroomCount,
       createdBy: user.mess.createdBy.name,
       memberCount: user.mess.members.length,
       members: user.mess.members,
@@ -180,4 +181,91 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+}
+
+// PATCH - Update mess settings (manager only)
+export async function PATCH(request: Request) {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.messId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, messId: true },
+  });
+
+  if (user?.role !== "MANAGER") {
+    return NextResponse.json({ error: "Only the manager can update mess settings" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const { washroomCount } = body;
+
+  if (washroomCount !== undefined) {
+    if (typeof washroomCount !== "number" || washroomCount < 0 || washroomCount > 10) {
+      return NextResponse.json({ error: "Washroom count must be a number between 0 and 10" }, { status: 400 });
+    }
+
+    await prisma.mess.update({
+      where: { id: session.user.messId },
+      data: { washroomCount },
+    });
+
+    return NextResponse.json({ success: true, washroomCount });
+  }
+
+  return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+}
+
+// DELETE - Delete the entire mess (manager only)
+export async function DELETE() {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.messId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true, messId: true },
+  });
+
+  if (user?.role !== "MANAGER") {
+    return NextResponse.json({ error: "Only the manager can delete the mess" }, { status: 403 });
+  }
+
+  const messId = session.user.messId;
+
+  // Delete all mess data in the correct order (respecting FK constraints)
+  await prisma.$transaction([
+    // Delete join requests
+    prisma.joinRequest.deleteMany({ where: { messId } }),
+    // Delete disputes
+    prisma.dispute.deleteMany({ where: { messId } }),
+    // Delete audit logs
+    prisma.auditLog.deleteMany({ where: { messId } }),
+    // Delete manager rotations
+    prisma.managerRotation.deleteMany({ where: { messId } }),
+    // Delete washroom cleaning
+    prisma.washroomCleaning.deleteMany({ where: { messId } }),
+    // Delete bazar items (via trips)
+    prisma.bazarItem.deleteMany({
+      where: { trip: { messId } },
+    }),
+    // Delete bazar trips
+    prisma.bazarTrip.deleteMany({ where: { messId } }),
+    // Delete deposits
+    prisma.deposit.deleteMany({ where: { messId } }),
+    // Delete meal entries
+    prisma.mealEntry.deleteMany({ where: { messId } }),
+    // Remove all members from the mess (set messId to null, role to MEMBER)
+    prisma.user.updateMany({
+      where: { messId },
+      data: { messId: null, role: "MEMBER" },
+    }),
+    // Delete the mess itself
+    prisma.mess.delete({ where: { id: messId } }),
+  ]);
+
+  return NextResponse.json({ success: true });
 }

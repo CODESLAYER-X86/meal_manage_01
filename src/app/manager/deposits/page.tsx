@@ -143,7 +143,8 @@ export default function DepositsPage() {
       {/* Recent Deposits */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <h2 className="p-4 text-lg font-semibold text-gray-800 border-b">This Month&apos;s Deposits</h2>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[400px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-3">Date</th>
@@ -166,6 +167,7 @@ export default function DepositsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

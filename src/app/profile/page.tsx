@@ -121,7 +121,7 @@ export default function ProfilePage() {
       {/* Profile Info Card */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Profile Info</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-400">Name</p>
             <p className="font-medium text-gray-800">{profile.name}</p>

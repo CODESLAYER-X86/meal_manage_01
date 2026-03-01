@@ -121,8 +121,8 @@ export default function CalendarPage() {
       {/* Calendar Grid */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="grid grid-cols-7 bg-gray-50">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="p-3 text-center text-sm font-medium text-gray-500 border-b">
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-500 border-b">
               {d}
             </div>
           ))}
@@ -130,7 +130,7 @@ export default function CalendarPage() {
         <div className="grid grid-cols-7">
           {/* Empty cells */}
           {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="p-3 border-b border-r min-h-[80px] bg-gray-50" />
+            <div key={`empty-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-gray-50" />
           ))}
           {/* Day cells */}
           {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -143,18 +143,18 @@ export default function CalendarPage() {
               <div
                 key={day}
                 onClick={() => setSelectedDate(day)}
-                className={`p-2 border-b border-r min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${
+                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${
                   isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
                 }`}
               >
-                <div className="text-sm font-medium text-gray-700">{day}</div>
+                <div className="text-xs sm:text-sm font-medium text-gray-700">{day}</div>
                 {totalMeals > 0 && (
-                  <div className="mt-1 text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full inline-block">
-                    🍛 {totalMeals}
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-full inline-block">
+                    🍛{totalMeals}
                   </div>
                 )}
                 {hasBazar && (
-                  <div className="mt-1 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full inline-block">
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full inline-block">
                     🛒
                   </div>
                 )}
@@ -171,34 +171,53 @@ export default function CalendarPage() {
             📋 {monthName.split(" ")[0]} {selectedDate}, {currentYear}
           </h3>
 
-          {/* Meals Table */}
+          {/* Meals */}
           <div>
             <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meals</h4>
             {selectedMeals.length === 0 ? (
               <p className="text-sm text-gray-400">No meals recorded</p>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="text-left p-2">Member</th>
-                    <th className="text-center p-2">Breakfast</th>
-                    <th className="text-center p-2">Lunch</th>
-                    <th className="text-center p-2">Dinner</th>
-                    <th className="text-center p-2">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                {/* Mobile cards */}
+                <div className="md:hidden space-y-2">
                   {selectedMeals.map((m) => (
-                    <tr key={m.id} className="border-t">
-                      <td className="p-2 font-medium">{m.member.name}</td>
-                      <td className="text-center p-2">{m.breakfast}</td>
-                      <td className="text-center p-2">{m.lunch}</td>
-                      <td className="text-center p-2">{m.dinner}</td>
-                      <td className="text-center p-2 font-bold">{m.total}</td>
-                    </tr>
+                    <div key={m.id} className="bg-gray-50 rounded-lg p-3">
+                      <p className="font-medium text-gray-900 text-sm mb-1">{m.member.name}</p>
+                      <div className="grid grid-cols-4 gap-2 text-xs text-center">
+                        <div><p className="text-gray-400">B</p><p className="font-bold">{m.breakfast}</p></div>
+                        <div><p className="text-gray-400">L</p><p className="font-bold">{m.lunch}</p></div>
+                        <div><p className="text-gray-400">D</p><p className="font-bold">{m.dinner}</p></div>
+                        <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+                {/* Desktop table */}
+                <div className="hidden md:block">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left p-2">Member</th>
+                        <th className="text-center p-2">Breakfast</th>
+                        <th className="text-center p-2">Lunch</th>
+                        <th className="text-center p-2">Dinner</th>
+                        <th className="text-center p-2">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedMeals.map((m) => (
+                        <tr key={m.id} className="border-t">
+                          <td className="p-2 font-medium">{m.member.name}</td>
+                          <td className="text-center p-2">{m.breakfast}</td>
+                          <td className="text-center p-2">{m.lunch}</td>
+                          <td className="text-center p-2">{m.dinner}</td>
+                          <td className="text-center p-2 font-bold">{m.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
 
@@ -214,6 +233,7 @@ export default function CalendarPage() {
                     <span className="font-medium">Buyer: {trip.buyer.name}</span>
                     <span className="font-bold text-orange-700">৳{trip.totalCost}</span>
                   </div>
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-orange-100">
                       <tr>
@@ -236,6 +256,7 @@ export default function CalendarPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               ))
             )}

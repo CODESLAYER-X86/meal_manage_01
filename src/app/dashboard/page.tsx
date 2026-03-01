@@ -73,7 +73,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <span className="text-sm text-gray-500">
           {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
@@ -96,7 +96,7 @@ export default function DashboardPage() {
         </div>
         <div className="bg-white p-5 rounded-xl shadow-sm border">
           <p className="text-sm text-gray-500">My Net Due</p>
-          <p className={`text-2xl font-bold ${(myBill?.netDue || 0) > 0 ? "text-red-600" : "text-green-600"}`}>
+          <p className={`text-lg sm:text-2xl font-bold truncate ${(myBill?.netDue || 0) > 0 ? "text-red-600" : "text-green-600"}`}>
             {(myBill?.netDue || 0) > 0 ? `৳${myBill?.netDue} owed` : `৳${Math.abs(myBill?.netDue || 0)} refund`}
           </p>
         </div>
@@ -151,9 +151,9 @@ export default function DashboardPage() {
             </div>
             <hr className="my-2" />
             {bill?.members.map((m) => (
-              <div key={m.id} className="flex justify-between">
-                <span className="text-gray-600">{m.name}</span>
-                <span className="font-medium">{m.totalMeals} meals — ৳{m.mealCost}</span>
+              <div key={m.id} className="flex justify-between gap-2">
+                <span className="text-gray-600 truncate">{m.name}</span>
+                <span className="font-medium whitespace-nowrap text-xs sm:text-sm">{m.totalMeals} meals · ৳{m.mealCost}</span>
               </div>
             ))}
           </div>
