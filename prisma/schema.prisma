@@ -32,6 +32,8 @@ model Mess {
   bazarDaysPerWeek Int    @default(3)
   hasGas         Boolean  @default(false)
   hasCook        Boolean  @default(false)
+  mealsPerDay    Int      @default(3) // 2 = lunch+dinner, 3 = breakfast+lunch+dinner
+  mealBlackouts  String   @default("[]") // JSON: [{"meals":["breakfast","lunch"],"startHour":6,"endHour":10},{"meals":["dinner"],"startHour":14,"endHour":17}]
   createdById    String
   createdBy      User     @relation("MessCreator", fields: [createdById], references: [id])
   createdAt      DateTime @default(now())
@@ -56,6 +58,7 @@ model Mess {
   billPayments      BillPayment[]
   dutyDebts         DutyDebt[]
   memberPresences   MemberPresence[]
+  mealStatuses      MealStatus[]
 }
 
 model User {
@@ -92,6 +95,7 @@ model User {
   debtsOwed         DutyDebt[]         @relation("DebtOwedBy")
   debtsCovered      DutyDebt[]         @relation("DebtOwedTo")
   presences         MemberPresence[]
+  mealStatuses      MealStatus[]
 
   @@index([messId])
 }
@@ -452,6 +456,41 @@ model MemberPresence {
 
   @@unique([memberId, messId])
   @@index([messId])
+}
+
+// ========== MEAL STATUS (Per-member per-date per-meal ON/OFF toggle) ==========
+model MealStatus {
+  id        String   @id @default(cuid())
+  date      DateTime
+  meal      String   // "breakfast", "lunch", "dinner"
+  memberId  String
+  member    User     @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess     @relation(fields: [messId], references: [id])
+  isOff     Boolean  @default(false) // false = eating (ON), true = not eating (OFF)
+  changedBy String?  // userId of who changed it (null = self, set = manager override)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, meal, memberId])
+  @@index([date, messId])
+  @@index([memberId])
+}
+
+// ========== MEAL STATUS SPECIAL REQUEST (During blackout) ==========
+model MealStatusRequest {
+  id        String   @id @default(cuid())
+  date      DateTime
+  meal      String   // "breakfast", "lunch", "dinner"
+  memberId  String
+  messId    String
+  wantOff   Boolean  // true = wants to turn off, false = wants to turn on
+  reason    String?
+  status    String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt DateTime @default(now())
+
+  @@index([messId, status])
+  @@index([memberId])
 }
 
 // ========== ADMIN SETTINGS (Key-Value store for platform) ==========

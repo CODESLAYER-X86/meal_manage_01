@@ -62,6 +62,18 @@ export default function MealPlanPage() {
   // Approve/reject loading
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // Meal status state
+  const [mealStatusData, setMealStatusData] = useState<{
+    mealsPerDay: number;
+    members: { id: string; name: string }[];
+    statuses: Record<string, Record<string, boolean>>;
+    mealCounts: Record<string, number>;
+    blackoutStatus: Record<string, boolean>;
+    pendingRequests: { id: string; date: string; meal: string; memberId: string; wantOff: boolean; reason: string; status: string }[];
+  } | null>(null);
+  const [mealStatusToggling, setMealStatusToggling] = useState<string | null>(null);
+  const [statusDate, setStatusDate] = useState<"today" | "tomorrow">("today");
+
   const isManager = session?.user?.role === "MANAGER";
 
   useEffect(() => {
@@ -71,20 +83,28 @@ export default function MealPlanPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [plansRes, offsRes] = await Promise.all([
+      const now = new Date();
+      const dateStr = statusDate === "today"
+        ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+        : (() => { const t = new Date(now); t.setDate(t.getDate() + 1); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`; })();
+
+      const [plansRes, offsRes, statusRes] = await Promise.all([
         fetch(`/api/meal-plan?month=${month}&year=${year}`),
         fetch(`/api/meal-off?status=`),
+        fetch(`/api/meal-status?date=${dateStr}`),
       ]);
       const plansData = await plansRes.json();
       const offsData = await offsRes.json();
+      const statusData = await statusRes.json();
       setPlans(Array.isArray(plansData) ? plansData : []);
       setMealOffs(Array.isArray(offsData) ? offsData : []);
+      if (statusData?.mealsPerDay) setMealStatusData(statusData);
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
-  }, [month, year]);
+  }, [month, year, statusDate]);
 
   useEffect(() => {
     if (status === "authenticated") fetchData();
@@ -158,6 +178,19 @@ export default function MealPlanPage() {
       setSaving(false);
     }
   };
+
+  // Refresh meal status
+  const refreshMealStatus = useCallback(async () => {
+    try {
+      const now = new Date();
+      const dateStr = statusDate === "today"
+        ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+        : (() => { const t = new Date(now); t.setDate(t.getDate() + 1); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`; })();
+      const res = await fetch(`/api/meal-status?date=${dateStr}`);
+      const data = await res.json();
+      if (data?.mealsPerDay) setMealStatusData(data);
+    } catch { /* ignore */ }
+  }, [statusDate]);
 
   // Meal-off request submission
   const submitMealOff = async () => {
@@ -582,6 +615,191 @@ export default function MealPlanPage() {
           </div>
         </div>
       )}
+
+      {/* Meal Status Grid - Today/Tomorrow */}
+      {mealStatusData && (() => {
+        const meals = mealStatusData.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+        const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
+        const now = new Date();
+        const dateStr = statusDate === "today"
+          ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+          : (() => { const t = new Date(now); t.setDate(t.getDate() + 1); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`; })();
+
+        const handleToggle = async (memberId: string, meal: string) => {
+          const key = `${memberId}-${meal}`;
+          setMealStatusToggling(key);
+          try {
+            const res = await fetch("/api/meal-status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date: dateStr, meal, memberId }),
+            });
+            if (res.ok) await refreshMealStatus();
+          } catch { /* ignore */ } finally {
+            setMealStatusToggling(null);
+          }
+        };
+
+        const handleApproveRequest = async (requestId: string, action: "approve" | "reject") => {
+          setMealStatusToggling(requestId);
+          try {
+            const res = await fetch("/api/meal-status", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action, requestId }),
+            });
+            if (res.ok) await refreshMealStatus();
+          } catch { /* ignore */ } finally {
+            setMealStatusToggling(null);
+          }
+        };
+
+        return (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">🍽️ Meal Status</h2>
+                <p className="text-sm text-gray-500">Who&apos;s eating today/tomorrow</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStatusDate("today")}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    statusDate === "today" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  📅 Today
+                </button>
+                <button
+                  onClick={() => setStatusDate("tomorrow")}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  🔮 Tomorrow
+                </button>
+              </div>
+            </div>
+
+            {/* Status Grid */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 pr-3 text-gray-500 font-medium">Member</th>
+                    {meals.map((meal) => (
+                      <th key={meal} className="text-center py-2 px-2 text-gray-500 font-medium">
+                        <span className="hidden sm:inline">{mealIcons[meal]} </span>
+                        <span className="capitalize">{meal}</span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {mealStatusData.members.map((member) => (
+                    <tr key={member.id} className="border-b border-gray-100 last:border-0">
+                      <td className="py-2.5 pr-3">
+                        <span className="font-medium text-gray-700 text-sm">{member.name}</span>
+                        {member.id === session?.user?.id && (
+                          <span className="ml-1 text-xs text-gray-400">(you)</span>
+                        )}
+                      </td>
+                      {meals.map((meal) => {
+                        const isOff = mealStatusData.statuses?.[member.id]?.[meal] === true;
+                        const key = `${member.id}-${meal}`;
+                        const isToggling = mealStatusToggling === key;
+                        const canToggle = isManager || member.id === session?.user?.id;
+                        const isBlackedOut = mealStatusData.blackoutStatus?.[meal] === true;
+                        const blocked = isBlackedOut && !isManager && member.id === session?.user?.id;
+
+                        return (
+                          <td key={meal} className="text-center py-2.5 px-2">
+                            {canToggle && !blocked ? (
+                              <button
+                                onClick={() => handleToggle(member.id, meal)}
+                                disabled={isToggling}
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${
+                                  isOff
+                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                    : "bg-green-100 text-green-600 hover:bg-green-200"
+                                } ${isToggling ? "opacity-50" : ""}`}
+                                title={isOff ? "Click to turn ON" : "Click to turn OFF"}
+                              >
+                                {isOff ? "✕" : "✓"}
+                              </button>
+                            ) : blocked ? (
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-500 text-sm" title="Blackout window">
+                                🔒
+                              </span>
+                            ) : (
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${
+                                isOff ? "bg-red-50 text-red-400" : "bg-green-50 text-green-400"
+                              }`}>
+                                {isOff ? "✕" : "✓"}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  {/* Cook Count Row */}
+                  <tr className="bg-indigo-50/50">
+                    <td className="py-2.5 pr-3">
+                      <span className="font-semibold text-indigo-700 text-sm">🧑‍🍳 Cook Count</span>
+                    </td>
+                    {meals.map((meal) => (
+                      <td key={meal} className="text-center py-2.5 px-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold">
+                          {mealStatusData.mealCounts?.[meal] ?? 0}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pending Meal Status Requests - Manager Only */}
+            {isManager && mealStatusData.pendingRequests?.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-amber-800 mb-2">⏳ Pending Meal Change Requests</h3>
+                <div className="space-y-2">
+                  {mealStatusData.pendingRequests.map((req) => {
+                    const memberName = mealStatusData.members.find((m) => m.id === req.memberId)?.name || "Unknown";
+                    return (
+                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            {memberName} wants to turn <strong className="capitalize">{req.meal}</strong> {req.wantOff ? "OFF" : "ON"}
+                          </p>
+                          {req.reason && <p className="text-xs text-gray-500 mt-0.5">{req.reason}</p>}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApproveRequest(req.id, "approve")}
+                            disabled={mealStatusToggling === req.id}
+                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg disabled:opacity-50"
+                          >
+                            ✅ Approve
+                          </button>
+                          <button
+                            onClick={() => handleApproveRequest(req.id, "reject")}
+                            disabled={mealStatusToggling === req.id}
+                            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg disabled:opacity-50"
+                          >
+                            ❌ Reject
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Meal Plan Calendar */}
       <div className="space-y-3">

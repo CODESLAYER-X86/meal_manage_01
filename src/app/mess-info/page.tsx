@@ -13,6 +13,8 @@ interface MessInfo {
   bazarDaysPerWeek: number;
   hasGas: boolean;
   hasCook: boolean;
+  mealsPerDay: number;
+  mealBlackouts: string;
   createdBy: string;
   memberCount: number;
   members: {
@@ -33,6 +35,12 @@ interface JoinRequestInfo {
     email: string;
     phone: string | null;
   };
+}
+
+interface BlackoutInterval {
+  meals: string[];
+  startHour: number;
+  endHour: number;
 }
 
 export default function MessInfoPage() {
@@ -58,6 +66,11 @@ export default function MessInfoPage() {
   const [hasCookInput, setHasCookInput] = useState(false);
   const [extraSaving, setExtraSaving] = useState(false);
   const [extraMsg, setExtraMsg] = useState("");
+  // Meal config state
+  const [mealsPerDayInput, setMealsPerDayInput] = useState(3);
+  const [blackoutsInput, setBlackoutsInput] = useState<BlackoutInterval[]>([]);
+  const [mealConfigSaving, setMealConfigSaving] = useState(false);
+  const [mealConfigMsg, setMealConfigMsg] = useState("");
 
   const isManager = session?.user?.role === "MANAGER";
 
@@ -76,6 +89,13 @@ export default function MessInfoPage() {
         setBazarDaysInput(messData.mess.bazarDaysPerWeek ?? 3);
         setHasGasInput(messData.mess.hasGas ?? false);
         setHasCookInput(messData.mess.hasCook ?? false);
+        setMealsPerDayInput(messData.mess.mealsPerDay ?? 3);
+        try {
+          const parsed = JSON.parse(messData.mess.mealBlackouts || "[]");
+          setBlackoutsInput(Array.isArray(parsed) ? parsed : []);
+        } catch {
+          setBlackoutsInput([]);
+        }
       }
 
       if (requestsRes) {
@@ -361,6 +381,213 @@ export default function MessInfoPage() {
           ))}
         </div>
       </div>
+
+      {/* Meal Configuration - Manager Only */}
+      {isManager && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">🍽️ Meal Configuration</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Set how many meals per day and configure blackout windows (time restrictions for toggling meals).
+          </p>
+
+          {/* Meals Per Day */}
+          <div className="mb-5">
+            <label className="text-sm text-gray-700 font-medium block mb-2">Meals Per Day</label>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setMealsPerDayInput(2)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                  mealsPerDayInput === 2
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                2 (Lunch + Dinner)
+              </button>
+              <button
+                onClick={() => setMealsPerDayInput(3)}
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
+                  mealsPerDayInput === 3
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                3 (Breakfast + Lunch + Dinner)
+              </button>
+            </div>
+          </div>
+
+          {/* Blackout Windows */}
+          <div className="mb-5">
+            <label className="text-sm text-gray-700 font-medium block mb-2">
+              ⏰ Blackout Windows (Restrictions)
+            </label>
+            <p className="text-xs text-gray-400 mb-3">
+              Members cannot toggle meals ON/OFF during these times. They must send a special request instead.
+            </p>
+
+            {blackoutsInput.length === 0 && (
+              <p className="text-sm text-gray-400 italic mb-3">No restrictions set — members can toggle meals anytime.</p>
+            )}
+
+            <div className="space-y-3">
+              {blackoutsInput.map((bo, idx) => {
+                const availableMeals = mealsPerDayInput === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+                return (
+                  <div key={idx} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <span className="text-sm font-medium text-gray-700">Restriction #{idx + 1}</span>
+                      <button
+                        onClick={() => {
+                          const updated = [...blackoutsInput];
+                          updated.splice(idx, 1);
+                          setBlackoutsInput(updated);
+                        }}
+                        className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete restriction"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+
+                    {/* Meal checkboxes */}
+                    <div className="flex flex-wrap gap-3 mb-3">
+                      <span className="text-xs text-gray-500 w-full">Applies to:</span>
+                      {availableMeals.map((meal) => (
+                        <label key={meal} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={bo.meals.includes(meal)}
+                            onChange={(e) => {
+                              const updated = [...blackoutsInput];
+                              if (e.target.checked) {
+                                updated[idx] = { ...updated[idx], meals: [...updated[idx].meals, meal] };
+                              } else {
+                                updated[idx] = { ...updated[idx], meals: updated[idx].meals.filter((m) => m !== meal) };
+                              }
+                              setBlackoutsInput(updated);
+                            }}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <span className="capitalize text-gray-700">{meal}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {/* Time range */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-gray-500">From:</span>
+                      <select
+                        value={bo.startHour}
+                        onChange={(e) => {
+                          const updated = [...blackoutsInput];
+                          updated[idx] = { ...updated[idx], startHour: Number(e.target.value) };
+                          setBlackoutsInput(updated);
+                        }}
+                        className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i}>
+                            {i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-xs text-gray-500">To:</span>
+                      <select
+                        value={bo.endHour}
+                        onChange={(e) => {
+                          const updated = [...blackoutsInput];
+                          updated[idx] = { ...updated[idx], endHour: Number(e.target.value) };
+                          setBlackoutsInput(updated);
+                        }}
+                        className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => i + 1).map((h) => (
+                          <option key={h} value={h}>
+                            {h === 24 ? "12 AM (next)" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {bo.startHour >= bo.endHour && (
+                      <p className="text-xs text-red-500 mt-1">⚠️ Start hour must be before end hour</p>
+                    )}
+                    {bo.meals.length === 0 && (
+                      <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() =>
+                setBlackoutsInput([
+                  ...blackoutsInput,
+                  { meals: mealsPerDayInput === 2 ? ["lunch"] : ["breakfast", "lunch"], startHour: 6, endHour: 10 },
+                ])
+              }
+              className="mt-3 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300"
+            >
+              + Add another restriction
+            </button>
+          </div>
+
+          {/* Save */}
+          <button
+            onClick={async () => {
+              // Validate
+              for (const bo of blackoutsInput) {
+                if (bo.meals.length === 0) {
+                  setMealConfigMsg("Each restriction must have at least one meal selected");
+                  setTimeout(() => setMealConfigMsg(""), 3000);
+                  return;
+                }
+                if (bo.startHour >= bo.endHour) {
+                  setMealConfigMsg("Start hour must be before end hour in all restrictions");
+                  setTimeout(() => setMealConfigMsg(""), 3000);
+                  return;
+                }
+              }
+              setMealConfigSaving(true);
+              setMealConfigMsg("");
+              try {
+                const res = await fetch("/api/mess", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ mealsPerDay: mealsPerDayInput, mealBlackouts: blackoutsInput }),
+                });
+                if (res.ok) {
+                  setMealConfigMsg("Meal settings saved!");
+                  if (mess) setMess({ ...mess, mealsPerDay: mealsPerDayInput, mealBlackouts: JSON.stringify(blackoutsInput) });
+                } else {
+                  const d = await res.json();
+                  setMealConfigMsg(d.error || "Failed to save");
+                }
+              } catch {
+                setMealConfigMsg("Error saving settings");
+              } finally {
+                setMealConfigSaving(false);
+                setTimeout(() => setMealConfigMsg(""), 3000);
+              }
+            }}
+            disabled={mealConfigSaving}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {mealConfigSaving ? "Saving..." : "Save Meal Settings"}
+          </button>
+          {mealConfigMsg && (
+            <p className={`mt-2 text-sm ${mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "text-red-600" : "text-green-600"}`}>
+              {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "⚠️" : "✅"} {mealConfigMsg}
+            </p>
+          )}
+          <p className="mt-3 text-xs text-gray-400">
+            {mess && blackoutsInput.length > 0
+              ? `Currently: ${mealsPerDayInput} meals/day · ${blackoutsInput.length} restriction${blackoutsInput.length !== 1 ? "s" : ""} active`
+              : `Currently: ${mealsPerDayInput} meals/day · No restrictions — members can toggle anytime`}
+          </p>
+        </div>
+      )}
 
       {/* Washroom Settings - Manager Only */}
       {isManager && (
