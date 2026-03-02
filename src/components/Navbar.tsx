@@ -64,6 +64,15 @@ export default function Navbar() {
               <Link href="/meal-plan" className="px-3 py-2 text-sm font-medium text-emerald-600 hover:text-emerald-800 rounded-md hover:bg-emerald-50">
                 🍳 Meal Plan
               </Link>
+              <Link href="/bills" className="px-3 py-2 text-sm font-medium text-rose-600 hover:text-rose-800 rounded-md hover:bg-rose-50">
+                💳 Bills
+              </Link>
+              <Link href="/bazar-duty" className="px-3 py-2 text-sm font-medium text-cyan-600 hover:text-cyan-800 rounded-md hover:bg-cyan-50">
+                📋 Bazar Duty
+              </Link>
+              <Link href="/duty-debts" className="px-3 py-2 text-sm font-medium text-pink-600 hover:text-pink-800 rounded-md hover:bg-pink-50">
+                ⚖️ Debts
+              </Link>
               <Link href="/archive" className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 rounded-md hover:bg-gray-50">
                 📦 Archive
               </Link>
@@ -133,6 +142,9 @@ export default function Navbar() {
             <Link href="/bazar" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-orange-600 hover:bg-orange-50 rounded-lg">🛒 Bazar Entry</Link>
             <Link href="/washroom" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-teal-600 hover:bg-teal-50 rounded-lg">🚿 Washroom</Link>
             <Link href="/meal-plan" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-emerald-600 hover:bg-emerald-50 rounded-lg">🍳 Meal Plan</Link>
+            <Link href="/bills" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 rounded-lg">💳 Bills & Rent</Link>
+            <Link href="/bazar-duty" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-cyan-600 hover:bg-cyan-50 rounded-lg">📋 Bazar Duty</Link>
+            <Link href="/duty-debts" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-pink-600 hover:bg-pink-50 rounded-lg">⚖️ Duty Debts</Link>
             <Link href="/meal-rating" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-yellow-600 hover:bg-yellow-50 rounded-lg">⭐ Meal Rating</Link>
             <Link href="/announcements" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-amber-600 hover:bg-amber-50 rounded-lg">📢 Announcements</Link>
             <Link href="/meal-vote" onClick={() => setMenuOpen(false)} className="block px-4 py-3 text-sm text-purple-600 hover:bg-purple-50 rounded-lg">🗳️ Meal Vote</Link>

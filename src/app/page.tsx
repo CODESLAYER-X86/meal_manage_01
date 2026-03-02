@@ -10,6 +10,11 @@ export default async function Home() {
     return;
   }
 
+  if (session.user.isAdmin && !session.user.messId) {
+    redirect("/admin");
+    return;
+  }
+
   if (!session.user.messId) {
     // Check if user has a pending join request
     const pendingRequest = await prisma.joinRequest.findFirst({

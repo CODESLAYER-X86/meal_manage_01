@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, count: assignments.length });
 }
 
-// PATCH - Mark duty as done/skipped (member marks own, manager marks any)
+// PATCH - Mark duty done/skipped, manager confirm, or reassign
 export async function PATCH(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId) {
@@ -128,28 +128,99 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, status } = body;
+  const { id, action, status, newMemberId, reason } = body;
 
-  if (!id || !status) {
-    return NextResponse.json({ error: "id and status are required" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 
   const duty = await prisma.washroomCleaning.findUnique({ where: { id } });
-  if (!duty) {
+  if (!duty || duty.messId !== session.user.messId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const isManager = session.user.role === "MANAGER";
+  const messId = session.user.messId;
+
+  // Action: "confirm" - Manager confirms a completed duty
+  if (action === "confirm") {
+    if (!isManager) {
+      return NextResponse.json({ error: "Only manager can confirm" }, { status: 403 });
+    }
+    const updated = await prisma.washroomCleaning.update({
+      where: { id },
+      data: { confirmedByManager: true, completedAt: new Date() },
+    });
+    return NextResponse.json({ success: true, duty: updated });
+  }
+
+  // Action: "reassign" - Manager reassigns to another member (creates debt)
+  if (action === "reassign") {
+    if (!isManager) {
+      return NextResponse.json({ error: "Only manager can reassign" }, { status: 403 });
+    }
+    if (!newMemberId) {
+      return NextResponse.json({ error: "newMemberId is required" }, { status: 400 });
+    }
+
+    const originalMemberId = duty.originalMemberId || duty.memberId;
+
+    const updated = await prisma.washroomCleaning.update({
+      where: { id },
+      data: {
+        memberId: newMemberId,
+        originalMemberId,
+        note: reason || null,
+      },
+    });
+
+    // Create duty debt: original member owes the new member
+    await prisma.dutyDebt.create({
+      data: {
+        owedById: originalMemberId,
+        owedToId: newMemberId,
+        messId,
+        dutyType: "WASHROOM",
+        reason: reason || `Washroom duty reassigned for ${duty.date.toISOString().split("T")[0]} (WC#${duty.washroomNumber})`,
+      },
+    });
+
+    // Audit
+    await prisma.auditLog.create({
+      data: {
+        editedById: session.user.id,
+        messId,
+        tableName: "WashroomCleaning",
+        recordId: id,
+        fieldName: "memberId",
+        oldValue: duty.memberId,
+        newValue: newMemberId,
+        action: "REASSIGN",
+      },
+    });
+
+    return NextResponse.json({ success: true, duty: updated });
+  }
+
+  // Default: mark status (DONE/SKIPPED/PENDING)
+  if (!status) {
+    return NextResponse.json({ error: "status or action is required" }, { status: 400 });
+  }
+
   // Members can only mark their own duties
-  if (session.user.role !== "MANAGER" && duty.memberId !== session.user.id) {
+  if (!isManager && duty.memberId !== session.user.id) {
     return NextResponse.json({ error: "You can only update your own duties" }, { status: 403 });
   }
 
   const updated = await prisma.washroomCleaning.update({
     where: { id },
-    data: { status },
+    data: {
+      status,
+      completedAt: status === "DONE" ? new Date() : null,
+    },
   });
 
-  return NextResponse.json(updated);
+  return NextResponse.json({ success: true, duty: updated });
 }
 
 // DELETE - Delete entire month's schedule (manager only)

@@ -32,6 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          isAdmin: user.isAdmin,
           messId: user.messId,
         };
       },
@@ -42,6 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = (user as { role: string }).role;
+        token.isAdmin = (user as { isAdmin: boolean }).isAdmin;
         token.messId = (user as { messId: string | null }).messId;
       }
       // Always refresh role and messId from DB
@@ -49,10 +51,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true, messId: true },
+            select: { role: true, isAdmin: true, messId: true },
           });
           if (dbUser) {
             token.role = dbUser.role;
+            token.isAdmin = dbUser.isAdmin;
             token.messId = dbUser.messId;
           }
         } catch {
@@ -65,6 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as { role: string }).role = token.role as string;
+        (session.user as { isAdmin: boolean }).isAdmin = token.isAdmin as boolean;
         (session.user as { messId: string | null }).messId = token.messId as string | null;
       }
       return session;
