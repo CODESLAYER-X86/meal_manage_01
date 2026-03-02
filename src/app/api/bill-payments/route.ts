@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const rents: Record<string, number> = JSON.parse(setting.rents);
     const memberCount = members.length;
     const sharedUtilities =
-      setting.wifi + setting.electricity + setting.gas + setting.cookSalary;
+      setting.wifi + setting.electricity + setting.gas + setting.cookSalary + (setting.other || 0);
     const perMemberUtility = memberCount > 0 ? sharedUtilities / memberCount : 0;
 
     for (const m of members) {

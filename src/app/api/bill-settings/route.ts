@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   const messId = session.user.messId;
 
   const body = await request.json();
-  const { month, year, rents, wifi, electricity, gas, cookSalary } = body;
+  const { month, year, rents, wifi, electricity, gas, cookSalary, other, otherNote } = body;
 
   if (!month || !year) {
     return NextResponse.json({ error: "Month and year are required" }, { status: 400 });
@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
     electricity: Number(electricity) || 0,
     gas: Number(gas) || 0,
     cookSalary: Number(cookSalary) || 0,
+    other: Number(other) || 0,
+    otherNote: otherNote?.trim() || null,
     updatedAt: new Date(),
   };
 

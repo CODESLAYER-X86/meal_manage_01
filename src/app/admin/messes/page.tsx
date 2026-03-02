@@ -2,6 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+interface MessMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 interface MessEntry {
   id: string;
   name: string;
@@ -16,6 +23,12 @@ export default function AdminMessesPage() {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
+
+  // Change-manager modal state
+  const [managerModal, setManagerModal] = useState<{ messId: string; messName: string } | null>(null);
+  const [members, setMembers] = useState<MessMember[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState("");
 
   const fetchMesses = (p: number) => {
     setLoading(true);
@@ -43,6 +56,38 @@ export default function AdminMessesPage() {
     else alert("Failed to delete mess");
   };
 
+  const openChangeManager = async (messId: string, messName: string) => {
+    setManagerModal({ messId, messName });
+    setSelectedMemberId("");
+    setMembersLoading(true);
+    try {
+      const res = await fetch(`/api/admin/messes/${messId}/members`);
+      const data = await res.json();
+      setMembers(data.members || []);
+    } catch {
+      setMembers([]);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const confirmChangeManager = async () => {
+    if (!managerModal || !selectedMemberId) return;
+    const member = members.find((m) => m.id === selectedMemberId);
+    if (!confirm(`Make "${member?.name}" the manager of "${managerModal.messName}"?`)) return;
+    const res = await fetch("/api/admin/messes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messId: managerModal.messId, newManagerId: selectedMemberId }),
+    });
+    if (res.ok) {
+      setManagerModal(null);
+      fetchMesses(page);
+    } else {
+      alert((await res.json()).error || "Failed to change manager");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -53,7 +98,70 @@ export default function AdminMessesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Change Manager Modal */}
+      {managerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#12122a] border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+            <h2 className="text-base font-semibold text-white">Change Manager</h2>
+            <p className="text-sm text-gray-400">
+              Select a new manager for <span className="text-white font-medium">{managerModal.messName}</span>
+            </p>
+            {membersLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="w-7 h-7 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : members.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No members found</p>
+            ) : (
+              <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                {members.map((m) => (
+                  <label
+                    key={m.id}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer border transition-all ${
+                      selectedMemberId === m.id
+                        ? "border-violet-500/50 bg-violet-500/10"
+                        : "border-white/5 bg-white/[0.03] hover:bg-white/[0.06]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="newManager"
+                      value={m.id}
+                      checked={selectedMemberId === m.id}
+                      onChange={() => setSelectedMemberId(m.id)}
+                      className="accent-violet-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{m.name}</p>
+                      <p className="text-[10px] text-gray-500 truncate">{m.email}</p>
+                    </div>
+                    {m.role === "MANAGER" && (
+                      <span className="text-[9px] px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-md">
+                        Current
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setManagerModal(null)}
+                className="flex-1 px-4 py-2 text-sm bg-white/5 border border-white/10 text-gray-400 rounded-xl hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmChangeManager}
+                disabled={!selectedMemberId}
+                className="flex-1 px-4 py-2 text-sm bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">All Messes</h1>
@@ -77,9 +185,14 @@ export default function AdminMessesPage() {
                     <h3 className="text-sm font-semibold text-white">{m.name}</h3>
                     <p className="text-[10px] font-mono text-gray-500 mt-0.5">Code: {m.inviteCode}</p>
                   </div>
-                  <button onClick={() => deleteMess(m.id, m.name)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">
-                    Delete
-                  </button>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => openChangeManager(m.id, m.name)} className="px-2 py-1 text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-colors">
+                      👑 Manager
+                    </button>
+                    <button onClick={() => deleteMess(m.id, m.name)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">
+                      Delete
+                    </button>
+                  </div>
                 </div>
                 <div className="flex gap-4 text-xs">
                   <div><span className="text-gray-500">Members:</span> <span className="text-white font-medium">{m._count.members}</span></div>
@@ -121,12 +234,20 @@ export default function AdminMessesPage() {
                       <td className="px-5 py-4 text-center text-gray-400 text-xs">{m._count.mealEntries}</td>
                       <td className="px-5 py-4 text-gray-500 text-xs">{new Date(m.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-4 text-right">
-                        <button
-                          onClick={() => deleteMess(m.id, m.name)}
-                          className="px-3 py-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all duration-200"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => openChangeManager(m.id, m.name)}
+                            className="px-3 py-1.5 text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-all duration-200"
+                          >
+                            👑 Manager
+                          </button>
+                          <button
+                            onClick={() => deleteMess(m.id, m.name)}
+                            className="px-3 py-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all duration-200"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

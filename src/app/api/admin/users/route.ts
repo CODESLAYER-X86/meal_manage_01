@@ -75,3 +75,24 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const { id } = await request.json();
+  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  // Prevent deleting yourself
+  if (id === session.user.id) {
+    return NextResponse.json({ error: "Cannot delete your own account" }, { status: 400 });
+  }
+
+  // Hard-delete the user (Prisma cascade will handle related records configured
+  // with onDelete: Cascade; for others we clear FK references first)
+  await prisma.user.delete({ where: { id } });
+
+  return NextResponse.json({ success: true });
+}
