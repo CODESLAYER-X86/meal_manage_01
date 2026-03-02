@@ -214,7 +214,7 @@ export default function MealRatingPage() {
       {/* Monthly Average */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 Monthly Average</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {MEALS.map((meal) => {
             const { avg, count } = mealAvgs[meal];
             return (

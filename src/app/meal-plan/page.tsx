@@ -100,10 +100,9 @@ export default function MealPlanPage() {
   const daysInMonth = new Date(year, month, 0).getDate();
 
   const getPlanForDay = (day: number) => {
-    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     return plans.find((p) => {
       const d = new Date(p.date);
-      return d.getFullYear() === year && d.getMonth() + 1 === month && d.getDate() === day;
+      return d.getUTCFullYear() === year && d.getUTCMonth() + 1 === month && d.getUTCDate() === day;
     });
   };
 
@@ -134,7 +133,20 @@ export default function MealPlanPage() {
         }),
       });
       if (res.ok) {
-        await fetchData();
+        const saved = await res.json();
+        // Update local state immediately so UI reflects the change
+        setPlans((prev) => {
+          const idx = prev.findIndex((p) => {
+            const d = new Date(p.date);
+            return d.getUTCFullYear() === year && d.getUTCMonth() + 1 === month && d.getUTCDate() === editingDay;
+          });
+          if (idx >= 0) {
+            const updated = [...prev];
+            updated[idx] = saved;
+            return updated;
+          }
+          return [...prev, saved];
+        });
         setEditingDay(null);
       }
     } catch {
