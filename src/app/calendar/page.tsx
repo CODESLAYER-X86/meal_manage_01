@@ -29,6 +29,14 @@ interface WashroomEntry {
   member: { id: string; name: string };
 }
 
+interface MealPlanEntry {
+  id: string;
+  date: string;
+  breakfast: string | null;
+  lunch: string | null;
+  dinner: string | null;
+}
+
 export default function CalendarPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -37,6 +45,7 @@ export default function CalendarPage() {
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [bazarTrips, setBazarTrips] = useState<BazarTrip[]>([]);
   const [washroomCleanings, setWashroomCleanings] = useState<WashroomEntry[]>([]);
+  const [mealPlans, setMealPlans] = useState<MealPlanEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -53,10 +62,12 @@ export default function CalendarPage() {
         safeFetch(`/api/meals?month=${m}&year=${currentYear}`),
         safeFetch(`/api/bazar?month=${m}&year=${currentYear}`),
         safeFetch(`/api/washroom?month=${m}&year=${currentYear}`),
-      ]).then(([mealData, bazarData, washroomData]) => {
+        safeFetch(`/api/meal-plan?month=${m}&year=${currentYear}`),
+      ]).then(([mealData, bazarData, washroomData, planData]) => {
         setMeals(Array.isArray(mealData) ? mealData : []);
         setBazarTrips(Array.isArray(bazarData?.trips) ? bazarData.trips : []);
         setWashroomCleanings(Array.isArray(washroomData?.cleanings) ? washroomData.cleanings : []);
+        setMealPlans(Array.isArray(planData) ? planData : []);
         setLoading(false);
       }).catch(() => setLoading(false));
     }
@@ -92,6 +103,11 @@ export default function CalendarPage() {
     return washroomCleanings.filter((w) => w.date.startsWith(dateStr));
   };
 
+  const getMealPlanForDate = (day: number): MealPlanEntry | undefined => {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return mealPlans.find((p) => p.date.startsWith(dateStr));
+  };
+
   const getTotalMealsForDate = (day: number) => {
     return getMealsForDate(day).reduce((sum, m) => sum + m.total, 0);
   };
@@ -119,6 +135,7 @@ export default function CalendarPage() {
   const selectedMeals = selectedDate ? getMealsForDate(selectedDate) : [];
   const selectedBazar = selectedDate ? getBazarForDate(selectedDate) : [];
   const selectedWashroom = selectedDate ? getWashroomForDate(selectedDate) : [];
+  const selectedPlan = selectedDate ? getMealPlanForDate(selectedDate) : undefined;
 
   return (
     <div className="space-y-6">
@@ -155,6 +172,8 @@ export default function CalendarPage() {
             const totalMeals = getTotalMealsForDate(day);
             const hasBazar = getBazarForDate(day).length > 0;
             const hasWashroom = getWashroomForDate(day).length > 0;
+            const dayPlan = getMealPlanForDate(day);
+            const hasMenu = dayPlan && (dayPlan.breakfast || dayPlan.lunch || dayPlan.dinner);
             const isSelected = selectedDate === day;
 
             return (
@@ -181,6 +200,11 @@ export default function CalendarPage() {
                     🚿
                   </div>
                 )}
+                {hasMenu && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full inline-block">
+                    📋
+                  </div>
+                )}
               </div>
             );
           })}
@@ -193,6 +217,35 @@ export default function CalendarPage() {
           <h3 className="text-lg font-semibold text-gray-800">
             📋 {monthName.split(" ")[0]} {selectedDate}, {currentYear}
           </h3>
+
+          {/* Menu / Meal Plan */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">📋 Menu</h4>
+            {selectedPlan && (selectedPlan.breakfast || selectedPlan.lunch || selectedPlan.dinner) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {selectedPlan.breakfast && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-amber-600 mb-1">🌅 Breakfast</p>
+                    <p className="text-sm text-gray-800">{selectedPlan.breakfast}</p>
+                  </div>
+                )}
+                {selectedPlan.lunch && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-orange-600 mb-1">☀️ Lunch</p>
+                    <p className="text-sm text-gray-800">{selectedPlan.lunch}</p>
+                  </div>
+                )}
+                {selectedPlan.dinner && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-indigo-600 mb-1">🌙 Dinner</p>
+                    <p className="text-sm text-gray-800">{selectedPlan.dinner}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No menu set for this day</p>
+            )}
+          </div>
 
           {/* Meals */}
           <div>
