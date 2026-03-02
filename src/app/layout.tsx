@@ -21,12 +21,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} antialiased bg-gray-50 min-h-screen`}>
+      <body className={`${geistSans.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}>
         <SessionProvider>
           <Navbar />
-          <main className="max-w-7xl mx-auto px-4 py-6">
+          <main className="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
             {children}
           </main>
+          <footer className="mt-auto py-4 border-t border-gray-100 bg-white/60 backdrop-blur-sm">
+            <p className="text-center text-xs text-gray-400 tracking-wide">
+              Designed &amp; built by{" "}
+              <span className="font-semibold text-indigo-500 tracking-wider">CODESLAYER_X86</span>
+            </p>
+          </footer>
         </SessionProvider>
       </body>
     </html>
