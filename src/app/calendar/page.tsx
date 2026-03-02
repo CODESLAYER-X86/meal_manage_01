@@ -48,14 +48,15 @@ export default function CalendarPage() {
     if (status === "authenticated") {
       setLoading(true);
       const m = currentMonth + 1;
+      const safeFetch = (url: string) => fetch(url).then((r) => r.ok ? r.json() : null).catch(() => null);
       Promise.all([
-        fetch(`/api/meals?month=${m}&year=${currentYear}`).then((r) => r.json()),
-        fetch(`/api/bazar?month=${m}&year=${currentYear}`).then((r) => r.json()),
-        fetch(`/api/washroom?month=${m}&year=${currentYear}`).then((r) => r.json()),
+        safeFetch(`/api/meals?month=${m}&year=${currentYear}`),
+        safeFetch(`/api/bazar?month=${m}&year=${currentYear}`),
+        safeFetch(`/api/washroom?month=${m}&year=${currentYear}`),
       ]).then(([mealData, bazarData, washroomData]) => {
         setMeals(Array.isArray(mealData) ? mealData : []);
-        setBazarTrips(bazarData?.trips || []);
-        setWashroomCleanings(washroomData?.cleanings || []);
+        setBazarTrips(Array.isArray(bazarData?.trips) ? bazarData.trips : []);
+        setWashroomCleanings(Array.isArray(washroomData?.cleanings) ? washroomData.cleanings : []);
         setLoading(false);
       }).catch(() => setLoading(false));
     }
