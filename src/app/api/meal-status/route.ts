@@ -201,11 +201,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Invalid meal. Options: ${mealsList.join(", ")}` }, { status: 400 });
   }
 
-  // Date validation: can't change past dates
+  // Date validation: can't change past dates (use BD timezone)
   const mealDate = new Date(date + "T00:00:00.000Z");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (mealDate < today) {
+  const { bd } = getBDTime();
+  const todayBD = new Date(Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()));
+  if (mealDate < todayBD) {
     return NextResponse.json({ error: "Cannot change meal status for past dates" }, { status: 400 });
   }
 
@@ -217,9 +217,8 @@ export async function POST(request: NextRequest) {
     isOff = !(existing?.isOff ?? false); // default is ON (false), so toggle to OFF (true)
   }
 
-  // Blackout check: non-managers can't toggle during blackout for today's meals
-  const isToday = mealDate.getTime() === today.getTime();
-  if (!isManager && isSelf && isToday && isInBlackout(meal, blackouts)) {
+  // Blackout check: non-managers can't toggle during blackout hours (any date)
+  if (!isManager && isSelf && isInBlackout(meal, blackouts)) {
     return NextResponse.json({
       error: `Cannot change ${meal} status during restricted hours. Send a special request instead.`,
       blackout: true,
