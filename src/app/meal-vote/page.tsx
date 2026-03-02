@@ -250,82 +250,133 @@ export default function MealVotePage() {
 
             return (
               <div key={topic.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${topic.active ? "border-gray-200" : "border-gray-100 opacity-80"}`}>
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-900">{topic.title}</h3>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {topic.targetDate && new Date(topic.targetDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                        {topic.targetMeal && ` · ${topic.targetMeal}`}
-                        {!topic.active && " · 🔒 Closed"}
-                        {" · "}{totalVotes} vote{totalVotes !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                    {isManager && (
-                      <div className="flex gap-1 shrink-0">
-                        {topic.active && (
-                          <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-orange-600 rounded-lg hover:bg-gray-50" title="Close voting">
-                            🔒
-                          </button>
-                        )}
-                        <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50" title="Delete">
-                          🗑️
-                        </button>
-                      </div>
-                    )}
+                {/* Topic header */}
+                <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">{topic.title}</h3>
+                    <p className="text-xs text-gray-400 mt-0.5 flex flex-wrap gap-1.5">
+                      {topic.targetDate && (
+                        <span>📅 {new Date(topic.targetDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                      )}
+                      {topic.targetMeal && <span className="capitalize">🍽️ {topic.targetMeal}</span>}
+                      {!topic.active && <span>🔒 Closed</span>}
+                      <span>{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</span>
+                      {myVote && <span className="text-indigo-500">You voted: {myVote.option}</span>}
+                    </p>
                   </div>
+                  {isManager && (
+                    <div className="flex gap-1 shrink-0">
+                      {topic.active && (
+                        <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-orange-600 rounded-lg hover:bg-gray-50" title="Close voting">
+                          🔒
+                        </button>
+                      )}
+                      <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50" title="Delete">
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                </div>
 
-                  {/* Options */}
-                  <div className="space-y-2">
-                    {topic.options.map((opt) => {
-                      const count = voteCounts[opt] || 0;
-                      const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                      const isMyChoice = myVote?.option === opt;
-                      const isWinner = !topic.active && count === maxVotes && count > 0;
+                {/* Poll options box */}
+                <div className="mx-4 mb-4 sm:mx-5 sm:mb-5 rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+                  {topic.options.map((opt, idx) => {
+                    const count = voteCounts[opt] || 0;
+                    const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                    const isMyChoice = myVote?.option === opt;
+                    const isWinner = !topic.active && count === maxVotes && count > 0;
+                    const voters = topic.votes.filter((v) => v.option === opt).map((v) => v.voter.name);
 
-                      return (
-                        <button
-                          key={opt}
-                          onClick={() => topic.active && castVote(topic.id, opt)}
-                          disabled={!topic.active || voting === topic.id}
-                          className={`w-full text-left relative overflow-hidden rounded-lg border p-3 transition-colors ${
-                            isMyChoice
-                              ? "border-indigo-300 bg-indigo-50"
-                              : isWinner
-                              ? "border-green-300 bg-green-50"
-                              : "border-gray-200 hover:border-indigo-200 hover:bg-gray-50"
-                          } ${!topic.active ? "cursor-default" : "cursor-pointer"}`}
-                        >
-                          {/* Progress bar background */}
+                    return (
+                      <div
+                        key={opt}
+                        onClick={() => topic.active && !voting && castVote(topic.id, opt)}
+                        className={`relative px-4 py-3 transition-colors ${
+                          topic.active && !voting ? "cursor-pointer" : "cursor-default"
+                        } ${
+                          isMyChoice
+                            ? "bg-indigo-50"
+                            : isWinner
+                            ? "bg-green-50"
+                            : topic.active
+                            ? "hover:bg-gray-50"
+                            : ""
+                        }`}
+                      >
+                        {/* Progress bar fill */}
+                        {totalVotes > 0 && (
                           <div
-                            className={`absolute inset-y-0 left-0 transition-all ${
+                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${
                               isMyChoice ? "bg-indigo-100" : isWinner ? "bg-green-100" : "bg-gray-100"
                             }`}
-                            style={{ width: `${pct}%` }}
+                            style={{ width: `${pct}%`, opacity: 0.6 }}
                           />
-                          <div className="relative flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {isMyChoice && <span className="text-indigo-600">✓</span>}
-                              {isWinner && <span>🏆</span>}
-                              <span className={`text-sm font-medium ${isMyChoice ? "text-indigo-700" : "text-gray-800"}`}>
-                                {opt}
-                              </span>
-                            </div>
-                            <span className="text-xs text-gray-500 font-medium">{count} ({pct}%)</span>
+                        )}
+
+                        <div className="relative flex items-center gap-3">
+                          {/* Radio circle indicator */}
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                            isMyChoice
+                              ? "border-indigo-500 bg-indigo-500"
+                              : isWinner
+                              ? "border-green-500 bg-green-500"
+                              : "border-gray-300"
+                          }`}>
+                            {(isMyChoice || isWinner) && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                            )}
                           </div>
-                          {/* Voters */}
-                          {count > 0 && (
-                            <div className="relative mt-1.5">
-                              <p className="text-xs text-gray-400">
-                                {topic.votes.filter((v) => v.option === opt).map((v) => v.voter.name).join(", ")}
-                              </p>
+
+                          {/* Option text */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-sm font-medium ${
+                                isMyChoice ? "text-indigo-800" : isWinner ? "text-green-800" : "text-gray-800"
+                              }`}>
+                                {isWinner && "🏆 "}{opt}
+                              </span>
+                              {isMyChoice && (
+                                <span className="text-xs text-indigo-500 font-medium">(your vote)</span>
+                              )}
                             </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            {voters.length > 0 && (
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">{voters.join(", ")}</p>
+                            )}
+                          </div>
+
+                          {/* Count + percentage */}
+                          <div className="text-right flex-shrink-0">
+                            <span className={`text-sm font-bold ${
+                              isMyChoice ? "text-indigo-700" : isWinner ? "text-green-700" : "text-gray-700"
+                            }`}>
+                              {count}
+                            </span>
+                            <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
+                          </div>
+                        </div>
+
+                        {/* Progress bar below text */}
+                        {totalVotes > 0 && (
+                          <div className="relative mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isMyChoice ? "bg-indigo-400" : isWinner ? "bg-green-400" : "bg-gray-300"
+                              }`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
+
+                {/* Loading indicator */}
+                {voting === topic.id && (
+                  <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+                    <p className="text-xs text-gray-400 text-center">Casting vote...</p>
+                  </div>
+                )}
               </div>
             );
           })}

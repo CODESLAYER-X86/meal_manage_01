@@ -58,6 +58,17 @@ export default function AdminUsersPage() {
     else alert((await res.json()).error || "Failed");
   };
 
+  const deleteUser = async (id: string, name: string) => {
+    if (!confirm(`Permanently delete user "${name}"? This cannot be undone.`)) return;
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) fetchUsers(page, search);
+    else alert((await res.json()).error || "Failed to delete user");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -134,6 +145,7 @@ export default function AdminUsersPage() {
                   {u.messId && (
                     <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20">Kick</button>
                   )}
+                  <button onClick={() => deleteUser(u.id, u.name)} className="px-2.5 py-1 text-[10px] bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30">🗑 Delete</button>
                 </div>
               </div>
             ))}
@@ -198,6 +210,7 @@ export default function AdminUsersPage() {
                           {u.messId && (
                             <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">Kick</button>
                           )}
+                          <button onClick={() => deleteUser(u.id, u.name)} className="px-2.5 py-1 text-[10px] bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors">🗑 Delete</button>
                         </div>
                       </td>
                     </tr>

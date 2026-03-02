@@ -48,3 +48,37 @@ export async function DELETE(request: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+export async function PATCH(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const { messId, newManagerId } = await request.json();
+  if (!messId || !newManagerId) {
+    return NextResponse.json({ error: "messId and newManagerId are required" }, { status: 400 });
+  }
+
+  // Verify the new manager is actually in this mess
+  const newManager = await prisma.user.findFirst({
+    where: { id: newManagerId, messId },
+  });
+  if (!newManager) {
+    return NextResponse.json({ error: "User is not a member of this mess" }, { status: 400 });
+  }
+
+  // Demote current manager(s) to MEMBER, then promote the new one
+  await prisma.$transaction([
+    prisma.user.updateMany({
+      where: { messId, role: "MANAGER" },
+      data: { role: "MEMBER" },
+    }),
+    prisma.user.update({
+      where: { id: newManagerId },
+      data: { role: "MANAGER" },
+    }),
+  ]);
+
+  return NextResponse.json({ success: true });
+}

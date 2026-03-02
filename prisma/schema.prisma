@@ -59,6 +59,7 @@ model Mess {
   dutyDebts         DutyDebt[]
   memberPresences   MemberPresence[]
   mealStatuses      MealStatus[]
+  fines             Fine[]
 }
 
 model User {
@@ -96,6 +97,8 @@ model User {
   debtsCovered      DutyDebt[]         @relation("DebtOwedTo")
   presences         MemberPresence[]
   mealStatuses      MealStatus[]
+  fines             Fine[]
+  finesCreated      Fine[]         @relation("FineCreatedBy")
 
   @@index([messId])
 }
@@ -389,6 +392,8 @@ model BillSetting {
   electricity Float    @default(0)
   gas         Float    @default(0)
   cookSalary  Float    @default(0)
+  other       Float    @default(0)
+  otherNote   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -500,4 +505,24 @@ model AdminSetting {
   value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ========== FINES ==========
+model Fine {
+  id          String    @id @default(cuid())
+  memberId    String
+  member      User      @relation(fields: [memberId], references: [id])
+  messId      String
+  mess        Mess      @relation(fields: [messId], references: [id])
+  amount      Float
+  reason      String
+  settled     Boolean   @default(false)
+  settledAt   DateTime?
+  createdById String
+  createdBy   User      @relation("FineCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([messId])
+  @@index([memberId])
 }
