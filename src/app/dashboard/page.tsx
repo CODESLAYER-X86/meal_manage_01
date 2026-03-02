@@ -47,6 +47,13 @@ interface Announcement {
   author: { id: string; name: string };
 }
 
+interface BillPaymentStatus {
+  members: { id: string; name: string }[];
+  memberBills: Record<string, number>;
+  paidAmounts: Record<string, number>;
+  confirmedAmounts: Record<string, number>;
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -55,6 +62,7 @@ export default function DashboardPage() {
   const [todayMenu, setTodayMenu] = useState<MealPlan | null>(null);
   const [tomorrowMenu, setTomorrowMenu] = useState<MealPlan | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [billPayStatus, setBillPayStatus] = useState<BillPaymentStatus | null>(null);
   const [dueThreshold, setDueThreshold] = useState(500);
   const [loading, setLoading] = useState(true);
 
@@ -79,13 +87,15 @@ export default function DashboardPage() {
         fetch(`/api/meal-plan?date=${tmrwStr}`).then((r) => r.json()),
         fetch("/api/announcements?limit=3").then((r) => r.json()),
         fetch("/api/mess").then((r) => r.json()).catch(() => null),
-      ]).then(([billData, logs, todayPlan, tmrwPlan, announcementsData, messData]) => {
+        fetch(`/api/bill-payments?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.json()).catch(() => null),
+      ]).then(([billData, logs, todayPlan, tmrwPlan, announcementsData, messData, billPayData]) => {
         setBill(billData);
         setAuditLogs(logs);
         setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
         setTomorrowMenu(tmrwPlan && tmrwPlan.id ? tmrwPlan : null);
         setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
         if (messData?.mess?.dueThreshold) setDueThreshold(messData.mess.dueThreshold);
+        if (billPayData?.members) setBillPayStatus(billPayData);
         setLoading(false);
       });
     }
@@ -264,6 +274,52 @@ export default function DashboardPage() {
                 View Billing →
               </Link>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bill Payment Status */}
+      {billPayStatus && billPayStatus.members.length > 0 && (
+        <div className="bg-white p-5 rounded-xl shadow-sm border">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold text-gray-800">💳 Bill Payment Status</h2>
+            <Link href="/bills" className="text-sm text-indigo-600 hover:underline">Manage →</Link>
+          </div>
+          <div className="space-y-2">
+            {billPayStatus.members.map((m) => {
+              const totalBill = billPayStatus.memberBills[m.id] || 0;
+              const paid = billPayStatus.paidAmounts[m.id] || 0;
+              const confirmed = billPayStatus.confirmedAmounts[m.id] || 0;
+              const pct = totalBill > 0 ? Math.min(100, Math.round((confirmed / totalBill) * 100)) : 0;
+              const isPaid = totalBill > 0 && confirmed >= totalBill;
+              const hasPending = paid > confirmed;
+
+              return (
+                <div key={m.id} className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700 w-20 truncate">{m.name}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden relative">
+                    <div
+                      className={`h-full rounded-full transition-all ${isPaid ? "bg-green-500" : confirmed > 0 ? "bg-blue-500" : "bg-gray-300"}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700">
+                      {totalBill > 0 ? `৳${confirmed}/${totalBill}` : "No bill"}
+                    </span>
+                  </div>
+                  <span className="text-xs whitespace-nowrap">
+                    {isPaid ? (
+                      <span className="text-green-600 font-medium">✅ Paid</span>
+                    ) : hasPending ? (
+                      <span className="text-amber-600 font-medium">⏳ Pending</span>
+                    ) : paid === 0 && totalBill > 0 ? (
+                      <span className="text-red-600 font-medium">❌ Unpaid</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

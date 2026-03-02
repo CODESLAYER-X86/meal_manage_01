@@ -54,11 +54,13 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   });
 
-  // Calculate next due date for each washroom (last cleaning + 14 days)
+  // Calculate next due date for each washroom (last cleaning up to today + 14 days)
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
   const nextDueDates: Record<number, string | null> = {};
   for (let wn = 1; wn <= mess.washroomCount; wn++) {
     const lastCleaning = await prisma.washroomCleaning.findFirst({
-      where: { messId, washroomNumber: wn },
+      where: { messId, washroomNumber: wn, date: { lte: todayEnd } },
       orderBy: { date: "desc" },
       select: { date: true },
     });

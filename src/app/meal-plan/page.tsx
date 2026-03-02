@@ -17,7 +17,8 @@ interface MealOffRequest {
   memberId: string;
   member: { id: string; name: string };
   fromDate: string;
-  toDate: string;
+  toDate: string | null;
+  durationType: "finite" | "unknown";
   skipBreakfast: boolean;
   skipLunch: boolean;
   skipDinner: boolean;
@@ -49,6 +50,8 @@ export default function MealPlanPage() {
   const [showOffForm, setShowOffForm] = useState(false);
   const [offFrom, setOffFrom] = useState("");
   const [offTo, setOffTo] = useState("");
+  const [offDurationType, setOffDurationType] = useState<"finite" | "unknown">("finite");
+  const [offDays, setOffDays] = useState("1");
   const [offReason, setOffReason] = useState("");
   const [offSkipBreakfast, setOffSkipBreakfast] = useState(true);
   const [offSkipLunch, setOffSkipLunch] = useState(true);
@@ -159,8 +162,25 @@ export default function MealPlanPage() {
   // Meal-off request submission
   const submitMealOff = async () => {
     setOffError("");
-    if (!offFrom || !offTo) {
-      setOffError("Please select both dates");
+    if (!offFrom) {
+      setOffError("Please select a start date");
+      return;
+    }
+    let computedToDate: string | null = null;
+    if (offDurationType === "finite") {
+      const days = parseInt(offDays);
+      if (!days || days < 1) {
+        setOffError("Please enter a valid number of days (1 or more)");
+        return;
+      }
+      // Compute toDate from fromDate + (days - 1)
+      const from = new Date(offFrom);
+      const to = new Date(from);
+      to.setDate(to.getDate() + days - 1);
+      computedToDate = to.toISOString().split("T")[0];
+    }
+    if (!offSkipBreakfast && !offSkipLunch && !offSkipDinner) {
+      setOffError("Please select at least one meal to skip");
       return;
     }
     setOffSubmitting(true);
@@ -170,7 +190,8 @@ export default function MealPlanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fromDate: offFrom,
-          toDate: offTo,
+          toDate: computedToDate,
+          durationType: offDurationType,
           reason: offReason.trim(),
           skipBreakfast: offSkipBreakfast,
           skipLunch: offSkipLunch,
@@ -185,6 +206,8 @@ export default function MealPlanPage() {
       setShowOffForm(false);
       setOffFrom("");
       setOffTo("");
+      setOffDays("1");
+      setOffDurationType("finite");
       setOffReason("");
       setOffSkipBreakfast(true);
       setOffSkipLunch(true);
@@ -231,9 +254,11 @@ export default function MealPlanPage() {
   // Get meal-off requests for this month
   const monthMealOffs = mealOffs.filter((mo) => {
     const from = new Date(mo.fromDate);
-    const to = new Date(mo.toDate);
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59);
+    // If no toDate (unknown duration), it's ongoing — include if started before month end
+    if (!mo.toDate) return from <= monthEnd;
+    const to = new Date(mo.toDate);
     return from <= monthEnd && to >= monthStart;
   });
 
@@ -243,10 +268,13 @@ export default function MealPlanPage() {
     return mealOffs.filter((mo) => {
       if (mo.status !== "APPROVED") return false;
       const from = new Date(mo.fromDate);
-      const to = new Date(mo.toDate);
       from.setHours(0, 0, 0, 0);
+      if (dateObj < from) return false;
+      // Unknown duration (no toDate) = ongoing, any date after fromDate matches
+      if (!mo.toDate) return true;
+      const to = new Date(mo.toDate);
       to.setHours(0, 0, 0, 0);
-      return dateObj >= from && dateObj <= to;
+      return dateObj <= to;
     });
   };
 
@@ -300,8 +328,41 @@ export default function MealPlanPage() {
         <div className="bg-amber-50 rounded-xl shadow-sm border border-amber-200 p-4 sm:p-6 space-y-4">
           <h2 className="text-lg font-semibold text-amber-900">🏖️ Request Meal Off</h2>
           <p className="text-sm text-amber-700">
-            Going on vacation or skipping specific meals? Select the dates and which meals to skip. The manager will approve it.
+            Notify the manager that you&apos;ll skip meals. Select the duration and which meals to skip.
           </p>
+
+          {/* Deadline info */}
+          <div className="bg-amber-100 border border-amber-300 rounded-lg px-3 py-2 text-xs sm:text-sm text-amber-800">
+            <strong>⏰ Deadlines:</strong> Breakfast off → before <strong>6:00 AM</strong> · Lunch off → before <strong>2:00 PM</strong> · Dinner off → before <strong>2:00 PM</strong> (same day, BD time)
+          </div>
+
+          {/* Duration Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="durationType"
+                  checked={offDurationType === "finite"}
+                  onChange={() => setOffDurationType("finite")}
+                  className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">📅 Fixed days</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="durationType"
+                  checked={offDurationType === "unknown"}
+                  onChange={() => setOffDurationType("unknown")}
+                  className="w-4 h-4 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">❓ Until further notice</span>
+              </label>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
@@ -309,24 +370,37 @@ export default function MealPlanPage() {
                 type="date"
                 value={offFrom}
                 min={today}
-                onChange={(e) => {
-                  setOffFrom(e.target.value);
-                  if (offTo && e.target.value > offTo) setOffTo(e.target.value);
-                }}
+                onChange={(e) => setOffFrom(e.target.value)}
                 className="w-full px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-              <input
-                type="date"
-                value={offTo}
-                min={offFrom || today}
-                onChange={(e) => setOffTo(e.target.value)}
-                className="w-full px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
-              />
-            </div>
+            {offDurationType === "finite" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Days</label>
+                <input
+                  type="number"
+                  value={offDays}
+                  min="1"
+                  onChange={(e) => setOffDays(e.target.value)}
+                  placeholder="e.g. 3"
+                  className="w-full px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-amber-400 outline-none"
+                />
+                {offFrom && offDays && parseInt(offDays) >= 1 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Until {new Date(new Date(offFrom).getTime() + (parseInt(offDays) - 1) * 86400000).toLocaleDateString("en-BD", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                )}
+              </div>
+            )}
+            {offDurationType === "unknown" && (
+              <div className="flex items-end">
+                <p className="text-sm text-amber-700 bg-amber-100 px-3 py-2.5 rounded-lg w-full">
+                  ♾️ Until you cancel or manager ends it
+                </p>
+              </div>
+            )}
           </div>
+
           {/* Per-meal skip checkboxes */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Which meals to skip?</label>
@@ -394,8 +468,9 @@ export default function MealPlanPage() {
               .filter((mo) => isManager ? mo.status === "PENDING" : mo.memberId === session?.user?.id)
               .map((mo) => {
                 const from = new Date(mo.fromDate);
-                const to = new Date(mo.toDate);
-                const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                const isUnknown = mo.durationType === "unknown" || !mo.toDate;
+                const to = mo.toDate ? new Date(mo.toDate) : null;
+                const days = to ? Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1 : null;
 
                 return (
                   <div
@@ -414,8 +489,12 @@ export default function MealPlanPage() {
                           {mo.member.name}
                           <span className="ml-2 text-sm text-gray-500">
                             {from.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                            {days > 1 && ` → ${to.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
-                            {" "}({days} day{days > 1 ? "s" : ""})
+                            {isUnknown
+                              ? " → Until further notice"
+                              : days && days > 1
+                              ? ` → ${to!.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} (${days} days)`
+                              : " (1 day)"
+                            }
                           </span>
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -478,15 +557,21 @@ export default function MealPlanPage() {
               .filter((mo) => mo.status === "APPROVED")
               .map((mo) => {
                 const from = new Date(mo.fromDate);
-                const to = new Date(mo.toDate);
-                const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                const isUnknown = mo.durationType === "unknown" || !mo.toDate;
+                const to = mo.toDate ? new Date(mo.toDate) : null;
+                const days = to ? Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1 : null;
                 const skipped = [mo.skipBreakfast && "B", mo.skipLunch && "L", mo.skipDinner && "D"].filter(Boolean).join("");
                 return (
                   <div key={mo.id} className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
                     <span className="font-medium text-green-800">{mo.member.name}</span>
                     <span className="text-green-600 ml-1">
                       {from.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                      {days > 1 && ` → ${to.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
+                      {isUnknown
+                        ? " → ♾️"
+                        : days && days > 1
+                        ? ` → ${to!.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`
+                        : ""
+                      }
                     </span>
                     {skipped !== "BLD" && (
                       <span className="text-green-500 ml-1 text-xs">({skipped} off)</span>
