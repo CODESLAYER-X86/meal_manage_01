@@ -11,7 +11,7 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-type ViewTab = "billing" | "meals" | "deposits" | "bazar" | "audit" | "washroom" | "mealplan" | "ratings" | "announcements" | "votes" | "billpayments" | "dutyDebts";
+type ViewTab = "transparency" | "calendar" | "billing" | "meals" | "deposits" | "bazar" | "audit" | "washroom" | "mealplan" | "ratings" | "announcements" | "votes" | "billpayments";
 
 export default function ArchivePage() {
   const { data: session, status } = useSession();
@@ -23,6 +23,7 @@ export default function ArchivePage() {
   const [exportMonth, setExportMonth] = useState(now.getMonth()); // previous month by default
   const [exportYear, setExportYear] = useState(now.getFullYear());
   const [exporting, setExporting] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   // Cleanup
   const [cleanupResult, setCleanupResult] = useState<any>(null);
@@ -32,7 +33,7 @@ export default function ArchivePage() {
   const [archive, setArchive] = useState<any>(null);
   const [importError, setImportError] = useState("");
   const [importing, setImporting] = useState(false);
-  const [viewTab, setViewTab] = useState<ViewTab>("billing");
+  const [viewTab, setViewTab] = useState<ViewTab>("transparency");
   const [auditFilter, setAuditFilter] = useState("all");
 
   const isManager = session?.user?.role === "MANAGER";
@@ -55,7 +56,9 @@ export default function ArchivePage() {
     try {
       const res = await fetch(`/api/archive/export?month=${exportMonth}&year=${exportYear}`);
       if (!res.ok) {
-        alert("Export failed: " + (await res.json()).error);
+        let msg = "Unknown error";
+        try { msg = (await res.json()).error; } catch { msg = res.statusText; }
+        alert("Export failed: " + msg);
         return;
       }
       const blob = await res.blob();
@@ -68,9 +71,36 @@ export default function ArchivePage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Export failed");
+      alert("Export failed — check your connection and try again");
     } finally {
       setExporting(false);
+    }
+  };
+
+  // ===== CSV EXPORT =====
+  const handleCsvExport = async () => {
+    setExportingCsv(true);
+    try {
+      const res = await fetch(`/api/archive/export-csv?month=${exportMonth}&year=${exportYear}`);
+      if (!res.ok) {
+        let msg = "Unknown error";
+        try { msg = (await res.json()).error; } catch { msg = res.statusText; }
+        alert("CSV export failed: " + msg);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const disposition = res.headers.get("content-disposition") || "";
+      const match = disposition.match(/filename="(.+)"/);
+      a.download = match ? match[1] : `report-${exportMonth}-${exportYear}.csv`;
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("CSV export failed — check your connection and try again");
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -137,7 +167,7 @@ export default function ArchivePage() {
       }
 
       setArchive(arch);
-      setViewTab("billing");
+      setViewTab("transparency");
     } catch {
       setImportError("Failed to read or validate the file");
     } finally {
@@ -183,8 +213,7 @@ export default function ArchivePage() {
       <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">📤 Export Monthly Archive</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Download a <code className="bg-gray-100 px-1 rounded">.messmate</code> archive file containing all data for a month.
-          This file can only be opened by this app.
+          Download your monthly data as a <code className="bg-gray-100 px-1 rounded">.messmate</code> archive (for this app) or as a <code className="bg-gray-100 px-1 rounded">.csv</code> spreadsheet file.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <select
@@ -205,12 +234,21 @@ export default function ArchivePage() {
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
+        </div>
+        <div className="flex flex-wrap gap-3 mt-4">
           <button
             onClick={handleExport}
             disabled={exporting}
             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
           >
             {exporting ? "Exporting..." : "📤 Download .messmate"}
+          </button>
+          <button
+            onClick={handleCsvExport}
+            disabled={exportingCsv}
+            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          >
+            {exportingCsv ? "Exporting..." : "📊 Download CSV"}
           </button>
         </div>
       </div>
@@ -299,6 +337,8 @@ function ArchiveViewer({
   const monthName = `${MONTH_NAMES[period.month - 1]} ${period.year}`;
 
   const tabs: { id: ViewTab; label: string; emoji: string }[] = [
+    { id: "transparency", label: "Transparency", emoji: "👁️" },
+    { id: "calendar", label: "Calendar", emoji: "📅" },
     { id: "billing", label: "Billing", emoji: "💰" },
     { id: "meals", label: "Meals", emoji: "🍽️" },
     { id: "deposits", label: "Deposits", emoji: "💵" },
@@ -309,8 +349,7 @@ function ArchiveViewer({
     { id: "ratings", label: "Ratings", emoji: "⭐" },
     { id: "announcements", label: "Notices", emoji: "📢" },
     { id: "votes", label: "Votes", emoji: "🗳️" },
-    { id: "billpayments", label: "Bill Payments", emoji: "💳" },
-    { id: "dutyDebts", label: "Duty Debts", emoji: "⚖️" },
+    { id: "billpayments", label: "Bills", emoji: "💳" },
   ];
 
   return (
@@ -360,6 +399,8 @@ function ArchiveViewer({
 
       {/* Content */}
       <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+        {viewTab === "transparency" && <TransparencyView archive={archive} />}
+        {viewTab === "calendar" && <CalendarView archive={archive} />}
         {viewTab === "billing" && <BillingView billing={billing} />}
         {viewTab === "meals" && <MealsView mealEntries={data.mealEntries} />}
         {viewTab === "deposits" && <DepositsView deposits={data.deposits} />}
@@ -371,7 +412,6 @@ function ArchiveViewer({
         {viewTab === "announcements" && <AnnouncementsView announcements={data.announcements} />}
         {viewTab === "votes" && <VotesView topics={data.mealVoteTopics} />}
         {viewTab === "billpayments" && <BillPaymentsView payments={data.billPayments} settings={data.billSettings} members={archive.members} />}
-        {viewTab === "dutyDebts" && <DutyDebtsView debts={data.dutyDebts} />}
       </div>
     </div>
   );
@@ -379,47 +419,508 @@ function ArchiveViewer({
 
 // ===== Sub-views for each data type =====
 
+function TransparencyView({ archive }: { archive: any }) {
+  const { billing, data, members: archiveMembers } = archive;
+  const mealEntries = data?.mealEntries || [];
+  const deposits = data?.deposits || [];
+  const bazarTrips = data?.bazarTrips || [];
+  const washroomDuties = data?.washroomDuties || [];
+  const billSettings = data?.billSettings || [];
+  const billPayments = data?.billPayments || [];
+  const dutyDebts = data?.dutyDebts || [];
+  const memberList = archiveMembers || [];
+
+  const setting = billSettings?.[0];
+  const rents = setting ? JSON.parse(setting.rents || "{}") : {};
+  const memberBillMap: Record<string, number> = {};
+  if (setting) {
+    const shared = ((setting.wifi || 0) + (setting.electricity || 0) + (setting.gas || 0) + (setting.cookSalary || 0)) / Math.max(memberList.length, 1);
+    memberList.forEach((m: any) => {
+      memberBillMap[m.id] = shared + (rents[m.id] || 0);
+    });
+  }
+
+  const totalBazar = bazarTrips.reduce((sum: number, t: any) => sum + (t.totalCost || 0), 0);
+  const totalAllMeals = mealEntries.reduce((sum: number, e: any) => sum + (e.total || 0), 0);
+  const mealRate = totalAllMeals > 0 ? totalBazar / totalAllMeals : 0;
+
+  // Build scorecard
+  const scorecard = memberList.map((m: any) => {
+    const id = m.id;
+    const name = m.name;
+
+    const memberMeals = mealEntries.filter((e: any) => (e.member?.id || e.memberId) === id);
+    const totalMealsCount = memberMeals.reduce((sum: number, e: any) => sum + (e.total || 0), 0);
+    const mealCost = totalMealsCount * mealRate;
+
+    const memberDeposits = deposits.filter((d: any) => (d.member?.id || d.memberId) === id);
+    const totalDeposit = memberDeposits.reduce((sum: number, d: any) => sum + (d.amount || 0), 0);
+    const mealDue = mealCost - totalDeposit;
+
+    const billDue = memberBillMap[id] || 0;
+    const memberPayments = billPayments.filter((p: any) => (p.member?.id || p.memberId) === id);
+    const billPaid = memberPayments.filter((p: any) => p.confirmed).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+    const billRemaining = billDue - billPaid;
+
+    const washroomCount = washroomDuties.filter((d: any) => (d.member?.id || d.memberId) === id).length;
+    const bazarTripCount = bazarTrips.filter((t: any) => (t.buyer?.id || t.buyerId) === id).length;
+
+    return { id, name, totalMealsCount, mealCost, totalDeposit, mealDue, billDue, billPaid, billRemaining, washroomCount, bazarTripCount };
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Scorecard */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 Member Scorecard</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm min-w-[700px]">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left p-2 sm:p-3">Member</th>
+                <th className="text-center p-2 sm:p-3">Meals</th>
+                <th className="text-right p-2 sm:p-3">Meal Cost</th>
+                <th className="text-right p-2 sm:p-3">Deposits</th>
+                <th className="text-right p-2 sm:p-3">Meal Due</th>
+                <th className="text-right p-2 sm:p-3">Bill Due</th>
+                <th className="text-right p-2 sm:p-3">Bill Paid</th>
+                <th className="text-center p-2 sm:p-3">WC</th>
+                <th className="text-center p-2 sm:p-3">Bazar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scorecard.map((s: any) => (
+                <tr key={s.id} className="border-t hover:bg-gray-50">
+                  <td className="p-2 sm:p-3 font-medium text-gray-800">{s.name}</td>
+                  <td className="p-2 sm:p-3 text-center">{s.totalMealsCount}</td>
+                  <td className="p-2 sm:p-3 text-right">৳{s.mealCost.toFixed(0)}</td>
+                  <td className="p-2 sm:p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
+                  <td className={`p-2 sm:p-3 text-right font-bold ${s.mealDue > 0 ? "text-red-600" : "text-green-600"}`}>
+                    ৳{s.mealDue.toFixed(0)}
+                  </td>
+                  <td className="p-2 sm:p-3 text-right">৳{s.billDue.toFixed(0)}</td>
+                  <td className={`p-2 sm:p-3 text-right ${s.billRemaining > 0 ? "text-red-600" : "text-green-600"}`}>
+                    ৳{s.billPaid.toFixed(0)}
+                  </td>
+                  <td className="p-2 sm:p-3 text-center">
+                    <span className={s.washroomCount > 0 ? "text-green-600" : "text-gray-400"}>{s.washroomCount}</span>
+                  </td>
+                  <td className="p-2 sm:p-3 text-center">
+                    <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-gray-400"}>{s.bazarTripCount}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {mealRate > 0 && (
+          <div className="mt-2 text-xs text-gray-500 px-2">
+            Meal rate: ৳{mealRate.toFixed(2)}/meal · Total bazar: ৳{totalBazar.toFixed(0)} · Total meals: {totalAllMeals}
+          </div>
+        )}
+      </div>
+
+      {/* Bill Payment Status */}
+      {Object.keys(memberBillMap).length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">💳 Bill Payment Status</h2>
+          <div className="space-y-3">
+            {scorecard.map((s: any) => {
+              const pct = s.billDue > 0 ? Math.min((s.billPaid / s.billDue) * 100, 100) : 0;
+              return (
+                <div key={s.id} className="bg-gray-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-medium text-sm text-gray-800">{s.name}</span>
+                    <span className={`text-xs font-bold ${s.billRemaining <= 0 ? "text-green-600" : "text-red-600"}`}>
+                      {s.billRemaining <= 0 ? "✅ Paid" : `৳${s.billRemaining.toFixed(0)} remaining`}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all ${s.billRemaining <= 0 ? "bg-green-500" : "bg-orange-500"}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Paid: ৳{s.billPaid.toFixed(0)}</span>
+                    <span>Due: ৳{s.billDue.toFixed(0)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Washroom Log */}
+      {washroomDuties.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">🚿 Washroom Cleaning Log</h2>
+          <div className="space-y-1">
+            {washroomDuties.map((d: any) => (
+              <div key={d.id} className="p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-gray-500 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
+                <span className="font-medium text-gray-800">{d.member?.name || "Unknown"}</span>
+                <span className="text-xs text-gray-400">WR-{d.washroomNumber}</span>
+                <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✅ Done</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bazar Trips */}
+      {bazarTrips.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">🛒 Bazar Trips</h2>
+          <div className="space-y-1">
+            {bazarTrips.map((t: any, i: number) => (
+              <div key={t.id || i} className="p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-gray-500 text-xs w-20">{new Date(t.date).toLocaleDateString()}</span>
+                <span className="font-medium text-gray-800">{t.buyer?.name || "Unknown"}</span>
+                <span className="font-bold text-orange-700">৳{t.totalCost}</span>
+                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
+                  t.approved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                }`}>
+                  {t.approved ? "✅ Approved" : "⏳ Pending"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Duty Debts */}
+      {dutyDebts.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">⚖️ Duty Debts</h2>
+          <div className="space-y-1">
+            {dutyDebts.map((d: any) => (
+              <div key={d.id} className="p-3 bg-gray-50 rounded-lg text-sm flex flex-wrap items-center gap-2">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  d.dutyType === "WASHROOM" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                }`}>{d.dutyType}</span>
+                <span className="text-red-600 font-medium">{d.owedBy?.name}</span>
+                <span className="text-gray-400">→</span>
+                <span className="text-green-600 font-medium">{d.owedTo?.name}</span>
+                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
+                  d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                }`}>{d.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Meal Summary */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">🍛 Meal Counts</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left p-2 sm:p-3">Member</th>
+                <th className="text-center p-2 sm:p-3">Total Meals</th>
+                <th className="text-right p-2 sm:p-3">Deposits</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scorecard.map((s: any) => (
+                <tr key={s.id} className="border-t hover:bg-gray-50">
+                  <td className="p-2 sm:p-3 font-medium text-gray-800">{s.name}</td>
+                  <td className="p-2 sm:p-3 text-center font-bold text-indigo-600">{s.totalMealsCount}</td>
+                  <td className="p-2 sm:p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
+                </tr>
+              ))}
+              <tr className="border-t bg-gray-50 font-bold">
+                <td className="p-2 sm:p-3">Total</td>
+                <td className="p-2 sm:p-3 text-center text-indigo-700">{scorecard.reduce((sum: number, s: any) => sum + s.totalMealsCount, 0)}</td>
+                <td className="p-2 sm:p-3 text-right text-green-700">৳{scorecard.reduce((sum: number, s: any) => sum + s.totalDeposit, 0).toFixed(0)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CalendarView({ archive }: { archive: any }) {
+  const { period, data } = archive;
+  const [selectedDate, setSelectedDate] = useState<number | null>(null);
+
+  const mealEntries = data?.mealEntries || [];
+  const bazarTrips = data?.bazarTrips || [];
+  const washroomDuties = data?.washroomDuties || [];
+  const mealPlans = data?.mealPlans || [];
+
+  const month = period.month; // 1-indexed
+  const year = period.year;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+  const monthName = new Date(year, month - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const dateStr = (day: number) =>
+    `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  const getMeals = (day: number) => mealEntries.filter((m: any) => (m.date || "").startsWith(dateStr(day)));
+  const getBazar = (day: number) => bazarTrips.filter((t: any) => (t.date || "").startsWith(dateStr(day)));
+  const getWashroom = (day: number) => washroomDuties.filter((w: any) => (w.date || "").startsWith(dateStr(day)));
+  const getPlan = (day: number) => mealPlans.find((p: any) => (p.date || "").startsWith(dateStr(day)));
+  const getTotalMeals = (day: number) => getMeals(day).reduce((sum: number, m: any) => sum + (m.total || 0), 0);
+
+  const selMeals = selectedDate ? getMeals(selectedDate) : [];
+  const selBazar = selectedDate ? getBazar(selectedDate) : [];
+  const selWashroom = selectedDate ? getWashroom(selectedDate) : [];
+  const selPlan = selectedDate ? getPlan(selectedDate) : undefined;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold text-gray-900">📅 {monthName}</h2>
+
+      {/* Calendar Grid */}
+      <div className="rounded-xl border overflow-hidden">
+        <div className="grid grid-cols-7 bg-gray-50">
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-500 border-b">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+            <div key={`e-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-gray-50" />
+          ))}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const totalMeals = getTotalMeals(day);
+            const hasBazar = getBazar(day).length > 0;
+            const hasWashroom = getWashroom(day).length > 0;
+            const dayPlan = getPlan(day);
+            const hasMenu = dayPlan && (dayPlan.breakfast || dayPlan.lunch || dayPlan.dinner);
+            const isSelected = selectedDate === day;
+            return (
+              <div
+                key={day}
+                onClick={() => setSelectedDate(day)}
+                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${
+                  isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
+                }`}
+              >
+                <div className="text-xs sm:text-sm font-medium text-gray-700">{day}</div>
+                {totalMeals > 0 && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-full inline-block">🍛{totalMeals}</div>
+                )}
+                {hasBazar && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full inline-block">🛒</div>
+                )}
+                {hasWashroom && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-teal-100 text-teal-700 px-1 py-0.5 rounded-full inline-block">🚿</div>
+                )}
+                {hasMenu && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full inline-block">📋</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected Date Detail */}
+      {selectedDate && (
+        <div className="bg-gray-50 rounded-xl border p-5 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">
+            📋 {monthName.split(" ")[0]} {selectedDate}, {year}
+          </h3>
+
+          {/* Menu */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">📋 Menu</h4>
+            {selPlan && (selPlan.breakfast || selPlan.lunch || selPlan.dinner) ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {selPlan.breakfast && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-amber-600 mb-1">🌅 Breakfast</p>
+                    <p className="text-sm text-gray-800">{selPlan.breakfast}</p>
+                  </div>
+                )}
+                {selPlan.lunch && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-orange-600 mb-1">☀️ Lunch</p>
+                    <p className="text-sm text-gray-800">{selPlan.lunch}</p>
+                  </div>
+                )}
+                {selPlan.dinner && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                    <p className="text-xs font-semibold text-indigo-600 mb-1">🌙 Dinner</p>
+                    <p className="text-sm text-gray-800">{selPlan.dinner}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No menu set for this day</p>
+            )}
+          </div>
+
+          {/* Meals */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meals</h4>
+            {selMeals.length === 0 ? (
+              <p className="text-sm text-gray-400">No meals recorded</p>
+            ) : (
+              <>
+                {/* Mobile cards */}
+                <div className="md:hidden space-y-2">
+                  {selMeals.map((m: any) => (
+                    <div key={m.id} className="bg-white rounded-lg p-3 border">
+                      <p className="font-medium text-gray-900 text-sm mb-1">{m.member?.name || "Unknown"}</p>
+                      <div className="grid grid-cols-4 gap-2 text-xs text-center">
+                        <div><p className="text-gray-400">B</p><p className="font-bold">{m.breakfast}</p></div>
+                        <div><p className="text-gray-400">L</p><p className="font-bold">{m.lunch}</p></div>
+                        <div><p className="text-gray-400">D</p><p className="font-bold">{m.dinner}</p></div>
+                        <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop table */}
+                <div className="hidden md:block">
+                  <table className="w-full text-sm">
+                    <thead className="bg-white">
+                      <tr>
+                        <th className="text-left p-2">Member</th>
+                        <th className="text-center p-2">Breakfast</th>
+                        <th className="text-center p-2">Lunch</th>
+                        <th className="text-center p-2">Dinner</th>
+                        <th className="text-center p-2">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selMeals.map((m: any) => (
+                        <tr key={m.id} className="border-t">
+                          <td className="p-2 font-medium">{m.member?.name || "Unknown"}</td>
+                          <td className="text-center p-2">{m.breakfast}</td>
+                          <td className="text-center p-2">{m.lunch}</td>
+                          <td className="text-center p-2">{m.dinner}</td>
+                          <td className="text-center p-2 font-bold">{m.total}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Bazar */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🛒 Bazar / Market Purchases</h4>
+            {selBazar.length === 0 ? (
+              <p className="text-sm text-gray-400">No market purchases</p>
+            ) : (
+              selBazar.map((trip: any) => (
+                <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium">Buyer: {trip.buyer?.name || "Unknown"}</span>
+                    <span className="font-bold text-orange-700">৳{trip.totalCost}</span>
+                  </div>
+                  {trip.items?.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-orange-100">
+                          <tr>
+                            <th className="text-left p-1.5">SL</th>
+                            <th className="text-left p-1.5">Item</th>
+                            <th className="text-center p-1.5">Qty</th>
+                            <th className="text-center p-1.5">Unit</th>
+                            <th className="text-right p-1.5">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {trip.items.map((item: any) => (
+                            <tr key={item.serialNo || item.id} className="border-t border-orange-200">
+                              <td className="p-1.5">{item.serialNo}</td>
+                              <td className="p-1.5">{item.itemName}</td>
+                              <td className="text-center p-1.5">{item.quantity}</td>
+                              <td className="text-center p-1.5">{item.unit}</td>
+                              <td className="text-right p-1.5">৳{item.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Washroom */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🚿 Washroom Cleaning</h4>
+            {selWashroom.length === 0 ? (
+              <p className="text-sm text-gray-400">No washroom cleaning</p>
+            ) : (
+              <div className="space-y-1">
+                {selWashroom.map((w: any) => (
+                  <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-lg p-2 border border-teal-200">
+                    <span className="text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
+                    <span className="text-gray-700">{w.member?.name || "Unknown"}</span>
+                    <span className="ml-auto text-xs text-green-600 font-bold">✅ Done</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!selectedDate && (
+        <p className="text-center text-gray-400 text-sm py-4">👆 Click on a date to see details</p>
+      )}
+    </div>
+  );
+}
+
 function BillingView({ billing }: { billing: any }) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">💰 Billing Summary</h2>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-gray-50 p-4 rounded-lg text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
           <p className="text-sm text-gray-500">Total Expense</p>
-          <p className="text-2xl font-bold text-red-600">৳{billing.totalExpense}</p>
+          <p className="text-xl sm:text-2xl font-bold text-red-600">৳{billing.totalExpense}</p>
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg text-center">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
           <p className="text-sm text-gray-500">Total Meals</p>
-          <p className="text-2xl font-bold text-indigo-600">{billing.totalMeals}</p>
+          <p className="text-xl sm:text-2xl font-bold text-indigo-600">{billing.totalMeals}</p>
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg text-center">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
           <p className="text-sm text-gray-500">Meal Rate</p>
-          <p className="text-2xl font-bold text-indigo-600">৳{billing.mealRate}</p>
+          <p className="text-xl sm:text-2xl font-bold text-indigo-600">৳{billing.mealRate}</p>
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[480px]">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left p-3">Member</th>
-              <th className="text-center p-3">Meals</th>
-              <th className="text-right p-3">Cost</th>
-              <th className="text-right p-3">Deposited</th>
-              <th className="text-right p-3">Net Due</th>
-              <th className="text-center p-3">Status</th>
+              <th className="text-left p-2 sm:p-3">Member</th>
+              <th className="text-center p-2 sm:p-3">Meals</th>
+              <th className="text-right p-2 sm:p-3">Cost</th>
+              <th className="text-right p-2 sm:p-3">Deposited</th>
+              <th className="text-right p-2 sm:p-3">Net Due</th>
+              <th className="text-center p-2 sm:p-3">Status</th>
             </tr>
           </thead>
           <tbody>
             {billing.members?.map((m: any) => (
               <tr key={m.id} className="border-t">
-                <td className="p-3 font-medium">{m.name}</td>
-                <td className="p-3 text-center">{m.totalMeals}</td>
-                <td className="p-3 text-right">৳{m.mealCost}</td>
-                <td className="p-3 text-right text-green-600">৳{m.totalDeposit}</td>
-                <td className={`p-3 text-right font-bold ${m.netDue > 0 ? "text-red-600" : "text-green-600"}`}>
+                <td className="p-2 sm:p-3 font-medium">{m.name}</td>
+                <td className="p-2 sm:p-3 text-center">{m.totalMeals}</td>
+                <td className="p-2 sm:p-3 text-right">৳{m.mealCost}</td>
+                <td className="p-2 sm:p-3 text-right text-green-600">৳{m.totalDeposit}</td>
+                <td className={`p-2 sm:p-3 text-right font-bold ${m.netDue > 0 ? "text-red-600" : "text-green-600"}`}>
                   {m.netDue > 0 ? `৳${m.netDue}` : `-৳${Math.abs(m.netDue)}`}
                 </td>
-                <td className="p-3 text-center">
+                <td className="p-2 sm:p-3 text-center">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     m.netDue > 0 ? "bg-red-100 text-red-700" : m.netDue < 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
                   }`}>
@@ -450,7 +951,8 @@ function MealsView({ mealEntries }: { mealEntries: any[] }) {
       {Object.entries(byDate).map(([date, entries]) => (
         <div key={date} className="border rounded-lg overflow-hidden">
           <div className="bg-gray-50 px-4 py-2 font-medium text-gray-700 text-sm">{date}</div>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm min-w-[360px]">
             <thead>
               <tr className="text-gray-500 text-xs">
                 <th className="text-left p-2 pl-4">Member</th>
@@ -472,6 +974,7 @@ function MealsView({ mealEntries }: { mealEntries: any[] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ))}
       {(!mealEntries || mealEntries.length === 0) && (
@@ -486,22 +989,22 @@ function DepositsView({ deposits }: { deposits: any[] }) {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">💵 Deposits ({deposits?.length || 0})</h2>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[360px]">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">Member</th>
-              <th className="text-right p-3">Amount</th>
-              <th className="text-left p-3">Note</th>
+              <th className="text-left p-2 sm:p-3">Date</th>
+              <th className="text-left p-2 sm:p-3">Member</th>
+              <th className="text-right p-2 sm:p-3">Amount</th>
+              <th className="text-left p-2 sm:p-3">Note</th>
             </tr>
           </thead>
           <tbody>
             {(deposits || []).map((d: any) => (
               <tr key={d.id} className="border-t">
-                <td className="p-3">{new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
-                <td className="p-3">{d.member?.name || d.memberId}</td>
-                <td className="p-3 text-right font-medium text-green-600">৳{d.amount}</td>
-                <td className="p-3 text-gray-500">{d.note || "—"}</td>
+                <td className="p-2 sm:p-3">{new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
+                <td className="p-2 sm:p-3">{d.member?.name || d.memberId}</td>
+                <td className="p-2 sm:p-3 text-right font-medium text-green-600">৳{d.amount}</td>
+                <td className="p-2 sm:p-3 text-gray-500">{d.note || "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -631,22 +1134,22 @@ function WashroomView({ duties }: { duties: any[] }) {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">🚿 Washroom Duties ({duties?.length || 0})</h2>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[360px]">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">WR #</th>
-              <th className="text-left p-3">Member</th>
-              <th className="text-center p-3">Status</th>
+              <th className="text-left p-2 sm:p-3">Date</th>
+              <th className="text-left p-2 sm:p-3">WR #</th>
+              <th className="text-left p-2 sm:p-3">Member</th>
+              <th className="text-center p-2 sm:p-3">Status</th>
             </tr>
           </thead>
           <tbody>
             {(duties || []).map((d: any) => (
               <tr key={d.id} className="border-t">
-                <td className="p-3">{new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
-                <td className="p-3">WR-{d.washroomNumber}</td>
-                <td className="p-3">{d.member?.name || d.memberId}</td>
-                <td className="p-3 text-center">
+                <td className="p-2 sm:p-3">{new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
+                <td className="p-2 sm:p-3">WR-{d.washroomNumber}</td>
+                <td className="p-2 sm:p-3">{d.member?.name || d.memberId}</td>
+                <td className="p-2 sm:p-3 text-center">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                     d.status === "DONE" ? "bg-green-100 text-green-700"
                       : d.status === "SKIPPED" ? "bg-red-100 text-red-700"
@@ -818,14 +1321,14 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[420px]">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left p-3">Member</th>
-              <th className="text-right p-3">Rent</th>
-              <th className="text-right p-3">Paid</th>
-              <th className="text-center p-3">Confirmed</th>
-              <th className="text-left p-3">Date</th>
+              <th className="text-left p-2 sm:p-3">Member</th>
+              <th className="text-right p-2 sm:p-3">Rent</th>
+              <th className="text-right p-2 sm:p-3">Paid</th>
+              <th className="text-center p-2 sm:p-3">Confirmed</th>
+              <th className="text-left p-2 sm:p-3">Date</th>
             </tr>
           </thead>
           <tbody>
@@ -834,17 +1337,17 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
               const rent = rents[m.id] || 0;
               return (
                 <tr key={m.id} className="border-t">
-                  <td className="p-3 font-medium">{m.name}</td>
-                  <td className="p-3 text-right">৳{rent}</td>
-                  <td className="p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-gray-400">—</span>}</td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 sm:p-3 font-medium">{m.name}</td>
+                  <td className="p-2 sm:p-3 text-right">৳{rent}</td>
+                  <td className="p-2 sm:p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-gray-400">—</span>}</td>
+                  <td className="p-2 sm:p-3 text-center">
                     {payment ? (
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${payment.confirmed ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                         {payment.confirmed ? "Confirmed" : "Pending"}
                       </span>
                     ) : <span className="text-red-500 text-xs font-medium">Unpaid</span>}
                   </td>
-                  <td className="p-3 text-gray-500 text-xs">{payment ? new Date(payment.createdAt).toLocaleDateString() : "—"}</td>
+                  <td className="p-2 sm:p-3 text-gray-500 text-xs">{payment ? new Date(payment.createdAt).toLocaleDateString() : "—"}</td>
                 </tr>
               );
             })}
@@ -859,35 +1362,4 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
   );
 }
 
-function DutyDebtsView({ debts }: { debts: any[] }) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">⚖️ Duty Debts ({debts?.length || 0})</h2>
-      <div className="space-y-2">
-        {(debts || []).map((d: any) => (
-          <div key={d.id} className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
-            <div>
-              <p className="text-sm">
-                <span className="font-medium text-gray-800">{d.owedBy?.name}</span>
-                <span className="text-gray-400"> owes </span>
-                <span className="font-medium text-gray-800">{d.owedTo?.name}</span>
-              </p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {d.dutyType} duty{d.reason ? ` — ${d.reason}` : ""}
-              </p>
-              <p className="text-[10px] text-gray-400">{new Date(d.createdAt).toLocaleDateString()}</p>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-              d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-            }`}>
-              {d.status}
-            </span>
-          </div>
-        ))}
-      </div>
-      {(!debts || debts.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No duty debts in this archive</p>
-      )}
-    </div>
-  );
-}
+

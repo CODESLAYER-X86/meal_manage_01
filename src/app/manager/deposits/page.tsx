@@ -84,7 +84,7 @@ export default function DepositsPage() {
 
       {/* Add Deposit Form */}
       <form onSubmit={handleSubmit} className="bg-white p-5 rounded-xl shadow-sm border space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
             <input

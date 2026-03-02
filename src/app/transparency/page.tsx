@@ -60,8 +60,9 @@ export default function TransparencyPage() {
   const [washroomDuties, setWashroomDuties] = useState<WashroomDuty[]>([]);
   const [dutyDebts, setDutyDebts] = useState<DutyDebtEntry[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [bazarTrips, setBazarTrips] = useState<{ totalCost: number; buyerId: string; approved: boolean; companionIds: string[] }[]>([]);
+  const [bazarTrips, setBazarTrips] = useState<{ totalCost: number; date: string; buyerId: string; buyer: { id: string; name: string }; approved: boolean; companionIds: string[] }[]>([]);
   const [bazarTripCounts, setBazarTripCounts] = useState<Record<string, number>>({});
+  const [companionMap, setCompanionMap] = useState<Record<string, string>>({});
 
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -92,6 +93,7 @@ export default function TransparencyPage() {
       setDutyDebts(debtData?.debts || []);
       setBazarTrips(bazarData?.trips || []);
       setBazarTripCounts(bazarData?.tripCounts || {});
+      setCompanionMap(bazarData?.companionMap || {});
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [status, month, year]);
@@ -265,9 +267,18 @@ export default function TransparencyPage() {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
           <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🛒 Bazar Trips</h2>
           <div className="divide-y dark:divide-gray-700">
-            {bazarTrips.map((t, i) => (
+            {bazarTrips.map((t, i) => {
+              const companions = t.companionIds?.map((cid) => companionMap[cid]).filter(Boolean) || [];
+              return (
               <div key={i} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium text-gray-800 dark:text-gray-200">৳{t.totalCost}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">{new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200">
+                  {t.buyer?.name || "Unknown"}
+                  {companions.length > 0 && (
+                    <span className="text-gray-500 dark:text-gray-400 font-normal"> + {companions.join(", ")}</span>
+                  )}
+                </span>
+                <span className="font-bold text-orange-700 dark:text-orange-400">৳{t.totalCost}</span>
                 <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
                   t.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
                     : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
@@ -275,7 +286,8 @@ export default function TransparencyPage() {
                   {t.approved ? "✅ Approved" : "⏳ Pending"}
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
