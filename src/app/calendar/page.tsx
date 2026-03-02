@@ -22,6 +22,13 @@ interface BazarTrip {
   items: { serialNo: number; itemName: string; quantity: number; unit: string; price: number }[];
 }
 
+interface WashroomEntry {
+  id: string;
+  date: string;
+  washroomNumber: number;
+  member: { id: string; name: string };
+}
+
 export default function CalendarPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -29,6 +36,7 @@ export default function CalendarPage() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [meals, setMeals] = useState<MealEntry[]>([]);
   const [bazarTrips, setBazarTrips] = useState<BazarTrip[]>([]);
+  const [washroomCleanings, setWashroomCleanings] = useState<WashroomEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,11 +51,13 @@ export default function CalendarPage() {
       Promise.all([
         fetch(`/api/meals?month=${m}&year=${currentYear}`).then((r) => r.json()),
         fetch(`/api/bazar?month=${m}&year=${currentYear}`).then((r) => r.json()),
-      ]).then(([mealData, bazarData]) => {
-        setMeals(mealData);
-        setBazarTrips(bazarData);
+        fetch(`/api/washroom?month=${m}&year=${currentYear}`).then((r) => r.json()),
+      ]).then(([mealData, bazarData, washroomData]) => {
+        setMeals(Array.isArray(mealData) ? mealData : []);
+        setBazarTrips(bazarData?.trips || []);
+        setWashroomCleanings(washroomData?.cleanings || []);
         setLoading(false);
-      });
+      }).catch(() => setLoading(false));
     }
   }, [status, currentMonth, currentYear]);
 
@@ -76,6 +86,11 @@ export default function CalendarPage() {
     return bazarTrips.filter((t) => t.date.startsWith(dateStr));
   };
 
+  const getWashroomForDate = (day: number) => {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return washroomCleanings.filter((w) => w.date.startsWith(dateStr));
+  };
+
   const getTotalMealsForDate = (day: number) => {
     return getMealsForDate(day).reduce((sum, m) => sum + m.total, 0);
   };
@@ -102,6 +117,7 @@ export default function CalendarPage() {
 
   const selectedMeals = selectedDate ? getMealsForDate(selectedDate) : [];
   const selectedBazar = selectedDate ? getBazarForDate(selectedDate) : [];
+  const selectedWashroom = selectedDate ? getWashroomForDate(selectedDate) : [];
 
   return (
     <div className="space-y-6">
@@ -137,6 +153,7 @@ export default function CalendarPage() {
             const day = i + 1;
             const totalMeals = getTotalMealsForDate(day);
             const hasBazar = getBazarForDate(day).length > 0;
+            const hasWashroom = getWashroomForDate(day).length > 0;
             const isSelected = selectedDate === day;
 
             return (
@@ -156,6 +173,11 @@ export default function CalendarPage() {
                 {hasBazar && (
                   <div className="mt-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full inline-block">
                     🛒
+                  </div>
+                )}
+                {hasWashroom && (
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-teal-100 text-teal-700 px-1 py-0.5 rounded-full inline-block">
+                    🚿
                   </div>
                 )}
               </div>
@@ -259,6 +281,24 @@ export default function CalendarPage() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+
+          {/* Washroom Cleanings */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🚿 Washroom Cleaning</h4>
+            {selectedWashroom.length === 0 ? (
+              <p className="text-sm text-gray-400">No washroom cleaning</p>
+            ) : (
+              <div className="space-y-1">
+                {selectedWashroom.map((w) => (
+                  <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-lg p-2">
+                    <span className="text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
+                    <span className="text-gray-700">{w.member.name}</span>
+                    <span className="ml-auto text-xs text-green-600 font-bold">✅ Done</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
