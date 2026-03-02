@@ -62,17 +62,24 @@ export default function AuditLogPage() {
       <div className="bg-white p-4 rounded-xl shadow-sm border space-y-3">
         {/* Table filter */}
         <div className="flex flex-wrap gap-2">
-          {["all", "MealEntry", "Deposit", "BazarTrip", "ManagerRotation"].map((t) => (
+          {[
+            { value: "all", label: "All" },
+            { value: "MealEntry", label: "🍛 Meals" },
+            { value: "Deposit", label: "💰 Deposits" },
+            { value: "BazarTrip", label: "🛒 Bazar" },
+            { value: "WashroomCleaning", label: "🚿 Cleaning" },
+            { value: "ManagerRotation", label: "🔄 Handover" },
+          ].map((t) => (
             <button
-              key={t}
-              onClick={() => setFilter(t)}
+              key={t.value}
+              onClick={() => setFilter(t.value)}
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                filter === t
+                filter === t.value
                   ? "bg-indigo-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
-              {t === "all" ? "All" : t}
+              {t.label}
             </button>
           ))}
         </div>

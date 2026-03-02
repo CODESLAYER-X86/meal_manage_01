@@ -172,7 +172,6 @@ export default function TransparencyPage() {
               <th className="text-right p-2 sm:p-3">Bill Paid</th>
               <th className="text-center p-2 sm:p-3">WC</th>
               <th className="text-center p-2 sm:p-3">Bazar</th>
-              <th className="text-center p-2 sm:p-3">Debts</th>
             </tr>
           </thead>
           <tbody>
@@ -198,11 +197,6 @@ export default function TransparencyPage() {
                   <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
                     {s.bazarTripCount}
                   </span>
-                </td>
-                <td className="p-2 sm:p-3 text-center">
-                  {s.debtsOwed > 0 && <span className="text-red-500 text-xs">⬆{s.debtsOwed}</span>}
-                  {s.debtsCovered > 0 && <span className="text-green-500 text-xs ml-1">⬇{s.debtsCovered}</span>}
-                  {s.debtsOwed === 0 && s.debtsCovered === 0 && <span className="text-gray-400">—</span>}
                 </td>
               </tr>
             ))}
