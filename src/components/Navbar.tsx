@@ -89,7 +89,6 @@ export default function Navbar() {
                     <Link href="/meal-plan" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🍳 Meal Plan</Link>
                     <Link href="/washroom" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🚿 Washroom</Link>
                     <Link href="/bills" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">💳 Bills & Rent</Link>
-                    <Link href="/bazar-duty" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">📋 Bazar Duty</Link>
                     <Link href="/duty-debts" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">⚖️ Debts</Link>
                     <hr className="my-1.5 border-gray-100" />
                     <Link href="/announcements" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">📢 Notices</Link>
@@ -169,7 +168,6 @@ export default function Navbar() {
             <Link href="/meal-plan" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/meal-plan")}>🍳 Meal Plan</Link>
             <Link href="/washroom" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/washroom")}>🚿 Washroom</Link>
             <Link href="/bills" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/bills")}>💳 Bills & Rent</Link>
-            <Link href="/bazar-duty" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/bazar-duty")}>📋 Bazar Duty</Link>
             <Link href="/duty-debts" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/duty-debts")}>⚖️ Debts</Link>
             <Link href="/announcements" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/announcements")}>📢 Notices</Link>
             <Link href="/meal-vote" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/meal-vote")}>🗳️ Vote</Link>

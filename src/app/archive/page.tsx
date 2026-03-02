@@ -11,7 +11,7 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-type ViewTab = "billing" | "meals" | "deposits" | "bazar" | "audit" | "washroom" | "mealplan" | "ratings" | "announcements" | "votes";
+type ViewTab = "billing" | "meals" | "deposits" | "bazar" | "audit" | "washroom" | "mealplan" | "ratings" | "announcements" | "votes" | "billpayments" | "dutyDebts";
 
 export default function ArchivePage() {
   const { data: session, status } = useSession();
@@ -309,6 +309,8 @@ function ArchiveViewer({
     { id: "ratings", label: "Ratings", emoji: "⭐" },
     { id: "announcements", label: "Notices", emoji: "📢" },
     { id: "votes", label: "Votes", emoji: "🗳️" },
+    { id: "billpayments", label: "Bill Payments", emoji: "💳" },
+    { id: "dutyDebts", label: "Duty Debts", emoji: "⚖️" },
   ];
 
   return (
@@ -368,6 +370,8 @@ function ArchiveViewer({
         {viewTab === "ratings" && <RatingsView ratings={data.mealRatings} />}
         {viewTab === "announcements" && <AnnouncementsView announcements={data.announcements} />}
         {viewTab === "votes" && <VotesView topics={data.mealVoteTopics} />}
+        {viewTab === "billpayments" && <BillPaymentsView payments={data.billPayments} settings={data.billSettings} members={archive.members} />}
+        {viewTab === "dutyDebts" && <DutyDebtsView debts={data.dutyDebts} />}
       </div>
     </div>
   );
@@ -788,6 +792,101 @@ function VotesView({ topics }: { topics: any[] }) {
       </div>
       {(!topics || topics.length === 0) && (
         <p className="text-gray-400 text-center py-6">No vote topics in this archive</p>
+      )}
+    </div>
+  );
+}
+
+function BillPaymentsView({ payments, settings, members }: { payments: any[]; settings: any[]; members: any[] }) {
+  const setting = settings?.[0];
+  const rents = setting ? JSON.parse(setting.rents || "{}") : {};
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-gray-900">💳 Bill Payments ({payments?.length || 0})</h2>
+
+      {setting && (
+        <div className="bg-gray-50 rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Bill Settings</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            {setting.wifi > 0 && <div><span className="text-gray-500">WiFi:</span> <span className="font-medium">৳{setting.wifi}</span></div>}
+            {setting.electricity > 0 && <div><span className="text-gray-500">Electric:</span> <span className="font-medium">৳{setting.electricity}</span></div>}
+            {setting.gas > 0 && <div><span className="text-gray-500">Gas:</span> <span className="font-medium">৳{setting.gas}</span></div>}
+            {setting.cookSalary > 0 && <div><span className="text-gray-500">Cook:</span> <span className="font-medium">৳{setting.cookSalary}</span></div>}
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="text-left p-3">Member</th>
+              <th className="text-right p-3">Rent</th>
+              <th className="text-right p-3">Paid</th>
+              <th className="text-center p-3">Confirmed</th>
+              <th className="text-left p-3">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(members || []).map((m: any) => {
+              const payment = (payments || []).find((p: any) => p.memberId === m.id);
+              const rent = rents[m.id] || 0;
+              return (
+                <tr key={m.id} className="border-t">
+                  <td className="p-3 font-medium">{m.name}</td>
+                  <td className="p-3 text-right">৳{rent}</td>
+                  <td className="p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-gray-400">—</span>}</td>
+                  <td className="p-3 text-center">
+                    {payment ? (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${payment.confirmed ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                        {payment.confirmed ? "Confirmed" : "Pending"}
+                      </span>
+                    ) : <span className="text-red-500 text-xs font-medium">Unpaid</span>}
+                  </td>
+                  <td className="p-3 text-gray-500 text-xs">{payment ? new Date(payment.createdAt).toLocaleDateString() : "—"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {(!payments || payments.length === 0) && (!setting) && (
+        <p className="text-gray-400 text-center py-6">No bill data in this archive</p>
+      )}
+    </div>
+  );
+}
+
+function DutyDebtsView({ debts }: { debts: any[] }) {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold text-gray-900">⚖️ Duty Debts ({debts?.length || 0})</h2>
+      <div className="space-y-2">
+        {(debts || []).map((d: any) => (
+          <div key={d.id} className="p-3 bg-gray-50 rounded-lg border flex items-center justify-between">
+            <div>
+              <p className="text-sm">
+                <span className="font-medium text-gray-800">{d.owedBy?.name}</span>
+                <span className="text-gray-400"> owes </span>
+                <span className="font-medium text-gray-800">{d.owedTo?.name}</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {d.dutyType} duty{d.reason ? ` — ${d.reason}` : ""}
+              </p>
+              <p className="text-[10px] text-gray-400">{new Date(d.createdAt).toLocaleDateString()}</p>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+            }`}>
+              {d.status}
+            </span>
+          </div>
+        ))}
+      </div>
+      {(!debts || debts.length === 0) && (
+        <p className="text-gray-400 text-center py-6">No duty debts in this archive</p>
       )}
     </div>
   );

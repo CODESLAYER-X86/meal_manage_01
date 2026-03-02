@@ -181,45 +181,6 @@ export async function POST(request: Request) {
           notificationsCreated++;
         }
       }
-
-      // 4. BAZAR DUTY TOMORROW
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStart = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-      const tomorrowEnd = new Date(tomorrowStart);
-      tomorrowEnd.setHours(23, 59, 59);
-
-      const tomorrowBazar = await prisma.bazarDuty.findMany({
-        where: {
-          messId,
-          status: "PENDING",
-          date: { gte: tomorrowStart, lte: tomorrowEnd },
-        },
-      });
-
-      for (const duty of tomorrowBazar) {
-        const existingNotif = await prisma.notification.findFirst({
-          where: {
-            userId: duty.memberId,
-            messId,
-            type: "bazar_reminder",
-            createdAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
-          },
-        });
-
-        if (!existingNotif) {
-          await prisma.notification.create({
-            data: {
-              userId: duty.memberId,
-              messId,
-              type: "bazar_reminder",
-              title: "🛒 Bazar Duty Tomorrow",
-              message: `You have bazar duty tomorrow (${tomorrow.toISOString().split("T")[0]}).`,
-            },
-          });
-          notificationsCreated++;
-        }
-      }
     }
 
     return NextResponse.json({ success: true, notificationsCreated });

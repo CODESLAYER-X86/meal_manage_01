@@ -38,14 +38,6 @@ interface WashroomDuty {
   date: string;
   washroomNumber: number;
   status: string;
-  confirmedByManager: boolean;
-  member: Member;
-}
-
-interface BazarDutyEntry {
-  id: string;
-  date: string;
-  status: string;
   member: Member;
 }
 
@@ -66,10 +58,10 @@ export default function TransparencyPage() {
   const [billPayments, setBillPayments] = useState<BillPayment[]>([]);
   const [memberBills, setMemberBills] = useState<Record<string, number>>({});
   const [washroomDuties, setWashroomDuties] = useState<WashroomDuty[]>([]);
-  const [bazarDuties, setBazarDuties] = useState<BazarDutyEntry[]>([]);
   const [dutyDebts, setDutyDebts] = useState<DutyDebtEntry[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [bazarTrips, setBazarTrips] = useState<{ totalCost: number; buyerId: string }[]>([]);
+  const [bazarTrips, setBazarTrips] = useState<{ totalCost: number; buyerId: string; approved: boolean; companionIds: string[] }[]>([]);
+  const [bazarTripCounts, setBazarTripCounts] = useState<Record<string, number>>({});
 
   const now = new Date();
   const month = now.getMonth() + 1;
@@ -88,19 +80,18 @@ export default function TransparencyPage() {
       fetch(`/api/deposits?month=${month}&year=${year}`).then((r) => r.json()),
       fetch(`/api/bill-payments?month=${month}&year=${year}`).then((r) => r.json()),
       fetch(`/api/washroom?month=${month}&year=${year}`).then((r) => r.json()),
-      fetch(`/api/bazar-duty?month=${month}&year=${year}`).then((r) => r.json()),
       fetch(`/api/duty-debt?status=PENDING`).then((r) => r.json()),
       fetch(`/api/bazar?month=${month}&year=${year}`).then((r) => r.json()),
-    ]).then(([mealData, depositData, billData, washroomData, bazarDutyData, debtData, bazarData]) => {
+    ]).then(([mealData, depositData, billData, washroomData, debtData, bazarData]) => {
       setMeals(Array.isArray(mealData) ? mealData : []);
       setDeposits(Array.isArray(depositData) ? depositData : []);
       setBillPayments(billData?.payments || []);
       setMemberBills(billData?.memberBills || {});
       setMembers(billData?.members || []);
-      setWashroomDuties(washroomData?.duties || []);
-      setBazarDuties(bazarDutyData?.duties || []);
+      setWashroomDuties(washroomData?.cleanings || []);
       setDutyDebts(debtData?.debts || []);
-      setBazarTrips(Array.isArray(bazarData) ? bazarData : []);
+      setBazarTrips(bazarData?.trips || []);
+      setBazarTripCounts(bazarData?.tripCounts || {});
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [status, month, year]);
@@ -141,13 +132,10 @@ export default function TransparencyPage() {
     const billRemaining = billDue - billPaid;
 
     // Washroom
-    const washroomTotal = washroomDuties.filter((d) => d.member.id === id).length;
-    const washroomDone = washroomDuties.filter((d) => d.member.id === id && d.status === "DONE").length;
-    const washroomConfirmed = washroomDuties.filter((d) => d.member.id === id && d.confirmedByManager).length;
+    const washroomCount = washroomDuties.filter((d) => d.member.id === id).length;
 
-    // Bazar
-    const bazarTotal = bazarDuties.filter((d) => d.member.id === id).length;
-    const bazarDone = bazarDuties.filter((d) => d.member.id === id && d.status === "DONE").length;
+    // Bazar (approved trip counts from API)
+    const bazarTripCount = bazarTripCounts[id] || 0;
 
     // Debts
     const debtsOwed = dutyDebts.filter((d) => d.owedBy.id === id).length;
@@ -156,8 +144,7 @@ export default function TransparencyPage() {
     return {
       id, name, totalMealsCount, mealCost, totalDeposit, mealDue,
       billDue, billPaid, billRemaining,
-      washroomTotal, washroomDone, washroomConfirmed,
-      bazarTotal, bazarDone, debtsOwed, debtsCovered,
+      washroomCount, bazarTripCount, debtsOwed, debtsCovered,
     };
   });
 
@@ -203,13 +190,13 @@ export default function TransparencyPage() {
                   ৳{s.billPaid.toFixed(0)}
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.washroomDone === s.washroomTotal && s.washroomTotal > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
-                    {s.washroomDone}/{s.washroomTotal}
+                  <span className={s.washroomCount > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
+                    {s.washroomCount}
                   </span>
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.bazarDone === s.bazarTotal && s.bazarTotal > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
-                    {s.bazarDone}/{s.bazarTotal}
+                  <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
+                    {s.bazarTripCount}
                   </span>
                 </td>
                 <td className="p-2 sm:p-3 text-center">
@@ -260,22 +247,18 @@ export default function TransparencyPage() {
         </div>
       )}
 
-      {/* Washroom Duty Status */}
+      {/* Washroom Cleaning Log */}
       {washroomDuties.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🚿 Washroom Duty Status</h2>
+          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🚿 Washroom Cleaning Log</h2>
           <div className="divide-y dark:divide-gray-700">
             {washroomDuties.map((d) => (
               <div key={d.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-gray-500 dark:text-gray-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
                 <span className="font-medium text-gray-800 dark:text-gray-200">{d.member.name}</span>
-                <span className="text-xs text-gray-400">WC#{d.washroomNumber}</span>
-                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                  d.status === "DONE"
-                    ? d.confirmedByManager ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                    : d.status === "SKIPPED" ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300" : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                }`}>
-                  {d.status === "DONE" && d.confirmedByManager ? "✅ Confirmed" : d.status}
+                <span className="text-xs text-gray-400">WR-{d.washroomNumber}</span>
+                <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  ✅ Done
                 </span>
               </div>
             ))}
@@ -283,21 +266,19 @@ export default function TransparencyPage() {
         </div>
       )}
 
-      {/* Bazar Duty Status */}
-      {bazarDuties.length > 0 && (
+      {/* Bazar Trip Status */}
+      {bazarTrips.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🛒 Bazar Duty Status</h2>
+          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🛒 Bazar Trips</h2>
           <div className="divide-y dark:divide-gray-700">
-            {bazarDuties.map((d) => (
-              <div key={d.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-gray-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
-                <span className="font-medium text-gray-800 dark:text-gray-200">{d.member.name}</span>
+            {bazarTrips.map((t, i) => (
+              <div key={i} className="p-3 flex flex-wrap items-center gap-2 text-sm">
+                <span className="font-medium text-gray-800 dark:text-gray-200">৳{t.totalCost}</span>
                 <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                  d.status === "DONE" ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                    : d.status === "SKIPPED" ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                    : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                  t.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
                 }`}>
-                  {d.status}
+                  {t.approved ? "✅ Approved" : "⏳ Pending"}
                 </span>
               </div>
             ))}

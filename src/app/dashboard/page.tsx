@@ -274,9 +274,9 @@ export default function DashboardPage() {
           <span className="text-xl">💳</span>
           <p className="text-xs font-medium text-rose-700 mt-1">Bills & Rent</p>
         </Link>
-        <Link href="/bazar-duty" className="bg-cyan-50 border border-cyan-200 p-3 rounded-xl text-center hover:bg-cyan-100 transition">
-          <span className="text-xl">📋</span>
-          <p className="text-xs font-medium text-cyan-700 mt-1">Bazar Duty</p>
+        <Link href="/bazar" className="bg-cyan-50 border border-cyan-200 p-3 rounded-xl text-center hover:bg-cyan-100 transition">
+          <span className="text-xl">🛒</span>
+          <p className="text-xs font-medium text-cyan-700 mt-1">Bazar Trips</p>
         </Link>
         <Link href="/duty-debts" className="bg-pink-50 border border-pink-200 p-3 rounded-xl text-center hover:bg-pink-100 transition">
           <span className="text-xl">⚖️</span>

@@ -8,57 +8,47 @@ interface Member {
   name: string;
 }
 
-interface Duty {
+interface Cleaning {
   id: string;
   date: string;
   washroomNumber: number;
   memberId: string;
   member: Member;
-  status: "PENDING" | "DONE" | "SKIPPED";
-  confirmedByManager: boolean;
-  originalMemberId: string | null;
-}
-
-interface YearlyStats {
-  [memberId: string]: { assigned: number; done: number };
+  status: string;
+  note: string | null;
 }
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-const CLEANING_DAYS = [1, 15, 29];
 
 export default function WashroomPage() {
   const { data: session } = useSession();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [duties, setDuties] = useState<Duty[]>([]);
+  const [cleanings, setCleanings] = useState<Cleaning[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [washroomCount, setWashroomCount] = useState(0);
-  const [yearlyStats, setYearlyStats] = useState<YearlyStats>({});
+  const [yearlyStats, setYearlyStats] = useState<Record<string, number>>({});
+  const [nextDueDates, setNextDueDates] = useState<Record<number, string | null>>({});
+  const [intervalDays, setIntervalDays] = useState(14);
   const [disabled, setDisabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Assignment form state
-  const [assignDate, setAssignDate] = useState("");
-  const [assignWR, setAssignWR] = useState(1);
-  const [assignMember, setAssignMember] = useState("");
-  const [assigning, setAssigning] = useState(false);
-
-  // Reassign state
-  const [reassignId, setReassignId] = useState<string | null>(null);
-  const [reassignMember, setReassignMember] = useState("");
-  const [reassignReason, setReassignReason] = useState("");
+  // Log cleaning form state
+  const [logDate, setLogDate] = useState(new Date().toISOString().split("T")[0]);
+  const [logWR, setLogWR] = useState(1);
+  const [logMember, setLogMember] = useState("");
+  const [logNote, setLogNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const isManager = session?.user?.role === "MANAGER";
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  const fetchDuties = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -66,120 +56,69 @@ export default function WashroomPage() {
       const data = await res.json();
       if (data.disabled) {
         setDisabled(true);
-        setDuties([]);
+        setCleanings([]);
         setMembers([]);
         setWashroomCount(0);
       } else {
         setDisabled(false);
-        setDuties(data.duties || []);
+        setCleanings(data.cleanings || []);
         setMembers(data.members || []);
         setWashroomCount(data.washroomCount || 0);
         setYearlyStats(data.yearlyStats || {});
+        setNextDueDates(data.nextDueDates || {});
+        setIntervalDays(data.intervalDays || 14);
       }
     } catch {
-      setError("Failed to load schedule");
+      setError("Failed to load data");
     } finally {
       setLoading(false);
     }
   }, [month, year]);
 
   useEffect(() => {
-    fetchDuties();
-  }, [fetchDuties]);
+    fetchData();
+  }, [fetchData]);
 
-  // Manager: assign a duty
-  const assignDuty = async () => {
-    if (!assignDate || !assignMember) return;
-    setAssigning(true);
+  // Manager: log a cleaning
+  const logCleaning = async () => {
+    if (!logDate || !logMember) return;
+    setSubmitting(true);
     setError("");
     setSuccess("");
     try {
       const res = await fetch("/api/washroom", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: assignDate, washroomNumber: assignWR, memberId: assignMember }),
+        body: JSON.stringify({ date: logDate, washroomNumber: logWR, memberId: logMember, note: logNote || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to assign");
+        setError(data.error || "Failed to log cleaning");
         return;
       }
-      setSuccess("Duty assigned!");
-      setAssignDate("");
-      setAssignMember("");
-      await fetchDuties();
+      setSuccess("Cleaning logged!");
+      setLogMember("");
+      setLogNote("");
+      await fetchData();
     } catch {
       setError("Something went wrong");
     } finally {
-      setAssigning(false);
+      setSubmitting(false);
     }
   };
 
-  // Delete a single duty
-  const deleteDuty = async (id: string) => {
-    if (!confirm("Remove this assignment?")) return;
+  // Delete a cleaning record
+  const deleteCleaning = async (id: string) => {
+    if (!confirm("Remove this cleaning record?")) return;
     setError("");
     try {
       const res = await fetch(`/api/washroom?id=${id}`, { method: "DELETE" });
       if (res.ok) {
         setSuccess("Removed");
-        await fetchDuties();
+        await fetchData();
       }
     } catch {
       setError("Failed to delete");
-    }
-  };
-
-  // Reassign
-  const doReassign = async () => {
-    if (!reassignId || !reassignMember) return;
-    setError("");
-    try {
-      const res = await fetch("/api/washroom", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: reassignId, action: "reassign", newMemberId: reassignMember, reason: reassignReason }),
-      });
-      if (res.ok) {
-        setSuccess("Reassigned! Duty debt created.");
-        setReassignId(null);
-        setReassignMember("");
-        setReassignReason("");
-        await fetchDuties();
-      } else {
-        const d = await res.json();
-        setError(d.error || "Failed");
-      }
-    } catch {
-      setError("Failed");
-    }
-  };
-
-  const markDuty = async (id: string, status: "DONE" | "SKIPPED" | "PENDING") => {
-    try {
-      const res = await fetch("/api/washroom", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
-      });
-      if (res.ok) {
-        setDuties((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  const confirmDuty = async (id: string) => {
-    try {
-      const res = await fetch("/api/washroom", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "confirm" }),
-      });
-      if (res.ok) await fetchDuties();
-    } catch {
-      // ignore
     }
   };
 
@@ -193,12 +132,6 @@ export default function WashroomPage() {
     setSuccess("");
     setError("");
   };
-
-  // Build available date options for the assign form (1, 15, 29 of selected month)
-  const availableDates = CLEANING_DAYS.map((day) => {
-    const d = new Date(year, month - 1, day);
-    return { value: d.toISOString().split("T")[0], label: `${MONTH_NAMES[month - 1]} ${day}` };
-  });
 
   if (!loading && disabled) {
     return (
@@ -219,15 +152,13 @@ export default function WashroomPage() {
     );
   }
 
-  // Group duties by date
-  const dutiesByDate: Record<string, Duty[]> = {};
-  for (const d of duties) {
-    const key = new Date(d.date).getDate().toString();
-    if (!dutiesByDate[key]) dutiesByDate[key] = [];
-    dutiesByDate[key].push(d);
-  }
-
   const wrColumns = Array.from({ length: washroomCount }, (_, i) => i + 1);
+
+  // Check if a next due date is overdue
+  const isOverdue = (dateStr: string | null) => {
+    if (!dateStr) return false;
+    return new Date(dateStr) < new Date(new Date().toISOString().split("T")[0]);
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -242,77 +173,34 @@ export default function WashroomPage() {
           </div>
         </div>
         <p className="text-sm text-gray-500">
-          {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · Fixed dates: 1st, 15th, 29th · Manager assigns manually
+          {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · Next cleaning due every {intervalDays} days · Manager logs who cleaned
         </p>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mt-3">⚠️ {error}</div>}
         {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm mt-3">✅ {success}</div>}
       </div>
 
-      {/* Manager: Assign Duty Form */}
-      {isManager && (
-        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-5">
-          <h2 className="text-base font-semibold text-indigo-800 mb-3">➕ Assign Cleaning Duty</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <select value={assignDate} onChange={(e) => setAssignDate(e.target.value)} className="rounded-lg border px-3 py-2 text-sm">
-              <option value="">Select date</option>
-              {availableDates.map((d) => (
-                <option key={d.value} value={d.value}>{d.label}</option>
-              ))}
-            </select>
-            <select value={assignWR} onChange={(e) => setAssignWR(Number(e.target.value))} className="rounded-lg border px-3 py-2 text-sm">
-              {wrColumns.map((wn) => (
-                <option key={wn} value={wn}>WR-{wn}</option>
-              ))}
-            </select>
-            <select value={assignMember} onChange={(e) => setAssignMember(e.target.value)} className="rounded-lg border px-3 py-2 text-sm">
-              <option value="">Select member</option>
-              {members.map((m) => {
-                const stats = yearlyStats[m.id];
-                const count = stats?.assigned || 0;
-                return <option key={m.id} value={m.id}>{m.name} ({count} this year)</option>;
-              })}
-            </select>
-            <button onClick={assignDuty} disabled={assigning || !assignDate || !assignMember} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors">
-              {assigning ? "Assigning..." : "Assign"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Reassign Modal */}
-      {reassignId && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-3">
-          <h3 className="font-semibold text-sm text-yellow-800">Reassign Duty</h3>
-          <p className="text-xs text-yellow-600">This will create a duty debt for the original member.</p>
-          <select value={reassignMember} onChange={(e) => setReassignMember(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
-            <option value="">Select member...</option>
-            {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-          <input type="text" placeholder="Reason (optional)" value={reassignReason} onChange={(e) => setReassignReason(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm" />
-          <div className="flex gap-2">
-            <button onClick={doReassign} className="flex-1 bg-yellow-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-yellow-700">Reassign</button>
-            <button onClick={() => setReassignId(null)} className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg text-sm font-medium">Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {/* Yearly Stats */}
-      {members.length > 0 && (
+      {/* Next Due Dates */}
+      {washroomCount > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 {year} Yearly Stats</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {members.map((m) => {
-              const stats = yearlyStats[m.id] || { assigned: 0, done: 0 };
-              const pct = stats.assigned > 0 ? Math.round((stats.done / stats.assigned) * 100) : 0;
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">📅 Next Cleaning Due</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {wrColumns.map((wn) => {
+              const dueDate = nextDueDates[wn];
+              const overdue = isOverdue(dueDate);
               return (
-                <div key={m.id} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-sm font-medium text-gray-900 truncate">{m.name}</p>
-                  <p className="text-2xl font-bold text-indigo-600">{stats.done}/{stats.assigned}</p>
-                  <p className="text-xs text-gray-400">done/assigned</p>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                    <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
-                  </div>
+                <div key={wn} className={`rounded-lg p-4 border ${overdue ? "bg-red-50 border-red-200" : dueDate ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
+                  <p className="text-sm font-semibold text-gray-700">WR-{wn}</p>
+                  {dueDate ? (
+                    <>
+                      <p className={`text-lg font-bold ${overdue ? "text-red-600" : "text-blue-600"}`}>
+                        {new Date(dueDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                      {overdue && <p className="text-xs text-red-500 font-medium">⚠️ Overdue!</p>}
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic">Never cleaned</p>
+                  )}
                 </div>
               );
             })}
@@ -320,84 +208,125 @@ export default function WashroomPage() {
         </div>
       )}
 
-      {/* Schedule Grid - grouped by date */}
+      {/* Manager: Log Cleaning Form */}
+      {isManager && (
+        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-5">
+          <h2 className="text-base font-semibold text-indigo-800 mb-3">✍️ Log Washroom Cleaning</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-indigo-700 mb-1">Date</label>
+              <input
+                type="date"
+                value={logDate}
+                onChange={(e) => setLogDate(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-indigo-700 mb-1">Washroom</label>
+              <select value={logWR} onChange={(e) => setLogWR(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm">
+                {wrColumns.map((wn) => (
+                  <option key={wn} value={wn}>WR-{wn}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-indigo-700 mb-1">Cleaned by</label>
+              <select value={logMember} onChange={(e) => setLogMember(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
+                <option value="">Select member</option>
+                {members.map((m) => {
+                  const count = yearlyStats[m.id] || 0;
+                  return <option key={m.id} value={m.id}>{m.name} ({count} this year)</option>;
+                })}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-indigo-700 mb-1">Note</label>
+              <input
+                type="text"
+                value={logNote}
+                onChange={(e) => setLogNote(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                placeholder="Optional..."
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={logCleaning}
+                disabled={submitting || !logDate || !logMember}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors"
+              >
+                {submitting ? "Logging..." : "Log Cleaning"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Yearly Stats */}
+      {members.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 {year} Cleaning Count</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {members.map((m) => {
+              const count = yearlyStats[m.id] || 0;
+              return (
+                <div key={m.id} className="bg-gray-50 rounded-lg p-3 text-center">
+                  <p className="text-sm font-medium text-gray-900 truncate">{m.name}</p>
+                  <p className="text-2xl font-bold text-indigo-600">{count}</p>
+                  <p className="text-xs text-gray-400">cleanings</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Cleaning Log */}
       {loading ? (
         <div className="text-center py-10 text-gray-500">Loading...</div>
-      ) : duties.length === 0 ? (
+      ) : cleanings.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
           <div className="text-5xl mb-4">🚿</div>
-          <p className="text-gray-500 text-lg mb-2">No duties assigned for {MONTH_NAMES[month - 1]} {year}</p>
+          <p className="text-gray-500 text-lg mb-2">No cleanings recorded for {MONTH_NAMES[month - 1]} {year}</p>
           {isManager ? (
-            <p className="text-sm text-gray-400">Use the form above to assign cleaning duties on dates 1, 15, or 29</p>
+            <p className="text-sm text-gray-400">Use the form above to log when someone cleans a washroom</p>
           ) : (
-            <p className="text-sm text-gray-400">Manager will assign cleaning duties</p>
+            <p className="text-sm text-gray-400">Manager will log cleaning records</p>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
-          {CLEANING_DAYS.map((day) => {
-            const dayDuties = dutiesByDate[day.toString()] || [];
-            const dateObj = new Date(year, month - 1, day);
-            const isToday = dateObj.getTime() === today.getTime();
-            const isPast = dateObj < today;
-            const dayName = dateObj.toLocaleDateString("en", { weekday: "long", month: "short", day: "numeric" });
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-900">🧹 Cleaning Log — {MONTH_NAMES[month - 1]} {year}</h2>
+            <p className="text-xs text-gray-400">{cleanings.length} record{cleanings.length !== 1 ? "s" : ""}</p>
+          </div>
+          <div className="divide-y">
+            {cleanings.map((c) => {
+              const dateStr = new Date(c.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+              const isOwn = c.memberId === session?.user?.id;
 
-            return (
-              <div key={day} className={`bg-white rounded-xl shadow-sm border p-5 ${isToday ? "border-indigo-300 bg-indigo-50/30" : "border-gray-200"}`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className={`text-base font-semibold ${isToday ? "text-indigo-700" : "text-gray-800"}`}>{dayName}</h3>
-                  {isToday && <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded">Today</span>}
-                  {isPast && !isToday && <span className="text-xs text-gray-400">Past</span>}
-                </div>
+              return (
+                <div key={c.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-gray-500 text-xs w-28">{dateStr}</span>
+                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">WR-{c.washroomNumber}</span>
+                  <span className={`font-medium ${isOwn ? "text-indigo-700" : "text-gray-800"}`}>
+                    {c.member.name}{isOwn && " (you)"}
+                  </span>
+                  {c.note && <span className="text-xs text-gray-400 italic">— {c.note}</span>}
 
-                {dayDuties.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">No duties assigned for this date</p>
-                ) : (
-                  <div className="space-y-2">
-                    {dayDuties.map((duty) => {
-                      const isOwn = duty.memberId === session?.user?.id;
-                      const canToggle = isOwn || !!isManager;
-
-                      return (
-                        <div key={duty.id} className={`flex flex-wrap items-center gap-2 p-3 rounded-lg border ${duty.status === "DONE" ? "bg-green-50 border-green-200" : duty.status === "SKIPPED" ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}>
-                          <span className="text-sm font-medium text-gray-500">WR-{duty.washroomNumber}</span>
-                          <span className={`text-sm font-medium ${isOwn ? "text-indigo-700" : "text-gray-800"}`}>
-                            {duty.member.name}{isOwn && " (you)"}
-                          </span>
-                          {duty.originalMemberId && <span className="text-xs text-yellow-600">(swapped)</span>}
-                          {duty.confirmedByManager && <span className="text-xs text-green-600">✅ Confirmed</span>}
-
-                          <div className="ml-auto flex items-center gap-2 flex-wrap">
-                            <button
-                              onClick={() => {
-                                if (!canToggle) return;
-                                const next = duty.status === "PENDING" ? "DONE" : duty.status === "DONE" ? "SKIPPED" : "PENDING";
-                                markDuty(duty.id, next);
-                              }}
-                              disabled={!canToggle}
-                              className={`px-2.5 py-1 text-xs font-medium rounded-lg border transition-colors ${duty.status === "DONE" ? "bg-green-100 text-green-800 border-green-200" : duty.status === "SKIPPED" ? "bg-red-100 text-red-800 border-red-200" : "bg-yellow-100 text-yellow-800 border-yellow-200"} ${canToggle ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
-                            >
-                              {duty.status === "DONE" ? "✅" : duty.status === "SKIPPED" ? "⏭️" : "⏳"} {duty.status}
-                            </button>
-
-                            {isManager && duty.status === "DONE" && !duty.confirmedByManager && (
-                              <button onClick={() => confirmDuty(duty.id)} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Confirm</button>
-                            )}
-                            {isManager && (
-                              <button onClick={() => setReassignId(duty.id)} className="text-xs bg-yellow-600 text-white px-2 py-1 rounded hover:bg-yellow-700">Swap</button>
-                            )}
-                            {isManager && (
-                              <button onClick={() => deleteDuty(duty.id)} className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">✕</button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="ml-auto flex items-center gap-2">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                      ✅ Done
+                    </span>
+                    {isManager && (
+                      <button onClick={() => deleteCleaning(c.id)} className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">✕</button>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
