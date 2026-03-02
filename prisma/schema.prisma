@@ -470,3 +470,12 @@ model MemberPresence {
   @@unique([memberId, messId])
   @@index([messId])
 }
+
+// ========== ADMIN SETTINGS (Key-Value store for platform) ==========
+model AdminSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

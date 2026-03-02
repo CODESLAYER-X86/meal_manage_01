@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-// GET washroom cleaning schedule for a month
+// Fixed cleaning dates each month
+const CLEANING_DAYS = [1, 15, 29];
+
+// GET washroom cleaning schedule for a month + yearly stats
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId) {
@@ -10,7 +13,6 @@ export async function GET(request: NextRequest) {
   }
   const messId = session.user.messId;
 
-  // Check if washroom cleaning is enabled for this mess
   const mess = await prisma.mess.findUnique({
     where: { id: messId },
     select: { washroomCount: true },
@@ -33,17 +35,37 @@ export async function GET(request: NextRequest) {
     orderBy: [{ date: "asc" }, { washroomNumber: "asc" }],
   });
 
-  // Get members for this mess
+  // Yearly stats: how many times each member has been assigned this year
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+  const yearlyDuties = await prisma.washroomCleaning.findMany({
+    where: { messId, date: { gte: yearStart, lte: yearEnd } },
+    select: { memberId: true, status: true },
+  });
+
+  const yearlyStats: Record<string, { assigned: number; done: number }> = {};
+  for (const d of yearlyDuties) {
+    if (!yearlyStats[d.memberId]) yearlyStats[d.memberId] = { assigned: 0, done: 0 };
+    yearlyStats[d.memberId].assigned++;
+    if (d.status === "DONE") yearlyStats[d.memberId].done++;
+  }
+
   const members = await prisma.user.findMany({
     where: { messId, isActive: true },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
 
-  return NextResponse.json({ duties, members, washroomCount: mess.washroomCount });
+  return NextResponse.json({
+    duties,
+    members,
+    washroomCount: mess.washroomCount,
+    cleaningDays: CLEANING_DAYS,
+    yearlyStats,
+  });
 }
 
-// POST - Generate washroom rotation for a month (manager only)
+// POST - Manager manually assigns a member to a washroom on a specific date
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
@@ -51,73 +73,58 @@ export async function POST(request: NextRequest) {
   }
   const messId = session.user.messId;
 
-  // Get mess washroom config
   const mess = await prisma.mess.findUnique({
     where: { id: messId },
     select: { washroomCount: true },
   });
-
   if (!mess || mess.washroomCount === 0) {
-    return NextResponse.json({ error: "Washroom cleaning is not enabled for this mess" }, { status: 400 });
+    return NextResponse.json({ error: "Washroom cleaning is not enabled" }, { status: 400 });
   }
 
   const body = await request.json();
-  const { month, year } = body;
+  const { date, washroomNumber, memberId } = body;
 
-  if (!month || !year) {
-    return NextResponse.json({ error: "Month and year are required" }, { status: 400 });
+  if (!date || !washroomNumber || !memberId) {
+    return NextResponse.json({ error: "date, washroomNumber, and memberId are required" }, { status: 400 });
   }
 
-  // Get active members
-  const members = await prisma.user.findMany({
-    where: { messId, isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
-
-  if (members.length === 0) {
-    return NextResponse.json({ error: "No active members in this mess" }, { status: 400 });
+  const dateObj = new Date(date);
+  const day = dateObj.getDate();
+  if (!CLEANING_DAYS.includes(day)) {
+    return NextResponse.json({ error: `Cleaning is only allowed on dates: ${CLEANING_DAYS.join(", ")}` }, { status: 400 });
   }
 
-  // Check if schedule already exists for this month
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0, 23, 59, 59);
+  if (washroomNumber < 1 || washroomNumber > mess.washroomCount) {
+    return NextResponse.json({ error: `Washroom number must be between 1 and ${mess.washroomCount}` }, { status: 400 });
+  }
 
+  // Check if this slot is already assigned
   const existing = await prisma.washroomCleaning.findFirst({
-    where: { date: { gte: startDate, lte: endDate }, messId },
+    where: { date: dateObj, washroomNumber, messId },
+  });
+  if (existing) {
+    return NextResponse.json({ error: "This washroom slot is already assigned. Delete it first or reassign." }, { status: 400 });
+  }
+
+  const duty = await prisma.washroomCleaning.create({
+    data: { date: dateObj, washroomNumber, memberId, messId },
+    include: { member: { select: { id: true, name: true } } },
   });
 
-  if (existing) {
-    return NextResponse.json(
-      { error: "Schedule already exists for this month. Delete it first to regenerate." },
-      { status: 400 }
-    );
-  }
+  // Audit
+  await prisma.auditLog.create({
+    data: {
+      editedById: session.user.id,
+      messId,
+      tableName: "WashroomCleaning",
+      recordId: duty.id,
+      fieldName: "assignment",
+      newValue: `WR-${washroomNumber} on ${date} assigned to ${duty.member.name}`,
+      action: "CREATE",
+    },
+  });
 
-  // Generate rotation: clean every 14 days
-  // Each cleaning day has `washroomCount` assignments (one member per washroom)
-  const INTERVAL_DAYS = 14;
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const wcCount = Math.min(mess.washroomCount, members.length);
-  const assignments: { date: Date; washroomNumber: number; memberId: string; messId: string }[] = [];
-
-  let memberIndex = 0;
-  for (let day = 1; day <= daysInMonth; day += INTERVAL_DAYS) {
-    const date = new Date(year, month - 1, day);
-    for (let wn = 1; wn <= wcCount; wn++) {
-      assignments.push({
-        date,
-        washroomNumber: wn,
-        memberId: members[memberIndex % members.length].id,
-        messId,
-      });
-      memberIndex++;
-    }
-  }
-
-  await prisma.washroomCleaning.createMany({ data: assignments });
-
-  return NextResponse.json({ success: true, count: assignments.length });
+  return NextResponse.json({ success: true, duty });
 }
 
 // PATCH - Mark duty done/skipped, manager confirm, or reassign
@@ -167,14 +174,10 @@ export async function PATCH(request: NextRequest) {
 
     const updated = await prisma.washroomCleaning.update({
       where: { id },
-      data: {
-        memberId: newMemberId,
-        originalMemberId,
-        note: reason || null,
-      },
+      data: { memberId: newMemberId, originalMemberId, note: reason || null },
+      include: { member: { select: { id: true, name: true } } },
     });
 
-    // Create duty debt: original member owes the new member
     await prisma.dutyDebt.create({
       data: {
         owedById: originalMemberId,
@@ -185,7 +188,6 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    // Audit
     await prisma.auditLog.create({
       data: {
         editedById: session.user.id,
@@ -207,23 +209,19 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "status or action is required" }, { status: 400 });
   }
 
-  // Members can only mark their own duties
   if (!isManager && duty.memberId !== session.user.id) {
     return NextResponse.json({ error: "You can only update your own duties" }, { status: 403 });
   }
 
   const updated = await prisma.washroomCleaning.update({
     where: { id },
-    data: {
-      status,
-      completedAt: status === "DONE" ? new Date() : null,
-    },
+    data: { status, completedAt: status === "DONE" ? new Date() : null },
   });
 
   return NextResponse.json({ success: true, duty: updated });
 }
 
-// DELETE - Delete entire month's schedule (manager only)
+// DELETE - Delete a single duty or entire month's schedule (manager only)
 export async function DELETE(request: NextRequest) {
   const session = await auth();
   if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
@@ -232,11 +230,23 @@ export async function DELETE(request: NextRequest) {
   const messId = session.user.messId;
 
   const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  // Delete single duty
+  if (id) {
+    const duty = await prisma.washroomCleaning.findUnique({ where: { id } });
+    if (!duty || duty.messId !== messId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    await prisma.washroomCleaning.delete({ where: { id } });
+    return NextResponse.json({ success: true, deleted: 1 });
+  }
+
+  // Delete entire month
   const month = Number(searchParams.get("month"));
   const year = Number(searchParams.get("year"));
-
   if (!month || !year) {
-    return NextResponse.json({ error: "Month and year are required" }, { status: 400 });
+    return NextResponse.json({ error: "id, or month and year are required" }, { status: 400 });
   }
 
   const startDate = new Date(year, month - 1, 1);
