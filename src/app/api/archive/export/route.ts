@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
     announcements,
     mealRatings,
     mealVoteTopics,
+    billSettings,
+    billPayments,
+    dutyDebts,
+    memberPresence,
   ] = await Promise.all([
     prisma.mess.findUnique({ where: { id: messId }, select: { id: true, name: true } }),
     prisma.user.findMany({
@@ -90,6 +94,24 @@ export async function GET(request: NextRequest) {
       where: { messId, createdAt: { gte: startDate, lte: endDate } },
       include: { votes: { include: { voter: { select: { id: true, name: true } } } } },
     }),
+    prisma.billSetting.findMany({
+      where: { messId, month, year },
+    }),
+    prisma.billPayment.findMany({
+      where: { messId, month, year },
+      include: { member: { select: { id: true, name: true } } },
+    }),
+    prisma.dutyDebt.findMany({
+      where: { messId, createdAt: { gte: startDate, lte: endDate } },
+      include: {
+        owedBy: { select: { id: true, name: true } },
+        owedTo: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.memberPresence.findMany({
+      where: { messId },
+      include: { member: { select: { id: true, name: true } } },
+    }),
   ]);
 
   // Calculate billing summary
@@ -125,6 +147,10 @@ export async function GET(request: NextRequest) {
       announcements,
       mealRatings,
       mealVoteTopics,
+      billSettings,
+      billPayments,
+      dutyDebts,
+      memberPresence,
     },
   };
 

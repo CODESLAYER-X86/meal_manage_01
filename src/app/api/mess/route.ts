@@ -272,7 +272,6 @@ export async function DELETE() {
     // Delete new tables first
     prisma.memberPresence.deleteMany({ where: { messId } }),
     prisma.dutyDebt.deleteMany({ where: { messId } }),
-    prisma.bazarDuty.deleteMany({ where: { messId } }),
     prisma.billPayment.deleteMany({ where: { messId } }),
     prisma.billSetting.deleteMany({ where: { messId } }),
     // Delete meal votes (FK to MealVoteTopic)
