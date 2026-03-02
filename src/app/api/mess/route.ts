@@ -49,6 +49,8 @@ export async function GET() {
       bazarDaysPerWeek: (user.mess as Record<string, unknown>).bazarDaysPerWeek ?? 3,
       hasGas: (user.mess as Record<string, unknown>).hasGas ?? false,
       hasCook: (user.mess as Record<string, unknown>).hasCook ?? false,
+      mealsPerDay: (user.mess as Record<string, unknown>).mealsPerDay ?? 3,
+      mealBlackouts: (user.mess as Record<string, unknown>).mealBlackouts ?? "[]",
       createdBy: user.mess.createdBy.name,
       memberCount: user.mess.members.length,
       members: user.mess.members,
@@ -204,9 +206,32 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek } = body;
+  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealBlackouts } = body;
 
   const updateData: Record<string, unknown> = {};
+
+  if (mealsPerDay !== undefined) {
+    if (typeof mealsPerDay !== "number" || ![2, 3].includes(mealsPerDay)) {
+      return NextResponse.json({ error: "Meals per day must be 2 or 3" }, { status: 400 });
+    }
+    updateData.mealsPerDay = mealsPerDay;
+  }
+
+  if (mealBlackouts !== undefined) {
+    // Validate blackouts array
+    if (!Array.isArray(mealBlackouts)) {
+      return NextResponse.json({ error: "mealBlackouts must be an array" }, { status: 400 });
+    }
+    for (const b of mealBlackouts) {
+      if (!Array.isArray(b.meals) || typeof b.startHour !== "number" || typeof b.endHour !== "number") {
+        return NextResponse.json({ error: "Each blackout must have meals[], startHour, endHour" }, { status: 400 });
+      }
+      if (b.startHour < 0 || b.startHour > 23 || b.endHour < 1 || b.endHour > 24 || b.startHour >= b.endHour) {
+        return NextResponse.json({ error: "Invalid blackout hours" }, { status: 400 });
+      }
+    }
+    updateData.mealBlackouts = JSON.stringify(mealBlackouts);
+  }
 
   if (washroomCount !== undefined) {
     if (typeof washroomCount !== "number" || washroomCount < 0 || washroomCount > 10) {
@@ -269,6 +294,9 @@ export async function DELETE() {
 
   // Delete all mess data in the correct order (respecting FK constraints)
   await prisma.$transaction([
+    // Delete meal status tables first
+    prisma.mealStatusRequest.deleteMany({ where: { messId } }),
+    prisma.mealStatus.deleteMany({ where: { messId } }),
     // Delete new tables first
     prisma.memberPresence.deleteMany({ where: { messId } }),
     prisma.dutyDebt.deleteMany({ where: { messId } }),

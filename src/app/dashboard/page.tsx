@@ -54,6 +54,15 @@ interface BillPaymentStatus {
   confirmedAmounts: Record<string, number>;
 }
 
+interface MealStatusData {
+  mealsPerDay: number;
+  members: { id: string; name: string }[];
+  statuses: Record<string, Record<string, boolean>>; // memberId -> meal -> isOff
+  mealCounts: Record<string, number>; // meal -> count eating
+  blackoutStatus: Record<string, boolean>; // meal -> isBlackedOut
+  pendingRequests: { id: string; date: string; meal: string; memberId: string; wantOff: boolean; reason: string; status: string }[];
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -65,6 +74,12 @@ export default function DashboardPage() {
   const [billPayStatus, setBillPayStatus] = useState<BillPaymentStatus | null>(null);
   const [dueThreshold, setDueThreshold] = useState(500);
   const [loading, setLoading] = useState(true);
+  const [mealStatusToday, setMealStatusToday] = useState<MealStatusData | null>(null);
+  const [mealStatusTmrw, setMealStatusTmrw] = useState<MealStatusData | null>(null);
+  const [mealToggling, setMealToggling] = useState<string | null>(null);
+  const [requestingMeal, setRequestingMeal] = useState<string | null>(null);
+  const [requestReason, setRequestReason] = useState("");
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -88,7 +103,9 @@ export default function DashboardPage() {
         fetch("/api/announcements?limit=3").then((r) => r.json()),
         fetch("/api/mess").then((r) => r.json()).catch(() => null),
         fetch(`/api/bill-payments?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.json()).catch(() => null),
-      ]).then(([billData, logs, todayPlan, tmrwPlan, announcementsData, messData, billPayData]) => {
+        fetch(`/api/meal-status?date=${todayStr}`).then((r) => r.json()).catch(() => null),
+        fetch(`/api/meal-status?date=${tmrwStr}`).then((r) => r.json()).catch(() => null),
+      ]).then(([billData, logs, todayPlan, tmrwPlan, announcementsData, messData, billPayData, mealToday, mealTmrw]) => {
         setBill(billData);
         setAuditLogs(logs);
         setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
@@ -96,6 +113,8 @@ export default function DashboardPage() {
         setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
         if (messData?.mess?.dueThreshold) setDueThreshold(messData.mess.dueThreshold);
         if (billPayData?.members) setBillPayStatus(billPayData);
+        if (mealToday?.mealsPerDay) setMealStatusToday(mealToday);
+        if (mealTmrw?.mealsPerDay) setMealStatusTmrw(mealTmrw);
         setLoading(false);
       });
     }
@@ -237,6 +256,173 @@ export default function DashboardPage() {
           🛒 Add Bazar Entry
         </Link>
       </div>
+
+      {/* Meal Status Toggle */}
+      {(mealStatusToday || mealStatusTmrw) && (() => {
+        const userId = session.user?.id;
+        const isManagerUser = session.user?.role === "MANAGER";
+        if (!userId) return null;
+
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        const tmrw = new Date(now);
+        tmrw.setDate(tmrw.getDate() + 1);
+        const tmrwStr = `${tmrw.getFullYear()}-${String(tmrw.getMonth() + 1).padStart(2, "0")}-${String(tmrw.getDate()).padStart(2, "0")}`;
+
+        const toggleMeal = async (dateStr: string, meal: string, currentlyOff: boolean) => {
+          const key = `${dateStr}-${meal}`;
+          setMealToggling(key);
+          try {
+            const res = await fetch("/api/meal-status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date: dateStr, meal, memberId: userId }),
+            });
+            if (res.ok) {
+              // Re-fetch both days
+              const [td, tm] = await Promise.all([
+                fetch(`/api/meal-status?date=${todayStr}`).then(r => r.json()).catch(() => null),
+                fetch(`/api/meal-status?date=${tmrwStr}`).then(r => r.json()).catch(() => null),
+              ]);
+              if (td?.mealsPerDay) setMealStatusToday(td);
+              if (tm?.mealsPerDay) setMealStatusTmrw(tm);
+            }
+          } catch { /* ignore */ } finally {
+            setMealToggling(null);
+          }
+        };
+
+        const submitRequest = async (dateStr: string, meal: string) => {
+          setRequestSubmitting(true);
+          try {
+            const res = await fetch("/api/meal-status", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "request", date: dateStr, meal, reason: requestReason || "Need to change meal status" }),
+            });
+            if (res.ok) {
+              setRequestingMeal(null);
+              setRequestReason("");
+              // Re-fetch
+              const [td, tm] = await Promise.all([
+                fetch(`/api/meal-status?date=${todayStr}`).then(r => r.json()).catch(() => null),
+                fetch(`/api/meal-status?date=${tmrwStr}`).then(r => r.json()).catch(() => null),
+              ]);
+              if (td?.mealsPerDay) setMealStatusToday(td);
+              if (tm?.mealsPerDay) setMealStatusTmrw(tm);
+            }
+          } catch { /* ignore */ } finally {
+            setRequestSubmitting(false);
+          }
+        };
+
+        const renderDay = (data: MealStatusData | null, dateStr: string, label: string) => {
+          if (!data) return null;
+          const meals = data.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+          const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
+
+          return (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-700">{label}</h3>
+              {meals.map((meal) => {
+                const myStatus = data.statuses?.[userId]?.[meal];
+                const isOff = myStatus === true;
+                const isBlackedOut = data.blackoutStatus?.[meal] === true;
+                const key = `${dateStr}-${meal}`;
+                const isToggling = mealToggling === key;
+                const hasPending = data.pendingRequests?.some(
+                  (r) => r.memberId === userId && r.meal === meal && r.date === dateStr && r.status === "PENDING"
+                );
+
+                return (
+                  <div key={meal} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span>{mealIcons[meal] || "🍽️"}</span>
+                      <span className="text-sm font-medium text-gray-700 capitalize">{meal}</span>
+                      {isOff ? (
+                        <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">OFF</span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">ON</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isBlackedOut && !isManagerUser ? (
+                        hasPending ? (
+                          <span className="text-xs text-amber-600 font-medium">⏳ Request Pending</span>
+                        ) : requestingMeal === key ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              placeholder="Reason..."
+                              value={requestReason}
+                              onChange={(e) => setRequestReason(e.target.value)}
+                              className="w-28 px-2 py-1 text-xs border rounded"
+                            />
+                            <button
+                              onClick={() => submitRequest(dateStr, meal)}
+                              disabled={requestSubmitting}
+                              className="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 disabled:opacity-50"
+                            >
+                              {requestSubmitting ? "..." : "Send"}
+                            </button>
+                            <button
+                              onClick={() => { setRequestingMeal(null); setRequestReason(""); }}
+                              className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setRequestingMeal(key)}
+                            className="px-2.5 py-1.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors"
+                            title="Meal is in blackout window"
+                          >
+                            🔒 Request Change
+                          </button>
+                        )
+                      ) : (
+                        <button
+                          onClick={() => toggleMeal(dateStr, meal, isOff)}
+                          disabled={isToggling}
+                          className={`relative w-11 h-6 rounded-full transition-colors ${
+                            isOff ? "bg-gray-300" : "bg-green-500"
+                          } ${isToggling ? "opacity-50" : ""}`}
+                        >
+                          <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                            isOff ? "left-0.5" : "left-5.5"
+                          }`} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {/* Cook Count */}
+              <div className="flex flex-wrap gap-2 mt-1">
+                {meals.map((meal) => (
+                  <span key={meal} className="text-xs text-gray-400">
+                    {meal}: <strong className="text-gray-600">{data.mealCounts?.[meal] ?? 0}</strong> eating
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div className="bg-white p-5 rounded-xl shadow-sm border">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">🍽️ My Meal Status</h2>
+              <Link href="/meal-plan" className="text-sm text-indigo-600 hover:underline">View all →</Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {renderDay(mealStatusToday, todayStr, "📅 Today")}
+              {renderDay(mealStatusTmrw, tmrwStr, "🔮 Tomorrow")}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Manager Quick Actions */}
       {isManager && (
