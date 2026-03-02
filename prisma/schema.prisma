@@ -29,6 +29,9 @@ model Mess {
   inviteCode     String   @unique
   washroomCount  Int      @default(0)
   dueThreshold   Float    @default(500)
+  bazarDaysPerWeek Int    @default(3)
+  hasGas         Boolean  @default(false)
+  hasCook        Boolean  @default(false)
   createdById    String
   createdBy      User     @relation("MessCreator", fields: [createdById], references: [id])
   createdAt      DateTime @default(now())
@@ -49,6 +52,11 @@ model Mess {
   notifications     Notification[]
   mealRatings       MealRating[]
   mealVoteTopics    MealVoteTopic[]
+  billSettings      BillSetting[]
+  billPayments      BillPayment[]
+  bazarDuties       BazarDuty[]
+  dutyDebts         DutyDebt[]
+  memberPresences   MemberPresence[]
 }
 
 model User {
@@ -58,6 +66,7 @@ model User {
   email       String   @unique
   password    String
   role        Role     @default(MEMBER)
+  isAdmin     Boolean  @default(false)
   isActive    Boolean  @default(true)
   messId      String?
   mess        Mess?    @relation("MessMembers", fields: [messId], references: [id])
@@ -80,6 +89,11 @@ model User {
   notifications     Notification[]
   mealRatings       MealRating[]
   mealVotes         MealVote[]
+  billPayments      BillPayment[]
+  bazarDuties       BazarDuty[]
+  debtsOwed         DutyDebt[]         @relation("DebtOwedBy")
+  debtsCovered      DutyDebt[]         @relation("DebtOwedTo")
+  presences         MemberPresence[]
 
   @@index([messId])
 }
@@ -151,17 +165,20 @@ model BazarItem {
 }
 
 model WashroomCleaning {
-  id             String         @id @default(cuid())
-  date           DateTime
-  washroomNumber Int            @default(1)
-  memberId       String
-  member         User           @relation(fields: [memberId], references: [id])
-  messId         String
-  mess            Mess           @relation(fields: [messId], references: [id])
-  status         CleaningStatus @default(PENDING)
-  note           String?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                 String         @id @default(cuid())
+  date               DateTime
+  washroomNumber     Int            @default(1)
+  memberId           String
+  member             User           @relation(fields: [memberId], references: [id])
+  messId             String
+  mess               Mess           @relation(fields: [messId], references: [id])
+  status             CleaningStatus @default(PENDING)
+  confirmedByManager Boolean        @default(false)
+  completedAt        DateTime?
+  originalMemberId   String?
+  note               String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   @@unique([date, washroomNumber, messId])
   @@index([date])
@@ -354,4 +371,102 @@ model MealVote {
   createdAt DateTime      @default(now())
 
   @@unique([topicId, voterId])
+}
+
+// ========== BILL SETTINGS (Rent + Utilities per month) ==========
+model BillSetting {
+  id          String   @id @default(cuid())
+  messId      String
+  mess        Mess     @relation(fields: [messId], references: [id])
+  month       Int
+  year        Int
+  // Per-member rents stored as JSON: { "userId": amount }
+  rents       String   @default("{}")  // JSON string
+  wifi        Float    @default(0)
+  electricity Float    @default(0)
+  gas         Float    @default(0)
+  cookSalary  Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([messId, month, year])
+  @@index([messId])
+}
+
+// ========== BILL PAYMENT (Member pays rent+bills) ==========
+model BillPayment {
+  id          String    @id @default(cuid())
+  memberId    String
+  member      User      @relation(fields: [memberId], references: [id])
+  messId      String
+  mess        Mess      @relation(fields: [messId], references: [id])
+  month       Int
+  year        Int
+  amount      Float
+  note        String?
+  confirmed   Boolean   @default(false)
+  confirmedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([messId, month, year])
+  @@index([memberId])
+}
+
+// ========== BAZAR DUTY (Market rotation) ==========
+model BazarDuty {
+  id          String   @id @default(cuid())
+  date        DateTime
+  memberId    String
+  member      User     @relation(fields: [memberId], references: [id])
+  messId      String
+  mess        Mess     @relation(fields: [messId], references: [id])
+  status      String   @default("PENDING") // PENDING, DONE, SKIPPED
+  originalMemberId String?
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date, messId])
+  @@index([messId])
+  @@index([date])
+}
+
+// ========== DUTY DEBT (Washroom/Bazar swap tracking) ==========
+model DutyDebt {
+  id          String    @id @default(cuid())
+  owedById    String
+  owedBy      User      @relation("DebtOwedBy", fields: [owedById], references: [id])
+  owedToId    String
+  owedTo      User      @relation("DebtOwedTo", fields: [owedToId], references: [id])
+  messId      String
+  mess        Mess      @relation(fields: [messId], references: [id])
+  dutyType    String    // "WASHROOM" | "BAZAR"
+  reason      String?
+  status      String    @default("PENDING") // PENDING | SETTLED
+  settledAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([messId])
+  @@index([owedById])
+  @@index([owedToId])
+}
+
+// ========== MEMBER PRESENCE (Home/Away toggle) ==========
+model MemberPresence {
+  id        String    @id @default(cuid())
+  memberId  String
+  member    User      @relation(fields: [memberId], references: [id])
+  messId    String
+  mess      Mess      @relation(fields: [messId], references: [id])
+  isAway    Boolean   @default(false)
+  awayFrom  DateTime?
+  awayUntil DateTime?
+  reason    String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([memberId, messId])
+  @@index([messId])
 }

@@ -3,6 +3,10 @@
     {
       "path": "/api/archive/cleanup",
       "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/auto-notifications",
+      "schedule": "0 6 * * *"
     }
   ]
 }

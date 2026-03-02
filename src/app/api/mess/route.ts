@@ -46,6 +46,9 @@ export async function GET() {
       inviteCode: user.mess.inviteCode,
       washroomCount: user.mess.washroomCount,
       dueThreshold: (user.mess as Record<string, unknown>).dueThreshold ?? 500,
+      bazarDaysPerWeek: (user.mess as Record<string, unknown>).bazarDaysPerWeek ?? 3,
+      hasGas: (user.mess as Record<string, unknown>).hasGas ?? false,
+      hasCook: (user.mess as Record<string, unknown>).hasCook ?? false,
       createdBy: user.mess.createdBy.name,
       memberCount: user.mess.members.length,
       members: user.mess.members,
@@ -201,7 +204,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { washroomCount, dueThreshold } = body;
+  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek } = body;
 
   const updateData: Record<string, unknown> = {};
 
@@ -217,6 +220,21 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Due threshold must be a positive number" }, { status: 400 });
     }
     updateData.dueThreshold = dueThreshold;
+  }
+
+  if (hasGas !== undefined) {
+    updateData.hasGas = Boolean(hasGas);
+  }
+
+  if (hasCook !== undefined) {
+    updateData.hasCook = Boolean(hasCook);
+  }
+
+  if (bazarDaysPerWeek !== undefined) {
+    if (typeof bazarDaysPerWeek !== "number" || bazarDaysPerWeek < 1 || bazarDaysPerWeek > 7) {
+      return NextResponse.json({ error: "Bazar days per week must be 1-7" }, { status: 400 });
+    }
+    updateData.bazarDaysPerWeek = bazarDaysPerWeek;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -251,6 +269,12 @@ export async function DELETE() {
 
   // Delete all mess data in the correct order (respecting FK constraints)
   await prisma.$transaction([
+    // Delete new tables first
+    prisma.memberPresence.deleteMany({ where: { messId } }),
+    prisma.dutyDebt.deleteMany({ where: { messId } }),
+    prisma.bazarDuty.deleteMany({ where: { messId } }),
+    prisma.billPayment.deleteMany({ where: { messId } }),
+    prisma.billSetting.deleteMany({ where: { messId } }),
     // Delete meal votes (FK to MealVoteTopic)
     prisma.mealVote.deleteMany({ where: { topic: { messId } } }),
     // Delete meal vote topics

@@ -268,6 +268,26 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Quick Duty & Bill Links */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Link href="/bills" className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-center hover:bg-rose-100 transition">
+          <span className="text-xl">💳</span>
+          <p className="text-xs font-medium text-rose-700 mt-1">Bills & Rent</p>
+        </Link>
+        <Link href="/bazar-duty" className="bg-cyan-50 border border-cyan-200 p-3 rounded-xl text-center hover:bg-cyan-100 transition">
+          <span className="text-xl">📋</span>
+          <p className="text-xs font-medium text-cyan-700 mt-1">Bazar Duty</p>
+        </Link>
+        <Link href="/duty-debts" className="bg-pink-50 border border-pink-200 p-3 rounded-xl text-center hover:bg-pink-100 transition">
+          <span className="text-xl">⚖️</span>
+          <p className="text-xs font-medium text-pink-700 mt-1">Duty Debts</p>
+        </Link>
+        <Link href="/transparency" className="bg-purple-50 border border-purple-200 p-3 rounded-xl text-center hover:bg-purple-100 transition">
+          <span className="text-xl">👁️</span>
+          <p className="text-xs font-medium text-purple-700 mt-1">Transparency</p>
+        </Link>
+      </div>
+
       {/* Latest Announcements */}
       {announcements.length > 0 && (
         <div className="bg-white p-5 rounded-xl shadow-sm border">

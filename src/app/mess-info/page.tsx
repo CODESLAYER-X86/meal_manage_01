@@ -10,6 +10,9 @@ interface MessInfo {
   inviteCode: string;
   washroomCount: number;
   dueThreshold: number;
+  bazarDaysPerWeek: number;
+  hasGas: boolean;
+  hasCook: boolean;
   createdBy: string;
   memberCount: number;
   members: {
@@ -50,6 +53,11 @@ export default function MessInfoPage() {
   const [thresholdInput, setThresholdInput] = useState(500);
   const [thresholdSaving, setThresholdSaving] = useState(false);
   const [thresholdMsg, setThresholdMsg] = useState("");
+  const [bazarDaysInput, setBazarDaysInput] = useState(3);
+  const [hasGasInput, setHasGasInput] = useState(false);
+  const [hasCookInput, setHasCookInput] = useState(false);
+  const [extraSaving, setExtraSaving] = useState(false);
+  const [extraMsg, setExtraMsg] = useState("");
 
   const isManager = session?.user?.role === "MANAGER";
 
@@ -65,6 +73,9 @@ export default function MessInfoPage() {
       if (messData.mess) {
         setWashroomInput(messData.mess.washroomCount || 0);
         setThresholdInput(messData.mess.dueThreshold ?? 500);
+        setBazarDaysInput(messData.mess.bazarDaysPerWeek ?? 3);
+        setHasGasInput(messData.mess.hasGas ?? false);
+        setHasCookInput(messData.mess.hasCook ?? false);
       }
 
       if (requestsRes) {
@@ -421,6 +432,76 @@ export default function MessInfoPage() {
               ? `Currently: ৳${mess.dueThreshold} · Members owing more than this will see a warning`
               : "Currently: Disabled · No deposit reminders will be shown"}
           </p>
+        </div>
+      )}
+
+      {/* Mess Features - Manager Only */}
+      {isManager && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">⚙️ Mess Features</h2>
+          <p className="text-sm text-gray-500 mb-4">Configure bazar rotation and utilities for your mess.</p>
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-sm text-gray-700 font-medium w-40">Bazar Days/Week:</label>
+              <select
+                value={bazarDaysInput}
+                onChange={(e) => setBazarDaysInput(Number(e.target.value))}
+                className="px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
+              >
+                {[1, 2, 3, 4, 5, 6, 7].map(n => (
+                  <option key={n} value={n}>{n} days</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-700 font-medium w-40">Has Gas Connection:</label>
+              <button
+                onClick={() => setHasGasInput(!hasGasInput)}
+                className={`w-12 h-7 rounded-full transition-colors ${hasGasInput ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${hasGasInput ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+              <span className="text-xs text-gray-400">{hasGasInput ? 'Enabled' : 'Disabled'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-700 font-medium w-40">Has Cook:</label>
+              <button
+                onClick={() => setHasCookInput(!hasCookInput)}
+                className={`w-12 h-7 rounded-full transition-colors ${hasCookInput ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${hasCookInput ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+              <span className="text-xs text-gray-400">{hasCookInput ? 'Enabled' : 'Disabled'}</span>
+            </div>
+            <button
+              onClick={async () => {
+                setExtraSaving(true);
+                setExtraMsg("");
+                try {
+                  const res = await fetch("/api/mess", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ bazarDaysPerWeek: bazarDaysInput, hasGas: hasGasInput, hasCook: hasCookInput }),
+                  });
+                  if (res.ok) {
+                    setExtraMsg("Settings saved!");
+                    if (mess) setMess({ ...mess, bazarDaysPerWeek: bazarDaysInput, hasGas: hasGasInput, hasCook: hasCookInput });
+                  } else {
+                    const d = await res.json();
+                    setExtraMsg(d.error || "Failed");
+                  }
+                } catch { setExtraMsg("Error"); } finally {
+                  setExtraSaving(false);
+                  setTimeout(() => setExtraMsg(""), 3000);
+                }
+              }}
+              disabled={extraSaving}
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {extraSaving ? "Saving..." : "Save Features"}
+            </button>
+            {extraMsg && <p className="text-sm text-green-600">✅ {extraMsg}</p>}
+          </div>
         </div>
       )}
 
