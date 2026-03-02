@@ -172,6 +172,24 @@ export default function WashroomPage() {
             <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">→</button>
           </div>
         </div>
+        {/* Quick month selector — last 4 months */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {Array.from({ length: 4 }, (_, i) => {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = d.getMonth() + 1;
+            const y = d.getFullYear();
+            const isActive = month === m && year === y;
+            return (
+              <button
+                key={i}
+                onClick={() => { setMonth(m); setYear(y); setError(""); setSuccess(""); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isActive ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+              >
+                {MONTH_NAMES[d.getMonth()].slice(0, 3)} {y !== now.getFullYear() ? y : ""}
+              </button>
+            );
+          })}
+        </div>
         <p className="text-sm text-gray-500">
           {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · Next cleaning due every {intervalDays} days · Manager logs who cleaned
         </p>
