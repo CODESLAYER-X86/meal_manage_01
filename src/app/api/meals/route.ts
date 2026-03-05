@@ -177,3 +177,39 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ success: true });
 }
+
+// DELETE - Remove a meal entry by id (manager only)
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  const entry = await prisma.mealEntry.findUnique({
+    where: { id },
+    include: { member: { select: { name: true } } },
+  });
+  if (!entry || entry.messId !== messId) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  await prisma.mealEntry.delete({ where: { id } });
+
+  await createBulkAuditLogs([{
+    editedById: session.user.id,
+    messId,
+    tableName: "MealEntry",
+    recordId: id,
+    fieldName: entry.member.name,
+    oldValue: `Total: ${entry.total}`,
+    newValue: null,
+    action: "DELETE",
+  }]);
+
+  return NextResponse.json({ success: true });
+}

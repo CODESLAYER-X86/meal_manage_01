@@ -248,11 +248,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Invalid meal. Options: ${mealsList.join(", ")}` }, { status: 400 });
   }
 
-  // Date validation: can't change past dates (use BD timezone)
+  // Date validation: can't change past dates (managers can override to fix mistakes)
   const mealDate = new Date(date + "T00:00:00.000Z");
   const { bd } = getBDTime();
   const todayBD = new Date(Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()));
-  if (mealDate < todayBD) {
+  if (mealDate < todayBD && !isManager) {
     return NextResponse.json({ error: "Cannot change meal status for past dates" }, { status: 400 });
   }
 
