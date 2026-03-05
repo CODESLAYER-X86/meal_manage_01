@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit";
 
 // GET announcements for the mess
 export async function GET(request: NextRequest) {
@@ -49,6 +50,17 @@ export async function POST(request: NextRequest) {
     include: { author: { select: { id: true, name: true } } },
   });
 
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "Announcement",
+    recordId: announcement.id,
+    fieldName: "title",
+    oldValue: "",
+    newValue: title.trim(),
+    action: "CREATE",
+  });
+
   // Notify all members
   const members = await prisma.user.findMany({
     where: { messId, isActive: true, NOT: { id: session.user.id } },
@@ -84,9 +96,25 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
 
+  const existing = await prisma.announcement.findUnique({ where: { id } });
+  if (!existing || existing.messId !== session.user.messId) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const updated = await prisma.announcement.update({
     where: { id },
     data: { pinned: !!pinned },
+  });
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId: session.user.messId,
+    tableName: "Announcement",
+    recordId: id,
+    fieldName: "pinned",
+    oldValue: String(existing.pinned),
+    newValue: String(!!pinned),
+    action: "UPDATE",
   });
 
   return NextResponse.json(updated);
@@ -105,6 +133,22 @@ export async function DELETE(request: NextRequest) {
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
+
+  const existing = await prisma.announcement.findUnique({ where: { id } });
+  if (!existing || existing.messId !== session.user.messId) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId: session.user.messId,
+    tableName: "Announcement",
+    recordId: id,
+    fieldName: "title",
+    oldValue: existing.title,
+    newValue: "",
+    action: "DELETE",
+  });
 
   await prisma.announcement.delete({ where: { id } });
   return NextResponse.json({ success: true });

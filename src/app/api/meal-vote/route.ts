@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit";
 
 // GET vote topics for this mess
 export async function GET(request: NextRequest) {
@@ -77,6 +78,17 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "MealVoteTopic",
+    recordId: topic.id,
+    fieldName: "all",
+    oldValue: null,
+    newValue: `${title.trim()} (${options.length} options)`,
+    action: "CREATE",
+  });
+
   return NextResponse.json(topic);
 }
 
@@ -86,6 +98,7 @@ export async function PATCH(request: NextRequest) {
   if (!session?.user?.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const messId = session.user.messId;
 
   const body = await request.json();
   const { topicId, option, close } = body;
@@ -96,9 +109,23 @@ export async function PATCH(request: NextRequest) {
 
   // Manager can close a vote
   if (close && session.user.role === "MANAGER") {
+    const topic = await prisma.mealVoteTopic.findUnique({ where: { id: topicId } });
+    if (!topic || topic.messId !== messId) {
+      return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+    }
     const updated = await prisma.mealVoteTopic.update({
       where: { id: topicId },
       data: { active: false },
+    });
+    await createAuditLog({
+      editedById: session.user.id,
+      messId,
+      tableName: "MealVoteTopic",
+      recordId: topicId,
+      fieldName: "active",
+      oldValue: "true",
+      newValue: "false",
+      action: "UPDATE",
     });
     return NextResponse.json(updated);
   }
@@ -109,8 +136,8 @@ export async function PATCH(request: NextRequest) {
   }
 
   const topic = await prisma.mealVoteTopic.findUnique({ where: { id: topicId } });
-  if (!topic || !topic.active) {
-    return NextResponse.json({ error: "Voting is closed" }, { status: 400 });
+  if (!topic || !topic.active || topic.messId !== messId) {
+    return NextResponse.json({ error: "Voting is closed or not found" }, { status: 400 });
   }
 
   if (!topic.options.includes(option)) {
@@ -123,6 +150,17 @@ export async function PATCH(request: NextRequest) {
     create: { topicId, voterId: session.user.id, option },
   });
 
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "MealVote",
+    recordId: vote.id,
+    fieldName: topic.title,
+    oldValue: null,
+    newValue: option,
+    action: "CREATE",
+  });
+
   return NextResponse.json(vote);
 }
 
@@ -132,6 +170,7 @@ export async function DELETE(request: NextRequest) {
   if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+  const messId = session.user.messId;
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -139,6 +178,23 @@ export async function DELETE(request: NextRequest) {
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
+
+  // Verify the topic belongs to this mess
+  const topic = await prisma.mealVoteTopic.findUnique({ where: { id } });
+  if (!topic || topic.messId !== messId) {
+    return NextResponse.json({ error: "Topic not found" }, { status: 404 });
+  }
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "MealVoteTopic",
+    recordId: id,
+    fieldName: "all",
+    oldValue: topic.title,
+    newValue: null,
+    action: "DELETE",
+  });
 
   await prisma.mealVoteTopic.delete({ where: { id } });
   return NextResponse.json({ success: true });

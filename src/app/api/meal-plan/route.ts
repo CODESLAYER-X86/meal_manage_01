@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit";
 
 // GET meal plans for a month or specific date
 export async function GET(request: NextRequest) {
@@ -44,22 +45,57 @@ export async function POST(request: NextRequest) {
   const messId = session.user.messId;
 
   const body = await request.json();
-  const { date, breakfast, lunch, dinner } = body;
+  const { date, breakfast, lunch, dinner, meals: mealsInput } = body;
 
   if (!date) {
     return NextResponse.json({ error: "Date is required" }, { status: 400 });
   }
 
+  // Build meals JSON from either new format or legacy format
+  let mealsObj: Record<string, string> = {};
+  if (mealsInput && typeof mealsInput === "object") {
+    mealsObj = mealsInput;
+  } else {
+    if (breakfast) mealsObj.breakfast = breakfast;
+    if (lunch) mealsObj.lunch = lunch;
+    if (dinner) mealsObj.dinner = dinner;
+  }
+
+  // Get existing plan for audit
+  const existing = await prisma.mealPlan.findUnique({
+    where: { date_messId: { date: new Date(date), messId } },
+  });
+
   const plan = await prisma.mealPlan.upsert({
     where: { date_messId: { date: new Date(date), messId } },
-    update: { breakfast: breakfast || null, lunch: lunch || null, dinner: dinner || null },
+    update: {
+      breakfast: mealsObj.breakfast || breakfast || null,
+      lunch: mealsObj.lunch || lunch || null,
+      dinner: mealsObj.dinner || dinner || null,
+      meals: JSON.stringify(mealsObj),
+    },
     create: {
       date: new Date(date),
       messId,
-      breakfast: breakfast || null,
-      lunch: lunch || null,
-      dinner: dinner || null,
+      breakfast: mealsObj.breakfast || breakfast || null,
+      lunch: mealsObj.lunch || lunch || null,
+      dinner: mealsObj.dinner || dinner || null,
+      meals: JSON.stringify(mealsObj),
     },
+  });
+
+  // Audit log
+  const oldSummary = existing ? Object.entries(JSON.parse(existing.meals || "{}")).map(([k, v]) => `${k}:${v || "-"}`).join(" ") || `B:${existing.breakfast || "-"} L:${existing.lunch || "-"} D:${existing.dinner || "-"}` : null;
+  const newSummary = Object.entries(mealsObj).map(([k, v]) => `${k}:${v || "-"}`).join(" ");
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "MealPlan",
+    recordId: plan.id,
+    fieldName: `plan (${date})`,
+    oldValue: oldSummary,
+    newValue: newSummary,
+    action: existing ? "UPDATE" : "CREATE",
   });
 
   return NextResponse.json(plan);

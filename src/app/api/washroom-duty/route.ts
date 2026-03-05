@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 
-// GET - List bazar duty schedule
+// GET - List washroom duty schedule
 export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId) {
@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
   const startDate = new Date(Date.UTC(year, month - 1, 1));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
 
-  const duties = await prisma.bazarDutySchedule.findMany({
+  const duties = await prisma.washroomDutySchedule.findMany({
     where: { messId, date: { gte: startDate, lte: endDate } },
     include: { member: { select: { id: true, name: true } } },
-    orderBy: { date: "asc" },
+    orderBy: [{ date: "asc" }, { washroomNumber: "asc" }],
   });
 
   const members = await prisma.user.findMany({
@@ -29,9 +29,8 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   });
 
-  // Get pending debts
   const debts = await prisma.dutyDebt.findMany({
-    where: { messId, dutyType: "BAZAR", status: "PENDING" },
+    where: { messId, dutyType: "WASHROOM", status: "PENDING" },
     include: {
       owedBy: { select: { id: true, name: true } },
       owedTo: { select: { id: true, name: true } },
@@ -41,7 +40,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ duties, members, debts });
 }
 
-// POST - Create duty assignments (manager only)
+// POST - Create washroom duty assignments (manager only)
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId || session.user.role !== "MANAGER") {
@@ -50,13 +49,12 @@ export async function POST(request: NextRequest) {
   const messId = session.user.messId;
   const body = await request.json();
 
-  // Single assignment: { date, memberId }
-  // Bulk auto-rotate: { autoRotate: true, startDate, endDate }
   if (body.autoRotate) {
-    const { startDate, endDate } = body;
+    const { startDate, endDate, washroomCount } = body;
     if (!startDate || !endDate) {
-      return NextResponse.json({ error: "startDate and endDate required for auto-rotate" }, { status: 400 });
+      return NextResponse.json({ error: "startDate and endDate required" }, { status: 400 });
     }
+    const numWashrooms = washroomCount || 1;
     const members = await prisma.user.findMany({
       where: { messId, isActive: true },
       select: { id: true },
@@ -68,27 +66,29 @@ export async function POST(request: NextRequest) {
 
     const start = new Date(startDate + "T00:00:00.000Z");
     const end = new Date(endDate + "T00:00:00.000Z");
-    const assignments: { date: Date; memberId: string; messId: string }[] = [];
+    const assignments: { date: Date; memberId: string; messId: string; washroomNumber: number }[] = [];
     let idx = 0;
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      assignments.push({
-        date: new Date(d),
-        memberId: members[idx % members.length].id,
-        messId,
-      });
-      idx++;
+      for (let w = 1; w <= numWashrooms; w++) {
+        assignments.push({
+          date: new Date(d),
+          memberId: members[idx % members.length].id,
+          messId,
+          washroomNumber: w,
+        });
+        idx++;
+      }
     }
 
-    // Delete existing duties in range, then create new ones
-    await prisma.bazarDutySchedule.deleteMany({
+    await prisma.washroomDutySchedule.deleteMany({
       where: { messId, date: { gte: start, lte: end } },
     });
-    await prisma.bazarDutySchedule.createMany({ data: assignments });
+    await prisma.washroomDutySchedule.createMany({ data: assignments });
 
     await createAuditLog({
       editedById: session.user.id,
       messId,
-      tableName: "BazarDutySchedule",
+      tableName: "WashroomDutySchedule",
       recordId: "bulk",
       fieldName: "autoRotate",
       oldValue: null,
@@ -100,31 +100,36 @@ export async function POST(request: NextRequest) {
   }
 
   // Single assignment
-  const { date, memberId } = body;
+  const { date, memberId, washroomNumber } = body;
   if (!date || !memberId) {
     return NextResponse.json({ error: "date and memberId required" }, { status: 400 });
   }
 
-  const duty = await prisma.bazarDutySchedule.create({
-    data: { date: new Date(date + "T00:00:00.000Z"), memberId, messId },
+  const duty = await prisma.washroomDutySchedule.create({
+    data: {
+      date: new Date(date + "T00:00:00.000Z"),
+      memberId,
+      messId,
+      washroomNumber: washroomNumber || 1,
+    },
     include: { member: { select: { id: true, name: true } } },
   });
 
   await createAuditLog({
     editedById: session.user.id,
     messId,
-    tableName: "BazarDutySchedule",
+    tableName: "WashroomDutySchedule",
     recordId: duty.id,
     fieldName: "assignment",
     oldValue: null,
-    newValue: `${duty.member.name} on ${date}`,
+    newValue: `${duty.member.name} on ${date} (WR#${duty.washroomNumber})`,
     action: "CREATE",
   });
 
   return NextResponse.json({ success: true, duty });
 }
 
-// PATCH - Mark duty completed/incomplete, create debt if incomplete
+// PATCH - Mark duty completed/incomplete
 export async function PATCH(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId) {
@@ -139,7 +144,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Duty id required" }, { status: 400 });
   }
 
-  const duty = await prisma.bazarDutySchedule.findUnique({
+  const duty = await prisma.washroomDutySchedule.findUnique({
     where: { id },
     include: { member: { select: { id: true, name: true } } },
   });
@@ -147,25 +152,23 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Duty not found" }, { status: 404 });
   }
 
-  // Only manager or assigned member can update
   if (!isManager && duty.memberId !== session.user.id) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 
-  await prisma.bazarDutySchedule.update({
+  await prisma.washroomDutySchedule.update({
     where: { id },
     data: { completed: completed ?? true },
   });
 
-  // If marked incomplete and someone else covered, create debt
   if (completed === false && coveredById && coveredById !== duty.memberId) {
     await prisma.dutyDebt.create({
       data: {
         owedById: duty.memberId,
         owedToId: coveredById,
         messId,
-        dutyType: "BAZAR",
-        reason: `Missed bazar duty on ${duty.date.toISOString().split("T")[0]}`,
+        dutyType: "WASHROOM",
+        reason: `Missed washroom duty on ${duty.date.toISOString().split("T")[0]} (WR#${duty.washroomNumber})`,
       },
     });
   }
@@ -173,7 +176,7 @@ export async function PATCH(request: NextRequest) {
   await createAuditLog({
     editedById: session.user.id,
     messId,
-    tableName: "BazarDutySchedule",
+    tableName: "WashroomDutySchedule",
     recordId: id,
     fieldName: "completed",
     oldValue: String(duty.completed),
@@ -198,7 +201,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Duty id required" }, { status: 400 });
   }
 
-  const duty = await prisma.bazarDutySchedule.findUnique({ where: { id } });
+  const duty = await prisma.washroomDutySchedule.findUnique({ where: { id } });
   if (!duty || duty.messId !== messId) {
     return NextResponse.json({ error: "Duty not found" }, { status: 404 });
   }
@@ -206,15 +209,15 @@ export async function DELETE(request: NextRequest) {
   await createAuditLog({
     editedById: session.user.id,
     messId,
-    tableName: "BazarDutySchedule",
+    tableName: "WashroomDutySchedule",
     recordId: id,
     fieldName: "deletion",
-    oldValue: `${duty.date.toISOString().split("T")[0]}`,
+    oldValue: `${duty.date.toISOString().split("T")[0]} WR#${duty.washroomNumber}`,
     newValue: null,
     action: "DELETE",
   });
 
-  await prisma.bazarDutySchedule.delete({ where: { id } });
+  await prisma.washroomDutySchedule.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
 }

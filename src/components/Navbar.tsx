@@ -88,6 +88,8 @@ export default function Navbar() {
                   <div className="absolute top-full right-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
                     <Link href="/meal-plan" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🍳 Meal Plan</Link>
                     <Link href="/washroom" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🚿 Washroom</Link>
+                    <Link href="/bazar-duty" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🛒 Bazar Duty</Link>
+                    <Link href="/washroom-duty" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">🧹 Washroom Duty</Link>
                     <Link href="/bills" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">💳 Bills & Rent</Link>
                     <hr className="my-1.5 border-gray-100" />
                     <Link href="/announcements" onClick={() => setMoreOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">📢 Notices</Link>
@@ -166,6 +168,8 @@ export default function Navbar() {
             <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">More</div>
             <Link href="/meal-plan" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/meal-plan")}>🍳 Meal Plan</Link>
             <Link href="/washroom" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/washroom")}>🚿 Washroom</Link>
+            <Link href="/bazar-duty" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/bazar-duty")}>🛒 Bazar Duty</Link>
+            <Link href="/washroom-duty" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/washroom-duty")}>🧹 Washroom Duty</Link>
             <Link href="/bills" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/bills")}>💳 Bills & Rent</Link>
             <Link href="/announcements" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/announcements")}>📢 Notices</Link>
             <Link href="/meal-vote" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/meal-vote")}>🗳️ Vote</Link>

@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
 }
 
 // PATCH - Settle a fine (member settles their own fine; adds to their deposit)
+//       - Or edit fine amount/reason (manager only, before settlement)
 export async function PATCH(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.messId) {
@@ -94,16 +95,60 @@ export async function PATCH(request: NextRequest) {
   const messId = session.user.messId;
 
   const body = await request.json();
-  const { id } = body;
+  const { id, action, amount, reason } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Fine id is required" }, { status: 400 });
   }
 
-  const fine = await prisma.fine.findUnique({ where: { id } });
+  const fine = await prisma.fine.findUnique({
+    where: { id },
+    include: { member: { select: { id: true, name: true } } },
+  });
   if (!fine || fine.messId !== messId) {
     return NextResponse.json({ error: "Fine not found" }, { status: 404 });
   }
+
+  // Edit fine (manager only, before settlement)
+  if (action === "edit" || (amount !== undefined || reason !== undefined)) {
+    if (session.user.role !== "MANAGER") {
+      return NextResponse.json({ error: "Only manager can edit fines" }, { status: 403 });
+    }
+    if (fine.settled) {
+      return NextResponse.json({ error: "Cannot edit a settled fine" }, { status: 400 });
+    }
+
+    const updateData: { amount?: number; reason?: string } = {};
+    if (amount !== undefined) updateData.amount = Number(amount);
+    if (reason !== undefined) updateData.reason = reason.trim();
+
+    const updatedFine = await prisma.fine.update({
+      where: { id },
+      data: updateData,
+      include: {
+        member: { select: { id: true, name: true } },
+        createdBy: { select: { id: true, name: true } },
+      },
+    });
+
+    // Audit log
+    await prisma.auditLog.create({
+      data: {
+        editedById: session.user.id,
+        messId,
+        tableName: "Fine",
+        recordId: id,
+        fieldName: "amount/reason",
+        oldValue: `৳${fine.amount} - ${fine.reason}`,
+        newValue: `৳${updatedFine.amount} - ${updatedFine.reason}`,
+        action: "UPDATE",
+      },
+    });
+
+    return NextResponse.json({ success: true, fine: updatedFine });
+  }
+
+  // Settle fine
   if (fine.settled) {
     return NextResponse.json({ error: "Fine is already settled" }, { status: 400 });
   }

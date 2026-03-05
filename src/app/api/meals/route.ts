@@ -46,9 +46,22 @@ export async function POST(request: NextRequest) {
   }
   const messId = session.user.messId;
 
+  // Get mess config for dynamic meal types
+  const mess = await prisma.mess.findUnique({
+    where: { id: messId },
+    select: { mealTypes: true, mealsPerDay: true },
+  });
+  let mealTypesList: string[];
+  try {
+    mealTypesList = JSON.parse(mess?.mealTypes ?? '["breakfast","lunch","dinner"]');
+  } catch {
+    mealTypesList = ["breakfast", "lunch", "dinner"];
+  }
+
   const body = await request.json();
   const { date, entries } = body;
-  // entries: [{ memberId, breakfast, lunch, dinner }]
+  // entries: [{ memberId, meals: { breakfast: 1, lunch: 0, ... } }]
+  // OR legacy: [{ memberId, breakfast, lunch, dinner }]
 
   const auditLogs: {
     editedById: string;
@@ -70,8 +83,26 @@ export async function POST(request: NextRequest) {
   const memberNameMap = Object.fromEntries(members.map((m) => [m.id, m.name]));
 
   for (const entry of entries) {
-    const total = (entry.breakfast || 0) + (entry.lunch || 0) + (entry.dinner || 0);
+    // Build meals object from entry — support both formats
+    const mealsObj: Record<string, number> = {};
+    if (entry.meals && typeof entry.meals === "object") {
+      for (const mt of mealTypesList) {
+        mealsObj[mt] = Number(entry.meals[mt]) || 0;
+      }
+    } else {
+      // Legacy format
+      for (const mt of mealTypesList) {
+        mealsObj[mt] = Number(entry[mt]) || 0;
+      }
+    }
+
+    const total = Object.values(mealsObj).reduce((sum, v) => sum + v, 0);
     const memberName = memberNameMap[entry.memberId] || "Unknown";
+
+    // Legacy columns (keep backward compat)
+    const breakfast = mealsObj["breakfast"] ?? 0;
+    const lunch = mealsObj["lunch"] ?? 0;
+    const dinner = mealsObj["dinner"] ?? 0;
 
     // Check existing entry
     const existing = await prisma.mealEntry.findUnique({
@@ -84,50 +115,33 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      // Track changes for audit log — include member name
-      if (existing.breakfast !== entry.breakfast) {
-        auditLogs.push({
-          editedById: session.user.id,
-          messId,
-          tableName: "MealEntry",
-          recordId: existing.id,
-          fieldName: `${memberName} - breakfast`,
-          oldValue: String(existing.breakfast),
-          newValue: String(entry.breakfast),
-          action: "UPDATE",
-        });
-      }
-      if (existing.lunch !== entry.lunch) {
-        auditLogs.push({
-          editedById: session.user.id,
-          messId,
-          tableName: "MealEntry",
-          recordId: existing.id,
-          fieldName: `${memberName} - lunch`,
-          oldValue: String(existing.lunch),
-          newValue: String(entry.lunch),
-          action: "UPDATE",
-        });
-      }
-      if (existing.dinner !== entry.dinner) {
-        auditLogs.push({
-          editedById: session.user.id,
-          messId,
-          tableName: "MealEntry",
-          recordId: existing.id,
-          fieldName: `${memberName} - dinner`,
-          oldValue: String(existing.dinner),
-          newValue: String(entry.dinner),
-          action: "UPDATE",
-        });
+      // Parse existing meals JSON for comparison
+      let existingMeals: Record<string, number> = {};
+      try { existingMeals = JSON.parse(existing.meals || "{}"); } catch { /* */ }
+
+      // Track changes for audit log
+      for (const mt of mealTypesList) {
+        const oldVal = existingMeals[mt] ?? (existing as Record<string, unknown>)[mt] ?? 0;
+        const newVal = mealsObj[mt] ?? 0;
+        if (Number(oldVal) !== Number(newVal)) {
+          auditLogs.push({
+            editedById: session.user.id,
+            messId,
+            tableName: "MealEntry",
+            recordId: existing.id,
+            fieldName: `${memberName} - ${mt}`,
+            oldValue: String(oldVal),
+            newValue: String(newVal),
+            action: "UPDATE",
+          });
+        }
       }
 
       await prisma.mealEntry.update({
         where: { id: existing.id },
         data: {
-          breakfast: entry.breakfast,
-          lunch: entry.lunch,
-          dinner: entry.dinner,
+          breakfast, lunch, dinner,
+          meals: JSON.stringify(mealsObj),
           total,
         },
       });
@@ -137,13 +151,13 @@ export async function POST(request: NextRequest) {
           date: new Date(date),
           memberId: entry.memberId,
           messId,
-          breakfast: entry.breakfast || 0,
-          lunch: entry.lunch || 0,
-          dinner: entry.dinner || 0,
+          breakfast, lunch, dinner,
+          meals: JSON.stringify(mealsObj),
           total,
         },
       });
 
+      const summary = mealTypesList.map(mt => `${mt.charAt(0).toUpperCase()}:${mealsObj[mt]}`).join(" ");
       auditLogs.push({
         editedById: session.user.id,
         messId,
@@ -151,7 +165,7 @@ export async function POST(request: NextRequest) {
         recordId: created.id,
         fieldName: `${memberName} - all`,
         oldValue: null,
-        newValue: `B:${entry.breakfast} L:${entry.lunch} D:${entry.dinner}`,
+        newValue: summary,
         action: "CREATE",
       });
     }

@@ -10,6 +10,7 @@ interface Duty {
   date: string;
   memberId: string;
   member: Member;
+  washroomNumber: number;
   completed: boolean;
 }
 interface Debt {
@@ -28,7 +29,7 @@ interface SwapReq {
   status: string;
 }
 
-export default function BazarDutyPage() {
+export default function WashroomDutyPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [duties, setDuties] = useState<Duty[]>([]);
@@ -41,9 +42,11 @@ export default function BazarDutyPage() {
   const [showAssign, setShowAssign] = useState(false);
   const [assignDate, setAssignDate] = useState("");
   const [assignMember, setAssignMember] = useState("");
+  const [assignWashroom, setAssignWashroom] = useState(1);
   const [showAutoRotate, setShowAutoRotate] = useState(false);
   const [autoStart, setAutoStart] = useState("");
   const [autoEnd, setAutoEnd] = useState("");
+  const [autoWashroomCount, setAutoWashroomCount] = useState(1);
   const [saving, setSaving] = useState(false);
 
   const isManager = session?.user?.role === "MANAGER";
@@ -53,7 +56,7 @@ export default function BazarDutyPage() {
     setLoading(true);
     try {
       const [dutyRes, swapRes] = await Promise.all([
-        fetch(`/api/bazar-duty?month=${month}&year=${year}`),
+        fetch(`/api/washroom-duty?month=${month}&year=${year}`),
         fetch("/api/duty-swap?status=PENDING"),
       ]);
       const dutyData = await dutyRes.json();
@@ -61,7 +64,7 @@ export default function BazarDutyPage() {
       setDuties(dutyData.duties || []);
       setMembers(dutyData.members || []);
       setDebts(dutyData.debts || []);
-      setSwapRequests((swapData.requests || []).filter((r: SwapReq) => r.dutyType === "BAZAR"));
+      setSwapRequests((swapData.requests || []).filter((r: SwapReq) => r.dutyType === "WASHROOM"));
     } catch { /* ignore */ }
     setLoading(false);
   }, [month, year]);
@@ -75,10 +78,10 @@ export default function BazarDutyPage() {
   const handleAssign = async () => {
     if (!assignDate || !assignMember) return;
     setSaving(true);
-    await fetch("/api/bazar-duty", {
+    await fetch("/api/washroom-duty", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: assignDate, memberId: assignMember }),
+      body: JSON.stringify({ date: assignDate, memberId: assignMember, washroomNumber: assignWashroom }),
     });
     setSaving(false);
     setShowAssign(false);
@@ -90,10 +93,10 @@ export default function BazarDutyPage() {
   const handleAutoRotate = async () => {
     if (!autoStart || !autoEnd) return;
     setSaving(true);
-    await fetch("/api/bazar-duty", {
+    await fetch("/api/washroom-duty", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ autoRotate: true, startDate: autoStart, endDate: autoEnd }),
+      body: JSON.stringify({ autoRotate: true, startDate: autoStart, endDate: autoEnd, washroomCount: autoWashroomCount }),
     });
     setSaving(false);
     setShowAutoRotate(false);
@@ -101,7 +104,7 @@ export default function BazarDutyPage() {
   };
 
   const handleComplete = async (id: string, completed: boolean) => {
-    await fetch("/api/bazar-duty", {
+    await fetch("/api/washroom-duty", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, completed }),
@@ -110,7 +113,7 @@ export default function BazarDutyPage() {
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/bazar-duty?id=${id}`, { method: "DELETE" });
+    await fetch(`/api/washroom-duty?id=${id}`, { method: "DELETE" });
     loadData();
   };
 
@@ -118,7 +121,7 @@ export default function BazarDutyPage() {
     await fetch("/api/duty-swap", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dutyType: "BAZAR", fromDutyId, toDutyId }),
+      body: JSON.stringify({ dutyType: "WASHROOM", fromDutyId, toDutyId }),
     });
     loadData();
   };
@@ -134,10 +137,13 @@ export default function BazarDutyPage() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  // Group duties by washroom number
+  const washroomNumbers = [...new Set(duties.map((d) => d.washroomNumber))].sort();
+
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">🛒 Bazar Duty Schedule</h1>
+        <h1 className="text-2xl font-bold text-gray-900">🚿 Washroom Duty Schedule</h1>
         <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
       </div>
 
@@ -165,13 +171,14 @@ export default function BazarDutyPage() {
       {/* Assign form */}
       {showAssign && isManager && (
         <div className="bg-white p-4 rounded-xl border space-y-3">
-          <h3 className="font-semibold text-gray-700">Assign Duty</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <h3 className="font-semibold text-gray-700">Assign Washroom Duty</h3>
+          <div className="grid grid-cols-3 gap-3">
             <input type="date" value={assignDate} onChange={(e) => setAssignDate(e.target.value)} className="px-3 py-2 border rounded-lg text-gray-800" />
             <select value={assignMember} onChange={(e) => setAssignMember(e.target.value)} className="px-3 py-2 border rounded-lg text-gray-800">
               <option value="">Select member</option>
               {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
+            <input type="number" min={1} max={10} value={assignWashroom} onChange={(e) => setAssignWashroom(parseInt(e.target.value) || 1)} className="px-3 py-2 border rounded-lg text-gray-800" placeholder="WR#" />
           </div>
           <button onClick={handleAssign} disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "Saving..." : "Assign"}
@@ -183,8 +190,7 @@ export default function BazarDutyPage() {
       {showAutoRotate && isManager && (
         <div className="bg-white p-4 rounded-xl border space-y-3">
           <h3 className="font-semibold text-gray-700">Auto Rotate Schedule</h3>
-          <p className="text-xs text-gray-500">Assigns duties in round-robin order to all active members. Replaces existing duties in the range.</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs text-gray-500">Start Date</label>
               <input type="date" value={autoStart} onChange={(e) => setAutoStart(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
@@ -193,6 +199,10 @@ export default function BazarDutyPage() {
               <label className="text-xs text-gray-500">End Date</label>
               <input type="date" value={autoEnd} onChange={(e) => setAutoEnd(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
             </div>
+            <div>
+              <label className="text-xs text-gray-500">Washrooms</label>
+              <input type="number" min={1} max={10} value={autoWashroomCount} onChange={(e) => setAutoWashroomCount(parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
+            </div>
           </div>
           <button onClick={handleAutoRotate} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm disabled:opacity-50">
             {saving ? "Generating..." : "Generate Schedule"}
@@ -200,60 +210,63 @@ export default function BazarDutyPage() {
         </div>
       )}
 
-      {/* Duty list */}
+      {/* Duty list grouped by washroom */}
       {loading ? (
         <div className="text-center py-10 text-gray-400">Loading...</div>
       ) : duties.length === 0 ? (
         <div className="text-center py-10 bg-white rounded-xl border">
-          <p className="text-gray-400">No bazar duties scheduled this month</p>
+          <p className="text-gray-400">No washroom duties scheduled this month</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {duties.map((d) => {
-            const dateStr = d.date.split("T")[0];
-            const isPast = dateStr < today;
-            const isMyDuty = d.memberId === userId;
-            return (
-              <div key={d.id} className={`bg-white p-4 rounded-xl border flex items-center justify-between ${isMyDuty ? "border-indigo-200 bg-indigo-50/30" : ""}`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${d.completed ? "bg-green-100" : isPast ? "bg-red-100" : "bg-gray-100"}`}>
-                    {d.completed ? "✅" : isPast ? "⚠️" : "🛒"}
+        washroomNumbers.map((wrNum) => (
+          <div key={wrNum} className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-600 mt-4">🚿 Washroom #{wrNum}</h3>
+            {duties.filter((d) => d.washroomNumber === wrNum).map((d) => {
+              const dateStr = d.date.split("T")[0];
+              const isPast = dateStr < today;
+              const isMyDuty = d.memberId === userId;
+              return (
+                <div key={d.id} className={`bg-white p-4 rounded-xl border flex items-center justify-between ${isMyDuty ? "border-cyan-200 bg-cyan-50/30" : ""}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${d.completed ? "bg-green-100" : isPast ? "bg-red-100" : "bg-gray-100"}`}>
+                      {d.completed ? "✅" : isPast ? "⚠️" : "🚿"}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{d.member.name} {isMyDuty && <span className="text-xs text-cyan-600">(You)</span>}</p>
+                      <p className="text-xs text-gray-500">{new Date(dateStr).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{d.member.name} {isMyDuty && <span className="text-xs text-indigo-600">(You)</span>}</p>
-                    <p className="text-xs text-gray-500">{new Date(dateStr).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
+                  <div className="flex items-center gap-2">
+                    {d.completed ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Done</span>
+                    ) : isPast ? (
+                      <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">Missed</span>
+                    ) : (
+                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span>
+                    )}
+                    {(isManager || isMyDuty) && !d.completed && (
+                      <button onClick={() => handleComplete(d.id, true)} className="px-2 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700">✓</button>
+                    )}
+                    {isMyDuty && !d.completed && !isPast && (
+                      <button
+                        onClick={() => {
+                          const otherDuties = duties.filter((od) => od.memberId !== userId && od.washroomNumber === wrNum && !od.completed && od.date.split("T")[0] >= today);
+                          if (otherDuties.length === 0) { alert("No other future duties to swap with"); return; }
+                          const target = otherDuties[0];
+                          if (confirm(`Request swap with ${target.member.name} on ${target.date.split("T")[0]}?`)) {
+                            handleSwapRequest(d.id, target.id);
+                          }
+                        }}
+                        className="px-2 py-1 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600"
+                      >🔄</button>
+                    )}
+                    {isManager && <button onClick={() => handleDelete(d.id)} className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600">✕</button>}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {d.completed ? (
-                    <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Done</span>
-                  ) : isPast ? (
-                    <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">Missed</span>
-                  ) : (
-                    <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span>
-                  )}
-                  {(isManager || isMyDuty) && !d.completed && (
-                    <button onClick={() => handleComplete(d.id, true)} className="px-2 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700">✓</button>
-                  )}
-                  {isMyDuty && !d.completed && !isPast && (
-                    <button
-                      onClick={() => {
-                        const otherDuties = duties.filter((od) => od.memberId !== userId && !od.completed && od.date.split("T")[0] >= today);
-                        if (otherDuties.length === 0) { alert("No other future duties to swap with"); return; }
-                        const target = otherDuties[0];
-                        if (confirm(`Request swap with ${target.member.name} on ${target.date.split("T")[0]}?`)) {
-                          handleSwapRequest(d.id, target.id);
-                        }
-                      }}
-                      className="px-2 py-1 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600"
-                    >🔄</button>
-                  )}
-                  {isManager && <button onClick={() => handleDelete(d.id)} className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600">✕</button>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ))
       )}
 
       {/* Pending swap requests */}

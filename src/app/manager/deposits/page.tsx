@@ -29,6 +29,12 @@ export default function DepositsPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
 
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [editDate, setEditDate] = useState("");
+
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
     if (status === "authenticated" && session?.user?.role !== "MANAGER") {
@@ -74,6 +80,44 @@ export default function DepositsPage() {
       setTimeout(() => setSuccess(""), 3000);
     }
     setSaving(false);
+  };
+
+  const handleEdit = (d: DepositEntry) => {
+    setEditingId(d.id);
+    setEditAmount(String(d.amount));
+    setEditNote(d.note || "");
+    setEditDate(new Date(d.date).toISOString().split("T")[0]);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    const res = await fetch("/api/deposits", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: editingId, amount: parseFloat(editAmount), note: editNote, date: editDate }),
+    });
+    if (res.ok) {
+      setDeposits(deposits.map((d) =>
+        d.id === editingId
+          ? { ...d, amount: parseFloat(editAmount), note: editNote || null, date: editDate }
+          : d
+      ));
+      setEditingId(null);
+      setSuccess("Deposit updated!");
+      setTimeout(() => setSuccess(""), 3000);
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (id: string, name: string, amount: number) => {
+    if (!confirm(`Delete deposit of ৳${amount} from ${name}?`)) return;
+    const res = await fetch(`/api/deposits?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setDeposits(deposits.filter((d) => d.id !== id));
+      setSuccess("Deposit deleted!");
+      setTimeout(() => setSuccess(""), 3000);
+    }
   };
 
   if (status === "loading") return null;
@@ -144,26 +188,89 @@ export default function DepositsPage() {
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <h2 className="p-4 text-lg font-semibold text-gray-800 border-b">This Month&apos;s Deposits</h2>
         <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[400px]">
+        <table className="w-full text-sm min-w-[500px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="text-left p-3">Date</th>
               <th className="text-left p-3">Member</th>
               <th className="text-right p-3">Amount</th>
               <th className="text-left p-3">Note</th>
+              <th className="text-center p-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {deposits.map((d) => (
               <tr key={d.id} className="border-t hover:bg-gray-50">
-                <td className="p-3">{new Date(d.date).toLocaleDateString()}</td>
-                <td className="p-3 font-medium">{d.member.name}</td>
-                <td className="p-3 text-right font-bold text-green-600">৳{d.amount}</td>
-                <td className="p-3 text-gray-500">{d.note || "—"}</td>
+                {editingId === d.id ? (
+                  <>
+                    <td className="p-2">
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                    </td>
+                    <td className="p-3 font-medium">{d.member.name}</td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm text-right"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        value={editNote}
+                        onChange={(e) => setEditNote(e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                        placeholder="Note"
+                      />
+                    </td>
+                    <td className="p-2 text-center">
+                      <button
+                        onClick={handleSaveEdit}
+                        disabled={saving}
+                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 mr-1"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="px-2 py-1 text-xs bg-gray-400 text-white rounded hover:bg-gray-500"
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="p-3">{new Date(d.date).toLocaleDateString()}</td>
+                    <td className="p-3 font-medium">{d.member.name}</td>
+                    <td className="p-3 text-right font-bold text-green-600">৳{d.amount}</td>
+                    <td className="p-3 text-gray-500">{d.note || "—"}</td>
+                    <td className="p-3 text-center">
+                      <button
+                        onClick={() => handleEdit(d)}
+                        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 mr-1"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(d.id, d.member.name, d.amount)}
+                        className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
             {deposits.length === 0 && (
-              <tr><td colSpan={4} className="p-4 text-center text-gray-400">No deposits this month</td></tr>
+              <tr><td colSpan={5} className="p-4 text-center text-gray-400">No deposits this month</td></tr>
             )}
           </tbody>
         </table>

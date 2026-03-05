@@ -71,3 +71,91 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(deposit);
 }
+
+// PATCH - edit a deposit (manager only)
+export async function PATCH(request: NextRequest) {
+  const session = await auth();
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
+  const body = await request.json();
+  const { id, amount, note, date } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "Deposit ID required" }, { status: 400 });
+  }
+
+  const existing = await prisma.deposit.findFirst({
+    where: { id, messId },
+    include: { member: { select: { name: true } } },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Deposit not found" }, { status: 404 });
+  }
+
+  const updateData: { amount?: number; note?: string; date?: Date } = {};
+  if (amount !== undefined) updateData.amount = amount;
+  if (note !== undefined) updateData.note = note;
+  if (date !== undefined) updateData.date = new Date(date);
+
+  const updated = await prisma.deposit.update({
+    where: { id },
+    data: updateData,
+  });
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "Deposit",
+    recordId: id,
+    fieldName: "amount",
+    oldValue: `৳${existing.amount}`,
+    newValue: `৳${updated.amount} (${existing.member?.name})`,
+    action: "UPDATE",
+  });
+
+  return NextResponse.json(updated);
+}
+
+// DELETE - remove a deposit (manager only)
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+  const messId = session.user.messId;
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "Deposit ID required" }, { status: 400 });
+  }
+
+  const existing = await prisma.deposit.findFirst({
+    where: { id, messId },
+    include: { member: { select: { name: true } } },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Deposit not found" }, { status: 404 });
+  }
+
+  await prisma.deposit.delete({ where: { id } });
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "Deposit",
+    recordId: id,
+    fieldName: "all",
+    oldValue: `৳${existing.amount} from ${existing.member?.name}`,
+    newValue: null,
+    action: "DELETE",
+  });
+
+  return NextResponse.json({ success: true });
+}

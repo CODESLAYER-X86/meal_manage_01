@@ -10,12 +10,15 @@ interface MealPlan {
   breakfast: string | null;
   lunch: string | null;
   dinner: string | null;
+  meals?: string;
 }
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+
+const DEFAULT_MEAL_ICONS: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
 
 export default function MealPlanPage() {
   const { data: session, status } = useSession();
@@ -26,8 +29,9 @@ export default function MealPlanPage() {
   const [plans, setPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingDay, setEditingDay] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ breakfast: "", lunch: "", dinner: "" });
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
 
 
   // Approve/reject loading
@@ -36,6 +40,7 @@ export default function MealPlanPage() {
   // Meal status state
   const [mealStatusData, setMealStatusData] = useState<{
     mealsPerDay: number;
+    mealsList?: string[];
     members: { id: string; name: string }[];
     statuses: Record<string, Record<string, boolean>>;
     mealCounts: Record<string, number>;
@@ -59,14 +64,25 @@ export default function MealPlanPage() {
         ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
         : (() => { const t = new Date(now); t.setDate(t.getDate() + 1); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`; })();
 
-      const [plansRes, statusRes] = await Promise.all([
+      const [plansRes, statusRes, messRes] = await Promise.all([
         fetch(`/api/meal-plan?month=${month}&year=${year}`),
         fetch(`/api/meal-status?date=${dateStr}`),
+        fetch("/api/mess"),
       ]);
       const plansData = await plansRes.json();
       const statusData = await statusRes.json();
+      const messData = await messRes.json();
       setPlans(Array.isArray(plansData) ? plansData : []);
       if (statusData?.mealsPerDay) setMealStatusData(statusData);
+      // Set meal types from mess config or status response
+      if (statusData?.mealsList) {
+        setMealTypesList(statusData.mealsList);
+      } else {
+        try {
+          const mt = JSON.parse(messData.mess?.mealTypes || '["breakfast","lunch","dinner"]');
+          if (Array.isArray(mt) && mt.length > 0) setMealTypesList(mt);
+        } catch { /* use default */ }
+      }
     } catch {
       // ignore
     } finally {
@@ -100,11 +116,16 @@ export default function MealPlanPage() {
   const startEdit = (day: number) => {
     if (!isManager) return;
     const plan = getPlanForDay(day);
-    setEditForm({
-      breakfast: plan?.breakfast || "",
-      lunch: plan?.lunch || "",
-      dinner: plan?.dinner || "",
-    });
+    // Parse meals JSON if available, else use legacy columns
+    let mealsObj: Record<string, string> = {};
+    if (plan?.meals) {
+      try { mealsObj = JSON.parse(plan.meals); } catch { /* ignore */ }
+    }
+    const form: Record<string, string> = {};
+    for (const mt of mealTypesList) {
+      form[mt] = mealsObj[mt] || (plan as unknown as Record<string, string | null>)?.[mt] || "";
+    }
+    setEditForm(form);
     setEditingDay(day);
   };
 
@@ -118,9 +139,10 @@ export default function MealPlanPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: dateStr,
-          breakfast: editForm.breakfast.trim(),
-          lunch: editForm.lunch.trim(),
-          dinner: editForm.dinner.trim(),
+          meals: editForm,
+          breakfast: editForm.breakfast?.trim() || "",
+          lunch: editForm.lunch?.trim() || "",
+          dinner: editForm.dinner?.trim() || "",
         }),
       });
       if (res.ok) {
@@ -201,7 +223,7 @@ export default function MealPlanPage() {
 
       {/* Meal Status Grid - Today/Tomorrow */}
       {mealStatusData && (() => {
-        const meals = mealStatusData.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+        const meals = mealStatusData.mealsList || (mealStatusData.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"]);
         const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
         const now = new Date();
         const dateStr = statusDate === "today"
@@ -395,7 +417,12 @@ export default function MealPlanPage() {
           dateObj.setHours(0, 0, 0, 0);
           const isToday = dateObj.getTime() === todayDate.getTime();
           const isPast = dateObj < todayDate;
-          const hasPlan = plan?.breakfast || plan?.lunch || plan?.dinner;
+          const hasPlan = plan && (() => {
+            try {
+              const m = JSON.parse(plan.meals || "{}");
+              return Object.values(m).some((v) => !!v);
+            } catch { return plan.breakfast || plan.lunch || plan.dinner; }
+          })();
           const isEditing = editingDay === day;
 
           return (
@@ -433,14 +460,14 @@ export default function MealPlanPage() {
               {/* Editing Form */}
               {isEditing && isManager ? (
                 <div className="p-4 space-y-3 bg-indigo-50/30">
-                  {(["breakfast", "lunch", "dinner"] as const).map((meal) => (
+                  {mealTypesList.map((meal) => (
                     <div key={meal} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                       <label className="text-sm font-medium text-gray-600 capitalize w-20 shrink-0">
-                        {meal === "breakfast" ? "🌅 Breakfast" : meal === "lunch" ? "☀️ Lunch" : "🌙 Dinner"}
+                        {DEFAULT_MEAL_ICONS[meal] || "🍽️"} {meal}
                       </label>
                       <input
                         type="text"
-                        value={editForm[meal]}
+                        value={editForm[meal] || ""}
                         onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
                         placeholder={`What's for ${meal}?`}
                         className="flex-1 px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
@@ -463,36 +490,31 @@ export default function MealPlanPage() {
                     </button>
                   </div>
                 </div>
-              ) : hasPlan ? (
+              ) : plan && (plan.breakfast || plan.lunch || plan.dinner || plan.meals) ? (
                 <div className="px-4 py-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {plan?.breakfast && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-base">🌅</span>
-                        <div>
-                          <p className="text-xs text-gray-400 font-medium">Breakfast</p>
-                          <p className="text-sm text-gray-800">{plan.breakfast}</p>
-                        </div>
-                      </div>
-                    )}
-                    {plan?.lunch && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-base">☀️</span>
-                        <div>
-                          <p className="text-xs text-gray-400 font-medium">Lunch</p>
-                          <p className="text-sm text-gray-800">{plan.lunch}</p>
-                        </div>
-                      </div>
-                    )}
-                    {plan?.dinner && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-base">🌙</span>
-                        <div>
-                          <p className="text-xs text-gray-400 font-medium">Dinner</p>
-                          <p className="text-sm text-gray-800">{plan.dinner}</p>
-                        </div>
-                      </div>
-                    )}
+                  <div className="space-y-2">
+                    {(() => {
+                      let mealsObj: Record<string, string> = {};
+                      try { mealsObj = JSON.parse(plan?.meals || "{}"); } catch { /* ignore */ }
+                      if (Object.keys(mealsObj).length === 0 && plan) {
+                        if (plan.breakfast) mealsObj.breakfast = plan.breakfast;
+                        if (plan.lunch) mealsObj.lunch = plan.lunch;
+                        if (plan.dinner) mealsObj.dinner = plan.dinner;
+                      }
+                      return mealTypesList.map((mt) => {
+                        const val = mealsObj[mt];
+                        if (!val) return null;
+                        return (
+                          <div key={mt} className="flex items-start gap-2">
+                            <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
+                            <div>
+                              <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
+                              <p className="text-sm text-gray-800">{val}</p>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               ) : (
