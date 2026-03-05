@@ -13,13 +13,6 @@ interface Duty {
   washroomNumber: number;
   completed: boolean;
 }
-interface Debt {
-  id: string;
-  owedBy: Member;
-  owedTo: Member;
-  reason: string;
-  status: string;
-}
 interface SwapReq {
   id: string;
   dutyType: string;
@@ -34,15 +27,10 @@ export default function WashroomDutyPage() {
   const router = useRouter();
   const [duties, setDuties] = useState<Duty[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [debts, setDebts] = useState<Debt[]>([]);
   const [swapRequests, setSwapRequests] = useState<SwapReq[]>([]);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
-  const [showAssign, setShowAssign] = useState(false);
-  const [assignDate, setAssignDate] = useState("");
-  const [assignMember, setAssignMember] = useState("");
-  const [assignWashroom, setAssignWashroom] = useState(1);
   const [showAutoRotate, setShowAutoRotate] = useState(false);
   const [autoStart, setAutoStart] = useState("");
   const [autoEnd, setAutoEnd] = useState("");
@@ -63,7 +51,6 @@ export default function WashroomDutyPage() {
       const swapData = await swapRes.json();
       setDuties(dutyData.duties || []);
       setMembers(dutyData.members || []);
-      setDebts(dutyData.debts || []);
       setSwapRequests((swapData.requests || []).filter((r: SwapReq) => r.dutyType === "WASHROOM"));
     } catch { /* ignore */ }
     setLoading(false);
@@ -74,21 +61,6 @@ export default function WashroomDutyPage() {
   if (!session?.user?.messId) {
     return <div className="p-6 text-center text-gray-500">Join a mess first</div>;
   }
-
-  const handleAssign = async () => {
-    if (!assignDate || !assignMember) return;
-    setSaving(true);
-    await fetch("/api/washroom-duty", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date: assignDate, memberId: assignMember, washroomNumber: assignWashroom }),
-    });
-    setSaving(false);
-    setShowAssign(false);
-    setAssignDate("");
-    setAssignMember("");
-    loadData();
-  };
 
   const handleAutoRotate = async () => {
     if (!autoStart || !autoEnd) return;
@@ -159,29 +131,8 @@ export default function WashroomDutyPage() {
       {/* Manager actions */}
       {isManager && (
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setShowAssign(!showAssign)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">
-            + Assign Duty
-          </button>
           <button onClick={() => setShowAutoRotate(!showAutoRotate)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
             🔄 Auto Rotate
-          </button>
-        </div>
-      )}
-
-      {/* Assign form */}
-      {showAssign && isManager && (
-        <div className="bg-white p-4 rounded-xl border space-y-3">
-          <h3 className="font-semibold text-gray-700">Assign Washroom Duty</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <input type="date" value={assignDate} onChange={(e) => setAssignDate(e.target.value)} className="px-3 py-2 border rounded-lg text-gray-800" />
-            <select value={assignMember} onChange={(e) => setAssignMember(e.target.value)} className="px-3 py-2 border rounded-lg text-gray-800">
-              <option value="">Select member</option>
-              {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
-            <input type="number" min={1} max={10} value={assignWashroom} onChange={(e) => setAssignWashroom(parseInt(e.target.value) || 1)} className="px-3 py-2 border rounded-lg text-gray-800" placeholder="WR#" />
-          </div>
-          <button onClick={handleAssign} disabled={saving} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm disabled:opacity-50">
-            {saving ? "Saving..." : "Assign"}
           </button>
         </div>
       )}
@@ -294,22 +245,6 @@ export default function WashroomDutyPage() {
         </div>
       )}
 
-      {/* Debts */}
-      {debts.length > 0 && (
-        <div className="bg-pink-50 p-4 rounded-xl border border-pink-200 space-y-3">
-          <h3 className="font-semibold text-pink-800">⚖️ Pending Duty Debts</h3>
-          {debts.map((d) => (
-            <div key={d.id} className="flex items-center justify-between bg-white p-3 rounded-lg border">
-              <div className="text-sm">
-                <span className="font-medium text-red-600">{d.owedBy.name}</span>
-                <span className="text-gray-400 mx-1">owes</span>
-                <span className="font-medium text-green-600">{d.owedTo.name}</span>
-                <p className="text-xs text-gray-500">{d.reason}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

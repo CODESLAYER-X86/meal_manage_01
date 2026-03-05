@@ -46,6 +46,18 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { date, memberId, amount, note } = body;
 
+  if (!date || !memberId || !amount || typeof amount !== "number" || amount <= 0) {
+    return NextResponse.json({ error: "Valid date, memberId, and positive amount required" }, { status: 400 });
+  }
+
+  // Verify member belongs to the same mess
+  const member = await prisma.user.findFirst({
+    where: { id: memberId, messId, isActive: true },
+  });
+  if (!member) {
+    return NextResponse.json({ error: "Member not found in this mess" }, { status: 404 });
+  }
+
   const deposit = await prisma.deposit.create({
     data: {
       date: new Date(date),
@@ -56,8 +68,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const member = await prisma.user.findUnique({ where: { id: memberId } });
-
   await createAuditLog({
     editedById: session.user.id,
     messId,
@@ -65,7 +75,7 @@ export async function POST(request: NextRequest) {
     recordId: deposit.id,
     fieldName: "amount",
     oldValue: null,
-    newValue: `৳${amount} from ${member?.name}`,
+    newValue: `৳${amount} from ${member.name}`,
     action: "CREATE",
   });
 

@@ -29,15 +29,7 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   });
 
-  const debts = await prisma.dutyDebt.findMany({
-    where: { messId, dutyType: "WASHROOM", status: "PENDING" },
-    include: {
-      owedBy: { select: { id: true, name: true } },
-      owedTo: { select: { id: true, name: true } },
-    },
-  });
-
-  return NextResponse.json({ duties, members, debts });
+  return NextResponse.json({ duties, members });
 }
 
 // POST - Create washroom duty assignments (manager only)
@@ -105,6 +97,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "date and memberId required" }, { status: 400 });
   }
 
+  // Verify member belongs to this mess
+  const targetMember = await prisma.user.findFirst({ where: { id: memberId, messId, isActive: true } });
+  if (!targetMember) {
+    return NextResponse.json({ error: "Member not found in this mess" }, { status: 404 });
+  }
+
   const duty = await prisma.washroomDutySchedule.create({
     data: {
       date: new Date(date + "T00:00:00.000Z"),
@@ -138,7 +136,7 @@ export async function PATCH(request: NextRequest) {
   const messId = session.user.messId;
   const isManager = session.user.role === "MANAGER";
   const body = await request.json();
-  const { id, completed, coveredById } = body;
+  const { id, completed } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Duty id required" }, { status: 400 });
@@ -160,18 +158,6 @@ export async function PATCH(request: NextRequest) {
     where: { id },
     data: { completed: completed ?? true },
   });
-
-  if (completed === false && coveredById && coveredById !== duty.memberId) {
-    await prisma.dutyDebt.create({
-      data: {
-        owedById: duty.memberId,
-        owedToId: coveredById,
-        messId,
-        dutyType: "WASHROOM",
-        reason: `Missed washroom duty on ${duty.date.toISOString().split("T")[0]} (WR#${duty.washroomNumber})`,
-      },
-    });
-  }
 
   await createAuditLog({
     editedById: session.user.id,
