@@ -36,6 +36,7 @@ interface MealPlan {
   breakfast: string | null;
   lunch: string | null;
   dinner: string | null;
+  meals?: string;
 }
 
 interface Announcement {
@@ -56,6 +57,7 @@ interface BillPaymentStatus {
 
 interface MealStatusData {
   mealsPerDay: number;
+  mealsList?: string[];
   members: { id: string; name: string }[];
   statuses: Record<string, Record<string, boolean>>; // memberId -> meal -> isOff
   mealCounts: Record<string, number>; // meal -> count eating
@@ -80,7 +82,9 @@ export default function DashboardPage() {
   const [requestingMeal, setRequestingMeal] = useState<string | null>(null);
   const [requestReason, setRequestReason] = useState("");
   const [requestSubmitting, setRequestSubmitting] = useState(false);
+const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
 
+  
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -109,6 +113,10 @@ export default function DashboardPage() {
         setBill(billData);
         setAuditLogs(logs);
         setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
+        try {
+          const mt = JSON.parse(messData?.mess?.mealTypes || '["breakfast","lunch","dinner"]');
+          if (Array.isArray(mt) && mt.length > 0) setMealTypesList(mt);
+        } catch { /* use default */ }
         setTomorrowMenu(tmrwPlan && tmrwPlan.id ? tmrwPlan : null);
         setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
         if (messData?.mess?.dueThreshold) setDueThreshold(messData.mess.dueThreshold);
@@ -168,40 +176,36 @@ export default function DashboardPage() {
       {/* Today's & Tomorrow's Menu */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Today */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-indigo-100">
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">📅</span>
-            <h2 className="text-base font-semibold text-gray-800">Today&apos;s Menu</h2>
+            <span className="text-lg">🍽️</span>
+            <h3 className="font-semibold text-gray-700">Today&apos;s Menu</h3>
           </div>
-          {todayMenu && (todayMenu.breakfast || todayMenu.lunch || todayMenu.dinner) ? (
+          {todayMenu && (todayMenu.breakfast || todayMenu.lunch || todayMenu.dinner || todayMenu.meals) ? (
             <div className="space-y-2">
-              {todayMenu.breakfast && (
-                <div className="flex items-start gap-2">
-                  <span>🌅</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Breakfast</p>
-                    <p className="text-sm text-gray-800">{todayMenu.breakfast}</p>
-                  </div>
-                </div>
-              )}
-              {todayMenu.lunch && (
-                <div className="flex items-start gap-2">
-                  <span>☀️</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Lunch</p>
-                    <p className="text-sm text-gray-800">{todayMenu.lunch}</p>
-                  </div>
-                </div>
-              )}
-              {todayMenu.dinner && (
-                <div className="flex items-start gap-2">
-                  <span>🌙</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Dinner</p>
-                    <p className="text-sm text-gray-800">{todayMenu.dinner}</p>
-                  </div>
-                </div>
-              )}
+              {(() => {
+                const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
+                let mealsObj: Record<string, string> = {};
+                try { mealsObj = JSON.parse(todayMenu.meals || "{}"); } catch { /* ignore */ }
+                if (Object.keys(mealsObj).length === 0) {
+                  if (todayMenu.breakfast) mealsObj.breakfast = todayMenu.breakfast;
+                  if (todayMenu.lunch) mealsObj.lunch = todayMenu.lunch;
+                  if (todayMenu.dinner) mealsObj.dinner = todayMenu.dinner;
+                }
+                return mealTypesList.map((mt) => {
+                  const val = mealsObj[mt];
+                  if (!val) return null;
+                  return (
+                    <div key={mt} className="flex items-start gap-2">
+                      <span>{mealIcons[mt] || "🍽️"}</span>
+                      <div>
+                        <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
+                        <p className="text-sm text-gray-800">{val}</p>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">No menu planned for today</p>
@@ -211,37 +215,33 @@ export default function DashboardPage() {
         <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🔮</span>
-            <h2 className="text-base font-semibold text-gray-800">Tomorrow&apos;s Menu</h2>
+            <h3 className="font-semibold text-gray-700">Tomorrow&apos;s Menu</h3>
           </div>
-          {tomorrowMenu && (tomorrowMenu.breakfast || tomorrowMenu.lunch || tomorrowMenu.dinner) ? (
+          {tomorrowMenu && (tomorrowMenu.breakfast || tomorrowMenu.lunch || tomorrowMenu.dinner || tomorrowMenu.meals) ? (
             <div className="space-y-2">
-              {tomorrowMenu.breakfast && (
-                <div className="flex items-start gap-2">
-                  <span>🌅</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Breakfast</p>
-                    <p className="text-sm text-gray-800">{tomorrowMenu.breakfast}</p>
-                  </div>
-                </div>
-              )}
-              {tomorrowMenu.lunch && (
-                <div className="flex items-start gap-2">
-                  <span>☀️</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Lunch</p>
-                    <p className="text-sm text-gray-800">{tomorrowMenu.lunch}</p>
-                  </div>
-                </div>
-              )}
-              {tomorrowMenu.dinner && (
-                <div className="flex items-start gap-2">
-                  <span>🌙</span>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Dinner</p>
-                    <p className="text-sm text-gray-800">{tomorrowMenu.dinner}</p>
-                  </div>
-                </div>
-              )}
+              {(() => {
+                const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
+                let mealsObj: Record<string, string> = {};
+                try { mealsObj = JSON.parse(tomorrowMenu.meals || "{}"); } catch { /* ignore */ }
+                if (Object.keys(mealsObj).length === 0) {
+                  if (tomorrowMenu.breakfast) mealsObj.breakfast = tomorrowMenu.breakfast;
+                  if (tomorrowMenu.lunch) mealsObj.lunch = tomorrowMenu.lunch;
+                  if (tomorrowMenu.dinner) mealsObj.dinner = tomorrowMenu.dinner;
+                }
+                return mealTypesList.map((mt) => {
+                  const val = mealsObj[mt];
+                  if (!val) return null;
+                  return (
+                    <div key={mt} className="flex items-start gap-2">
+                      <span>{mealIcons[mt] || "🍽️"}</span>
+                      <div>
+                        <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
+                        <p className="text-sm text-gray-800">{val}</p>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">No menu planned for tomorrow</p>
@@ -318,8 +318,8 @@ export default function DashboardPage() {
 
         const renderDay = (data: MealStatusData | null, dateStr: string, label: string) => {
           if (!data) return null;
-          const meals = data.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
-          const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
+          const meals = data.mealsList || (data.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"]);
+          const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
 
           return (
             <div className="space-y-2">

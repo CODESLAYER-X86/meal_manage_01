@@ -195,7 +195,80 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true, deleted: true });
   }
 
-  return NextResponse.json({ error: "Invalid action (approve/reject)" }, { status: 400 });
+  // Edit bazar trip (manager only) — update items, note, date
+  if (action === "edit") {
+    const { items, note, date } = body;
+
+    // Delete old items and re-create
+    if (items && Array.isArray(items)) {
+      await prisma.bazarItem.deleteMany({ where: { tripId: id } });
+      const totalCost = items.reduce(
+        (sum: number, item: { price: number }) => sum + (item.price || 0),
+        0
+      );
+      const updated = await prisma.bazarTrip.update({
+        where: { id },
+        data: {
+          totalCost,
+          note: note ?? trip.note,
+          date: date ? new Date(date) : trip.date,
+          items: {
+            create: items.map(
+              (
+                item: { itemName: string; quantity: number; unit: string; price: number },
+                index: number
+              ) => ({
+                serialNo: index + 1,
+                itemName: item.itemName,
+                quantity: item.quantity,
+                unit: item.unit,
+                price: item.price || 0,
+              })
+            ),
+          },
+        },
+        include: { buyer: { select: { id: true, name: true } }, items: true },
+      });
+
+      await createAuditLog({
+        editedById: session.user.id,
+        messId,
+        tableName: "BazarTrip",
+        recordId: id,
+        fieldName: "items",
+        oldValue: `৳${trip.totalCost}`,
+        newValue: `৳${totalCost} - ${items.length} items`,
+        action: "UPDATE",
+      });
+
+      return NextResponse.json({ success: true, trip: updated });
+    }
+
+    // Update note/date only
+    const updated = await prisma.bazarTrip.update({
+      where: { id },
+      data: {
+        note: note ?? trip.note,
+        date: date ? new Date(date) : trip.date,
+      },
+      include: { buyer: { select: { id: true, name: true } }, items: true },
+    });
+
+    await createAuditLog({
+      editedById: session.user.id,
+      messId,
+      tableName: "BazarTrip",
+      recordId: id,
+      fieldName: "note/date",
+      oldValue: trip.note || "",
+      newValue: note || "",
+      action: "UPDATE",
+    });
+
+    return NextResponse.json({ success: true, trip: updated });
+  }
+
+  return NextResponse.json({ error: "Invalid action (approve/reject/edit)" }, { status: 400 });
 }
 
 // DELETE - Delete a bazar trip (manager or the buyer if still pending)
@@ -225,6 +298,17 @@ export async function DELETE(request: NextRequest) {
   if (!isManager && trip.approved) {
     return NextResponse.json({ error: "Cannot delete approved trip. Ask manager." }, { status: 403 });
   }
+
+  await createAuditLog({
+    editedById: session.user.id,
+    messId: session.user.messId,
+    tableName: "BazarTrip",
+    recordId: id,
+    fieldName: "trip",
+    oldValue: `৳${trip.totalCost} by ${trip.buyerId}`,
+    newValue: "",
+    action: "DELETE",
+  });
 
   await prisma.bazarItem.deleteMany({ where: { tripId: id } });
   await prisma.bazarTrip.delete({ where: { id } });

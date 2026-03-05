@@ -14,6 +14,7 @@ interface MessInfo {
   hasGas: boolean;
   hasCook: boolean;
   mealsPerDay: number;
+  mealTypes: string;
   mealBlackouts: string;
   createdBy: string;
   memberCount: number;
@@ -67,7 +68,8 @@ export default function MessInfoPage() {
   const [extraSaving, setExtraSaving] = useState(false);
   const [extraMsg, setExtraMsg] = useState("");
   // Meal config state
-  const [mealsPerDayInput, setMealsPerDayInput] = useState(3);
+  const [mealTypesInput, setMealTypesInput] = useState<string[]>(["breakfast", "lunch", "dinner"]);
+  const [customMealName, setCustomMealName] = useState("");
   const [blackoutsInput, setBlackoutsInput] = useState<BlackoutInterval[]>([]);
   const [mealConfigSaving, setMealConfigSaving] = useState(false);
   const [mealConfigMsg, setMealConfigMsg] = useState("");
@@ -89,7 +91,12 @@ export default function MessInfoPage() {
         setBazarDaysInput(messData.mess.bazarDaysPerWeek ?? 3);
         setHasGasInput(messData.mess.hasGas ?? false);
         setHasCookInput(messData.mess.hasCook ?? false);
-        setMealsPerDayInput(messData.mess.mealsPerDay ?? 3);
+        try {
+          const mt = JSON.parse(messData.mess.mealTypes || '["breakfast","lunch","dinner"]');
+          if (Array.isArray(mt) && mt.length > 0) setMealTypesInput(mt);
+        } catch {
+          setMealTypesInput(["breakfast", "lunch", "dinner"]);
+        }
         try {
           const parsed = JSON.parse(messData.mess.mealBlackouts || "[]");
           setBlackoutsInput(Array.isArray(parsed) ? parsed : []);
@@ -390,31 +397,77 @@ export default function MessInfoPage() {
             Set how many meals per day and configure blackout windows (time restrictions for toggling meals).
           </p>
 
-          {/* Meals Per Day */}
+          {/* Meal Types Selection */}
           <div className="mb-5">
-            <label className="text-sm text-gray-700 font-medium block mb-2">Meals Per Day</label>
-            <div className="flex gap-3">
+            <label className="text-sm text-gray-700 font-medium block mb-2">Meal Types</label>
+            <p className="text-xs text-gray-400 mb-3">Select which meals your mess has. You can also add custom meal names.</p>
+            <div className="flex flex-wrap gap-3 mb-3">
+              {["breakfast", "lunch", "dinner", "snacks", "supper"].map((meal) => (
+                <label key={meal} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={mealTypesInput.includes(meal)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setMealTypesInput([...mealTypesInput, meal]);
+                      } else {
+                        setMealTypesInput(mealTypesInput.filter((m) => m !== meal));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="capitalize text-gray-700">{meal}</span>
+                </label>
+              ))}
+            </div>
+            {/* Custom meal tags */}
+            {mealTypesInput.filter((m) => !["breakfast", "lunch", "dinner", "snacks", "supper"].includes(m)).length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {mealTypesInput.filter((m) => !["breakfast", "lunch", "dinner", "snacks", "supper"].includes(m)).map((m) => (
+                  <span key={m} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full">
+                    {m}
+                    <button onClick={() => setMealTypesInput(mealTypesInput.filter((x) => x !== m))} className="text-indigo-400 hover:text-indigo-600">✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* Add custom meal */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customMealName}
+                onChange={(e) => setCustomMealName(e.target.value)}
+                placeholder="Custom meal name..."
+                maxLength={30}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 w-48"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const name = customMealName.trim().toLowerCase();
+                    if (name && !mealTypesInput.includes(name)) {
+                      setMealTypesInput([...mealTypesInput, name]);
+                      setCustomMealName("");
+                    }
+                  }
+                }}
+              />
               <button
-                onClick={() => setMealsPerDayInput(2)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
-                  mealsPerDayInput === 2
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
+                onClick={() => {
+                  const name = customMealName.trim().toLowerCase();
+                  if (name && !mealTypesInput.includes(name)) {
+                    setMealTypesInput([...mealTypesInput, name]);
+                    setCustomMealName("");
+                  }
+                }}
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300"
               >
-                2 (Lunch + Dinner)
-              </button>
-              <button
-                onClick={() => setMealsPerDayInput(3)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
-                  mealsPerDayInput === 3
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                3 (Breakfast + Lunch + Dinner)
+                + Add
               </button>
             </div>
+            {mealTypesInput.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal type</p>
+            )}
+            <p className="mt-2 text-xs text-gray-400">Current: {mealTypesInput.length} meal{mealTypesInput.length !== 1 ? "s" : ""}/day — {mealTypesInput.join(", ")}</p>
           </div>
 
           {/* Blackout Windows */}
@@ -432,7 +485,7 @@ export default function MessInfoPage() {
 
             <div className="space-y-3">
               {blackoutsInput.map((bo, idx) => {
-                const availableMeals = mealsPerDayInput === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+                const availableMeals = mealTypesInput;
                 return (
                   <div key={idx} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-start justify-between gap-2 mb-3">
@@ -524,7 +577,7 @@ export default function MessInfoPage() {
               onClick={() =>
                 setBlackoutsInput([
                   ...blackoutsInput,
-                  { meals: mealsPerDayInput === 2 ? ["lunch"] : ["breakfast", "lunch"], startHour: 6, endHour: 10 },
+                  { meals: mealTypesInput.slice(0, 2), startHour: 6, endHour: 10 },
                 ])
               }
               className="mt-3 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300"
@@ -555,11 +608,11 @@ export default function MessInfoPage() {
                 const res = await fetch("/api/mess", {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ mealsPerDay: mealsPerDayInput, mealBlackouts: blackoutsInput }),
+                  body: JSON.stringify({ mealTypes: mealTypesInput, mealBlackouts: blackoutsInput }),
                 });
                 if (res.ok) {
                   setMealConfigMsg("Meal settings saved!");
-                  if (mess) setMess({ ...mess, mealsPerDay: mealsPerDayInput, mealBlackouts: JSON.stringify(blackoutsInput) });
+                  if (mess) setMess({ ...mess, mealsPerDay: mealTypesInput.length, mealTypes: JSON.stringify(mealTypesInput), mealBlackouts: JSON.stringify(blackoutsInput) });
                 } else {
                   const d = await res.json();
                   setMealConfigMsg(d.error || "Failed to save");
@@ -583,8 +636,8 @@ export default function MessInfoPage() {
           )}
           <p className="mt-3 text-xs text-gray-400">
             {mess && blackoutsInput.length > 0
-              ? `Currently: ${mealsPerDayInput} meals/day · ${blackoutsInput.length} restriction${blackoutsInput.length !== 1 ? "s" : ""} active`
-              : `Currently: ${mealsPerDayInput} meals/day · No restrictions — members can toggle anytime`}
+              ? `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · ${blackoutsInput.length} restriction${blackoutsInput.length !== 1 ? "s" : ""} active`
+              : `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · No restrictions — members can toggle anytime`}
           </p>
         </div>
       )}

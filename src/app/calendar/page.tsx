@@ -10,6 +10,7 @@ interface MealEntry {
   breakfast: number;
   lunch: number;
   dinner: number;
+  meals?: string;
   total: number;
   member: { id: string; name: string };
 }
@@ -35,7 +36,10 @@ interface MealPlanEntry {
   breakfast: string | null;
   lunch: string | null;
   dinner: string | null;
+  meals?: string;
 }
+
+const DEFAULT_ICONS: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
 
 export default function CalendarPage() {
   const { data: session, status } = useSession();
@@ -48,6 +52,7 @@ export default function CalendarPage() {
   const [mealPlans, setMealPlans] = useState<MealPlanEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -63,11 +68,16 @@ export default function CalendarPage() {
         safeFetch(`/api/bazar?month=${m}&year=${currentYear}`),
         safeFetch(`/api/washroom?month=${m}&year=${currentYear}`),
         safeFetch(`/api/meal-plan?month=${m}&year=${currentYear}`),
-      ]).then(([mealData, bazarData, washroomData, planData]) => {
+        safeFetch("/api/mess"),
+      ]).then(([mealData, bazarData, washroomData, planData, messData]) => {
         setMeals(Array.isArray(mealData) ? mealData : []);
         setBazarTrips(Array.isArray(bazarData?.trips) ? bazarData.trips : []);
         setWashroomCleanings(Array.isArray(washroomData?.cleanings) ? washroomData.cleanings : []);
         setMealPlans(Array.isArray(planData) ? planData : []);
+        try {
+          const mt = JSON.parse(messData?.mess?.mealTypes || '["breakfast","lunch","dinner"]');
+          if (Array.isArray(mt) && mt.length > 0) setMealTypesList(mt);
+        } catch { /* use default */ }
         setLoading(false);
       }).catch(() => setLoading(false));
     }
@@ -218,29 +228,32 @@ export default function CalendarPage() {
             📋 {monthName.split(" ")[0]} {selectedDate}, {currentYear}
           </h3>
 
-          {/* Menu / Meal Plan */}
+          {/* Menu */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">📋 Menu</h4>
-            {selectedPlan && (selectedPlan.breakfast || selectedPlan.lunch || selectedPlan.dinner) ? (
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍽️ Menu</h4>
+            {selectedPlan && (selectedPlan.breakfast || selectedPlan.lunch || selectedPlan.dinner || selectedPlan.meals) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                {selectedPlan.breakfast && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-amber-600 mb-1">🌅 Breakfast</p>
-                    <p className="text-sm text-gray-800">{selectedPlan.breakfast}</p>
-                  </div>
-                )}
-                {selectedPlan.lunch && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-orange-600 mb-1">☀️ Lunch</p>
-                    <p className="text-sm text-gray-800">{selectedPlan.lunch}</p>
-                  </div>
-                )}
-                {selectedPlan.dinner && (
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-indigo-600 mb-1">🌙 Dinner</p>
-                    <p className="text-sm text-gray-800">{selectedPlan.dinner}</p>
-                  </div>
-                )}
+                {(() => {
+                  let mealsObj: Record<string, string> = {};
+                  try { mealsObj = JSON.parse(selectedPlan.meals || "{}"); } catch { /* ignore */ }
+                  if (Object.keys(mealsObj).length === 0) {
+                    if (selectedPlan.breakfast) mealsObj.breakfast = selectedPlan.breakfast;
+                    if (selectedPlan.lunch) mealsObj.lunch = selectedPlan.lunch;
+                    if (selectedPlan.dinner) mealsObj.dinner = selectedPlan.dinner;
+                  }
+                  return mealTypesList.map((mt) => {
+                    const val = mealsObj[mt];
+                    if (!val) return null;
+                    const colors: Record<string, string> = { breakfast: "amber", lunch: "orange", dinner: "indigo" };
+                    const color = colors[mt] || "gray";
+                    return (
+                      <div key={mt} className={`bg-${color}-50 border border-${color}-200 rounded-lg p-3`}>
+                        <p className={`text-xs font-semibold text-${color}-600 mb-1`}>{DEFAULT_ICONS[mt] || "🍽️"} <span className="capitalize">{mt}</span></p>
+                        <p className="text-sm text-gray-800">{val}</p>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             ) : (
               <p className="text-sm text-gray-400">No menu set for this day</p>
@@ -249,24 +262,31 @@ export default function CalendarPage() {
 
           {/* Meals */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meals</h4>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meal Entries</h4>
             {selectedMeals.length === 0 ? (
-              <p className="text-sm text-gray-400">No meals recorded</p>
+              <p className="text-sm text-gray-400">No meal entries</p>
             ) : (
               <>
                 {/* Mobile cards */}
                 <div className="md:hidden space-y-2">
-                  {selectedMeals.map((m) => (
-                    <div key={m.id} className="bg-gray-50 rounded-lg p-3">
-                      <p className="font-medium text-gray-900 text-sm mb-1">{m.member.name}</p>
-                      <div className="grid grid-cols-4 gap-2 text-xs text-center">
-                        <div><p className="text-gray-400">B</p><p className="font-bold">{m.breakfast}</p></div>
-                        <div><p className="text-gray-400">L</p><p className="font-bold">{m.lunch}</p></div>
-                        <div><p className="text-gray-400">D</p><p className="font-bold">{m.dinner}</p></div>
-                        <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                  {selectedMeals.map((m) => {
+                    let mealsObj: Record<string, number> = {};
+                    try { mealsObj = JSON.parse(m.meals || "{}"); } catch { /* ignore */ }
+                    if (Object.keys(mealsObj).length === 0) {
+                      mealsObj = { breakfast: m.breakfast, lunch: m.lunch, dinner: m.dinner };
+                    }
+                    return (
+                      <div key={m.id} className="bg-gray-50 rounded-lg p-3">
+                        <p className="font-medium text-gray-900 text-sm mb-1">{m.member.name}</p>
+                        <div className={`grid gap-2 text-xs text-center`} style={{ gridTemplateColumns: `repeat(${mealTypesList.length + 1}, 1fr)` }}>
+                          {mealTypesList.map((mt) => (
+                            <div key={mt}><p className="text-gray-400 capitalize">{mt.charAt(0).toUpperCase()}</p><p className="font-bold">{mealsObj[mt] ?? 0}</p></div>
+                          ))}
+                          <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {/* Desktop table */}
                 <div className="hidden md:block">
@@ -274,22 +294,29 @@ export default function CalendarPage() {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="text-left p-2">Member</th>
-                        <th className="text-center p-2">Breakfast</th>
-                        <th className="text-center p-2">Lunch</th>
-                        <th className="text-center p-2">Dinner</th>
+                        {mealTypesList.map((mt) => (
+                          <th key={mt} className="text-center p-2 capitalize">{mt}</th>
+                        ))}
                         <th className="text-center p-2">Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedMeals.map((m) => (
-                        <tr key={m.id} className="border-t">
-                          <td className="p-2 font-medium">{m.member.name}</td>
-                          <td className="text-center p-2">{m.breakfast}</td>
-                          <td className="text-center p-2">{m.lunch}</td>
-                          <td className="text-center p-2">{m.dinner}</td>
-                          <td className="text-center p-2 font-bold">{m.total}</td>
-                        </tr>
-                      ))}
+                      {selectedMeals.map((m) => {
+                        let mealsObj: Record<string, number> = {};
+                        try { mealsObj = JSON.parse(m.meals || "{}"); } catch { /* ignore */ }
+                        if (Object.keys(mealsObj).length === 0) {
+                          mealsObj = { breakfast: m.breakfast, lunch: m.lunch, dinner: m.dinner };
+                        }
+                        return (
+                          <tr key={m.id} className="border-t">
+                            <td className="p-2 font-medium">{m.member.name}</td>
+                            {mealTypesList.map((mt) => (
+                              <td key={mt} className="text-center p-2">{mealsObj[mt] ?? 0}</td>
+                            ))}
+                            <td className="text-center p-2 font-bold">{m.total}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

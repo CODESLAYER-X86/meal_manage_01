@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { createAuditLog } from "@/lib/audit";
 
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -50,6 +51,7 @@ export async function GET() {
       hasGas: user.mess.hasGas ?? false,
       hasCook: user.mess.hasCook ?? false,
       mealsPerDay: user.mess.mealsPerDay ?? 3,
+      mealTypes: user.mess.mealTypes ?? '["breakfast","lunch","dinner"]',
       mealBlackouts: user.mess.mealBlackouts ?? "[]",
       createdBy: user.mess.createdBy.name,
       memberCount: user.mess.members.length,
@@ -206,13 +208,29 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealBlackouts } = body;
+  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealTypes, mealBlackouts } = body;
+
+  // Get current mess for audit comparison
+  const currentMess = await prisma.mess.findUnique({ where: { id: session.user.messId } });
 
   const updateData: Record<string, unknown> = {};
 
-  if (mealsPerDay !== undefined) {
-    if (typeof mealsPerDay !== "number" || ![2, 3].includes(mealsPerDay)) {
-      return NextResponse.json({ error: "Meals per day must be 2 or 3" }, { status: 400 });
+  if (mealTypes !== undefined) {
+    // mealTypes is an array of meal names e.g. ["breakfast", "lunch", "dinner"]
+    if (!Array.isArray(mealTypes) || mealTypes.length === 0 || mealTypes.length > 10) {
+      return NextResponse.json({ error: "mealTypes must be an array of 1-10 meal names" }, { status: 400 });
+    }
+    for (const mt of mealTypes) {
+      if (typeof mt !== "string" || mt.trim().length === 0 || mt.trim().length > 30) {
+        return NextResponse.json({ error: "Each meal type must be a non-empty string (max 30 chars)" }, { status: 400 });
+      }
+    }
+    const cleaned = mealTypes.map((mt: string) => mt.trim().toLowerCase());
+    updateData.mealTypes = JSON.stringify(cleaned);
+    updateData.mealsPerDay = cleaned.length;
+  } else if (mealsPerDay !== undefined) {
+    if (typeof mealsPerDay !== "number" || mealsPerDay < 1 || mealsPerDay > 10) {
+      return NextResponse.json({ error: "Meals per day must be between 1 and 10" }, { status: 400 });
     }
     updateData.mealsPerDay = mealsPerDay;
   }
@@ -271,6 +289,28 @@ export async function PATCH(request: Request) {
     data: updateData,
   });
 
+  // Audit log for settings change
+  if (currentMess) {
+    const changes: string[] = [];
+    for (const key of Object.keys(updateData)) {
+      const oldVal = String((currentMess as Record<string, unknown>)[key] ?? "");
+      const newVal = String(updateData[key] ?? "");
+      if (oldVal !== newVal) changes.push(`${key}: ${oldVal} → ${newVal}`);
+    }
+    if (changes.length > 0) {
+      await createAuditLog({
+        editedById: session.user.id,
+        messId: session.user.messId,
+        tableName: "Mess",
+        recordId: session.user.messId,
+        fieldName: "settings",
+        oldValue: changes.map(c => c.split(" → ")[0]).join(", "),
+        newValue: changes.join("; "),
+        action: "UPDATE",
+      });
+    }
+  }
+
   return NextResponse.json({ success: true, ...updateData });
 }
 
@@ -292,8 +332,25 @@ export async function DELETE() {
 
   const messId = session.user.messId;
 
+  // Audit log before deletion
+  const messInfo = await prisma.mess.findUnique({ where: { id: messId }, select: { name: true } });
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "Mess",
+    recordId: messId,
+    fieldName: "all",
+    oldValue: messInfo?.name ?? "unknown",
+    newValue: null,
+    action: "DELETE",
+  });
+
   // Delete all mess data in the correct order (respecting FK constraints)
   await prisma.$transaction([
+    // Delete duty scheduling tables
+    prisma.dutySwapRequest.deleteMany({ where: { messId } }),
+    prisma.bazarDutySchedule.deleteMany({ where: { messId } }),
+    prisma.washroomDutySchedule.deleteMany({ where: { messId } }),
     // Delete meal status tables first
     prisma.mealStatusRequest.deleteMany({ where: { messId } }),
     prisma.mealStatus.deleteMany({ where: { messId } }),
@@ -302,6 +359,7 @@ export async function DELETE() {
     prisma.dutyDebt.deleteMany({ where: { messId } }),
     prisma.billPayment.deleteMany({ where: { messId } }),
     prisma.billSetting.deleteMany({ where: { messId } }),
+    prisma.fine.deleteMany({ where: { messId } }),
     // Delete meal votes (FK to MealVoteTopic)
     prisma.mealVote.deleteMany({ where: { topic: { messId } } }),
     // Delete meal vote topics

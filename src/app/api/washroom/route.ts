@@ -155,11 +155,28 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 
-  const cleaning = await prisma.washroomCleaning.findUnique({ where: { id } });
+  const cleaning = await prisma.washroomCleaning.findUnique({
+    where: { id },
+    include: { member: { select: { name: true } } },
+  });
   if (!cleaning || cleaning.messId !== messId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   await prisma.washroomCleaning.delete({ where: { id } });
+
+  // Audit
+  await prisma.auditLog.create({
+    data: {
+      editedById: session.user.id,
+      messId,
+      tableName: "WashroomCleaning",
+      recordId: id,
+      fieldName: "all",
+      oldValue: `WR-${cleaning.washroomNumber} by ${cleaning.member?.name} on ${cleaning.date.toISOString().split("T")[0]}`,
+      action: "DELETE",
+    },
+  });
+
   return NextResponse.json({ success: true });
 }

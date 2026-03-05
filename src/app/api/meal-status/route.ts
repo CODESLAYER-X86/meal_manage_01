@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit";
 
 // Helper: get Bangladesh time components
 function getBDTime() {
@@ -20,9 +21,55 @@ function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: num
   return false;
 }
 
-// Helper: get meals list based on mealsPerDay
-function getMealsList(mealsPerDay: number): string[] {
+// Helper: get meals list from mess config (dynamic)
+function getMealsList(mealTypes: string | null | undefined, mealsPerDay: number): string[] {
+  if (mealTypes) {
+    try {
+      const parsed = JSON.parse(mealTypes);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { /* fallback */ }
+  }
   return mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
+}
+
+// Helper: sync MealEntry from all meal statuses for a member on a date
+async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[]) {
+  // Get all meal statuses for this member on this date
+  const statuses = await prisma.mealStatus.findMany({
+    where: { memberId, messId, date },
+    select: { meal: true, isOff: true },
+  });
+  const statusMap: Record<string, boolean> = {};
+  for (const s of statuses) statusMap[s.meal] = s.isOff;
+
+  // Build meals object: 1 = eating (default), 0 = off
+  const mealsObj: Record<string, number> = {};
+  let total = 0;
+  for (const meal of mealsList) {
+    const val = statusMap[meal] ? 0 : 1; // isOff=true → 0
+    mealsObj[meal] = val;
+    total += val;
+  }
+
+  // Legacy column values
+  const breakfast = mealsObj["breakfast"] ?? 0;
+  const lunch = mealsObj["lunch"] ?? 0;
+  const dinner = mealsObj["dinner"] ?? 0;
+
+  await prisma.mealEntry.upsert({
+    where: { date_memberId: { date, memberId } },
+    update: {
+      breakfast, lunch, dinner,
+      meals: JSON.stringify(mealsObj),
+      total,
+    },
+    create: {
+      date, memberId, messId,
+      breakfast, lunch, dinner,
+      meals: JSON.stringify(mealsObj),
+      total,
+    },
+  });
 }
 
 // GET - Get meal status for a date (or today + tomorrow)
@@ -39,11 +86,11 @@ export async function GET(request: NextRequest) {
   // Get mess config
   const mess = await prisma.mess.findUnique({
     where: { id: messId },
-    select: { mealsPerDay: true, mealBlackouts: true },
+    select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true },
   });
   const mealsPerDay = mess?.mealsPerDay ?? 3;
   const blackouts = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
-  const mealsList = getMealsList(mealsPerDay);
+  const mealsList = getMealsList(mess?.mealTypes, mealsPerDay);
 
   // Get members
   const members = await prisma.user.findMany({
@@ -191,11 +238,11 @@ export async function POST(request: NextRequest) {
   // Get mess config
   const mess = await prisma.mess.findUnique({
     where: { id: messId },
-    select: { mealsPerDay: true, mealBlackouts: true },
+    select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true },
   });
   const mealsPerDay = mess?.mealsPerDay ?? 3;
   const blackouts = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
-  const mealsList = getMealsList(mealsPerDay);
+  const mealsList = getMealsList(mess?.mealTypes, mealsPerDay);
 
   if (!mealsList.includes(meal)) {
     return NextResponse.json({ error: `Invalid meal. Options: ${mealsList.join(", ")}` }, { status: 400 });
@@ -247,6 +294,9 @@ export async function POST(request: NextRequest) {
       changedBy: isManager && !isSelf ? session.user.id : null,
     },
   });
+
+  // Auto-sync MealEntry from meal status
+  await syncMealEntry(targetMemberId, messId, mealDate, mealsList);
 
   // Audit log if manager changed someone else's status
   if (isManager && !isSelf) {
@@ -407,7 +457,27 @@ export async function PATCH(request: NextRequest) {
           changedBy: session.user.id,
         },
       });
+
+      // Auto-sync MealEntry from approved status change
+      const mess2 = await prisma.mess.findUnique({
+        where: { id: messId },
+        select: { mealsPerDay: true, mealTypes: true },
+      });
+      const mealsList2 = getMealsList(mess2?.mealTypes, mess2?.mealsPerDay ?? 3);
+      await syncMealEntry(req.memberId, messId, req.date, mealsList2);
     }
+
+    // Audit log for approve/reject
+    await createAuditLog({
+      editedById: session.user.id,
+      messId,
+      tableName: "MealStatusRequest",
+      recordId: requestId,
+      fieldName: `${req.meal} (${req.date.toISOString().split("T")[0]})`,
+      oldValue: "PENDING",
+      newValue: action === "approve" ? "APPROVED" : "REJECTED",
+      action: "UPDATE",
+    });
 
     // Notify the member
     try {

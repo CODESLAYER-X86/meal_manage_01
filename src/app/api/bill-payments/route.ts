@@ -113,15 +113,15 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, payment });
 }
 
-// PATCH - Confirm a bill payment (manager only)
+// PATCH - Confirm a bill payment (manager only) or edit amount (before confirmation)
 export async function PATCH(request: NextRequest) {
   const session = await auth();
-  if (!session?.user?.messId || session.user.role !== "MANAGER") {
+  if (!session?.user?.messId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const body = await request.json();
-  const { id, confirmed } = body;
+  const { id, confirmed, amount, note } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Payment id is required" }, { status: 400 });
@@ -130,6 +130,49 @@ export async function PATCH(request: NextRequest) {
   const payment = await prisma.billPayment.findUnique({ where: { id } });
   if (!payment || payment.messId !== session.user.messId) {
     return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+  }
+
+  // Edit amount/note (by owner before confirmation, or by manager anytime)
+  if (amount !== undefined || note !== undefined) {
+    const isManager = session.user.role === "MANAGER";
+    const isOwner = payment.memberId === session.user.id;
+
+    if (!isManager && !isOwner) {
+      return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+    }
+    if (!isManager && payment.confirmed) {
+      return NextResponse.json({ error: "Cannot edit confirmed payment" }, { status: 403 });
+    }
+
+    const updateData: { amount?: number; note?: string | null; updatedAt: Date } = { updatedAt: new Date() };
+    if (amount !== undefined) updateData.amount = Number(amount);
+    if (note !== undefined) updateData.note = note || null;
+
+    const updated = await prisma.billPayment.update({
+      where: { id },
+      data: updateData,
+    });
+
+    // Audit
+    await prisma.auditLog.create({
+      data: {
+        editedById: session.user.id,
+        messId: session.user.messId,
+        tableName: "BillPayment",
+        recordId: id,
+        fieldName: "amount",
+        oldValue: String(payment.amount),
+        newValue: String(updated.amount),
+        action: "UPDATE",
+      },
+    });
+
+    return NextResponse.json({ success: true, payment: updated });
+  }
+
+  // Confirm/unconfirm (manager only)
+  if (session.user.role !== "MANAGER") {
+    return NextResponse.json({ error: "Only manager can confirm" }, { status: 403 });
   }
 
   const updated = await prisma.billPayment.update({

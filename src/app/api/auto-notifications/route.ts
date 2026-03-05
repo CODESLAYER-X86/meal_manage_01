@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+// GET - Support Vercel cron (which sends GET requests)
+export async function GET(request: Request) {
+  return POST(request);
+}
+
 // POST - Run auto-notifications (called by cron or manual trigger)
 // Generates notifications for: overdue bills, high meal dues, upcoming washroom duties, bazar duties tomorrow
 export async function POST(request: Request) {
@@ -141,44 +146,91 @@ export async function POST(request: Request) {
         }
       }
 
-      // 3. WASHROOM DUTY REMINDER: 3 days before a pending duty
-      const threeDaysLater = new Date(now);
-      threeDaysLater.setDate(threeDaysLater.getDate() + 3);
-      const threeDaysLaterEnd = new Date(threeDaysLater);
-      threeDaysLaterEnd.setHours(23, 59, 59);
+      // 3. BAZAR DUTY REMINDER: Tomorrow's bazar duty
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStart = new Date(Date.UTC(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate()));
+      const tomorrowEnd = new Date(Date.UTC(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 23, 59, 59));
 
-      const upcomingWashroom = await prisma.washroomCleaning.findMany({
-        where: {
-          messId,
-          status: "PENDING",
-          date: {
-            gte: new Date(threeDaysLater.getFullYear(), threeDaysLater.getMonth(), threeDaysLater.getDate()),
-            lte: threeDaysLaterEnd,
-          },
-        },
+      const tomorrowBazarDuties = await prisma.bazarDutySchedule.findMany({
+        where: { messId, completed: false, date: { gte: tomorrowStart, lte: tomorrowEnd } },
       });
-
-      for (const duty of upcomingWashroom) {
+      for (const duty of tomorrowBazarDuties) {
         const existingNotif = await prisma.notification.findFirst({
           where: {
             userId: duty.memberId,
             messId,
-            type: "washroom_reminder",
+            type: "bazar_duty_reminder",
             createdAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
           },
         });
-
         if (!existingNotif) {
           await prisma.notification.create({
             data: {
               userId: duty.memberId,
               messId,
-              type: "washroom_reminder",
-              title: "🚿 Washroom Duty Coming Up",
-              message: `You have washroom cleaning duty on ${duty.date.toISOString().split("T")[0]} (Washroom #${duty.washroomNumber}).`,
+              type: "bazar_duty_reminder",
+              title: "🛒 Bazar Duty Tomorrow",
+              message: `You have bazar duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}). Don't forget!`,
             },
           });
           notificationsCreated++;
+        }
+      }
+
+      // 4. WASHROOM DUTY REMINDER: Tomorrow's washroom duty (new model)
+      const tomorrowWashroomDuties = await prisma.washroomDutySchedule.findMany({
+        where: { messId, completed: false, date: { gte: tomorrowStart, lte: tomorrowEnd } },
+      });
+      for (const duty of tomorrowWashroomDuties) {
+        const existingNotif = await prisma.notification.findFirst({
+          where: {
+            userId: duty.memberId,
+            messId,
+            type: "washroom_duty_reminder",
+            createdAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
+          },
+        });
+        if (!existingNotif) {
+          await prisma.notification.create({
+            data: {
+              userId: duty.memberId,
+              messId,
+              type: "washroom_duty_reminder",
+              title: "🚿 Washroom Duty Tomorrow",
+              message: `You have washroom #${duty.washroomNumber} cleaning duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}).`,
+            },
+          });
+          notificationsCreated++;
+        }
+      }
+
+      // 5. MEAL STATUS REMINDER: Remind all members to set meal status for tomorrow
+      for (const memberId of memberIds) {
+        const hasStatus = await prisma.mealStatus.findFirst({
+          where: { memberId, messId, date: { gte: tomorrowStart, lte: tomorrowEnd } },
+        });
+        if (!hasStatus) {
+          const existingNotif = await prisma.notification.findFirst({
+            where: {
+              userId: memberId,
+              messId,
+              type: "meal_status_reminder",
+              createdAt: { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) },
+            },
+          });
+          if (!existingNotif) {
+            await prisma.notification.create({
+              data: {
+                userId: memberId,
+                messId,
+                type: "meal_status_reminder",
+                title: "🍽️ Set Your Meal Status",
+                message: `Don't forget to set your meal status for tomorrow!`,
+              },
+            });
+            notificationsCreated++;
+          }
         }
       }
     }
