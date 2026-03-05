@@ -12,13 +12,6 @@ interface Duty {
   member: Member;
   completed: boolean;
 }
-interface Debt {
-  id: string;
-  owedBy: Member;
-  owedTo: Member;
-  reason: string;
-  status: string;
-}
 interface SwapReq {
   id: string;
   dutyType: string;
@@ -33,7 +26,6 @@ export default function BazarDutyPage() {
   const router = useRouter();
   const [duties, setDuties] = useState<Duty[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [debts, setDebts] = useState<Debt[]>([]);
   const [swapRequests, setSwapRequests] = useState<SwapReq[]>([]);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -60,7 +52,6 @@ export default function BazarDutyPage() {
       const swapData = await swapRes.json();
       setDuties(dutyData.duties || []);
       setMembers(dutyData.members || []);
-      setDebts(dutyData.debts || []);
       setSwapRequests((swapData.requests || []).filter((r: SwapReq) => r.dutyType === "BAZAR"));
     } catch { /* ignore */ }
     setLoading(false);
@@ -281,22 +272,6 @@ export default function BazarDutyPage() {
         </div>
       )}
 
-      {/* Debts */}
-      {debts.length > 0 && (
-        <div className="bg-pink-50 p-4 rounded-xl border border-pink-200 space-y-3">
-          <h3 className="font-semibold text-pink-800">⚖️ Pending Duty Debts</h3>
-          {debts.map((d) => (
-            <div key={d.id} className="flex items-center justify-between bg-white p-3 rounded-lg border">
-              <div className="text-sm">
-                <span className="font-medium text-red-600">{d.owedBy.name}</span>
-                <span className="text-gray-400 mx-1">owes</span>
-                <span className="font-medium text-green-600">{d.owedTo.name}</span>
-                <p className="text-xs text-gray-500">{d.reason}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

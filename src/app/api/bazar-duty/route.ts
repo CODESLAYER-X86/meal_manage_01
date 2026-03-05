@@ -29,16 +29,7 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   });
 
-  // Get pending debts
-  const debts = await prisma.dutyDebt.findMany({
-    where: { messId, dutyType: "BAZAR", status: "PENDING" },
-    include: {
-      owedBy: { select: { id: true, name: true } },
-      owedTo: { select: { id: true, name: true } },
-    },
-  });
-
-  return NextResponse.json({ duties, members, debts });
+  return NextResponse.json({ duties, members });
 }
 
 // POST - Create duty assignments (manager only)
@@ -105,6 +96,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "date and memberId required" }, { status: 400 });
   }
 
+  // Verify member belongs to this mess
+  const targetMember = await prisma.user.findFirst({ where: { id: memberId, messId, isActive: true } });
+  if (!targetMember) {
+    return NextResponse.json({ error: "Member not found in this mess" }, { status: 404 });
+  }
+
   const duty = await prisma.bazarDutySchedule.create({
     data: { date: new Date(date + "T00:00:00.000Z"), memberId, messId },
     include: { member: { select: { id: true, name: true } } },
@@ -133,7 +130,7 @@ export async function PATCH(request: NextRequest) {
   const messId = session.user.messId;
   const isManager = session.user.role === "MANAGER";
   const body = await request.json();
-  const { id, completed, coveredById } = body;
+  const { id, completed } = body;
 
   if (!id) {
     return NextResponse.json({ error: "Duty id required" }, { status: 400 });
@@ -156,19 +153,6 @@ export async function PATCH(request: NextRequest) {
     where: { id },
     data: { completed: completed ?? true },
   });
-
-  // If marked incomplete and someone else covered, create debt
-  if (completed === false && coveredById && coveredById !== duty.memberId) {
-    await prisma.dutyDebt.create({
-      data: {
-        owedById: duty.memberId,
-        owedToId: coveredById,
-        messId,
-        dutyType: "BAZAR",
-        reason: `Missed bazar duty on ${duty.date.toISOString().split("T")[0]}`,
-      },
-    });
-  }
 
   await createAuditLog({
     editedById: session.user.id,

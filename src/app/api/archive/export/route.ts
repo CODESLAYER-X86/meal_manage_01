@@ -39,7 +39,6 @@ export async function GET(request: NextRequest) {
     mealVoteTopics,
     billSettings,
     billPayments,
-    dutyDebts,
     memberPresence,
   ] = await Promise.all([
     prisma.mess.findUnique({ where: { id: messId }, select: { id: true, name: true } }),
@@ -101,13 +100,6 @@ export async function GET(request: NextRequest) {
       where: { messId, month, year },
       include: { member: { select: { id: true, name: true } } },
     }),
-    prisma.dutyDebt.findMany({
-      where: { messId, createdAt: { gte: startDate, lte: endDate } },
-      include: {
-        owedBy: { select: { id: true, name: true } },
-        owedTo: { select: { id: true, name: true } },
-      },
-    }),
     prisma.memberPresence.findMany({
       where: { messId },
       include: { member: { select: { id: true, name: true } } },
@@ -149,7 +141,6 @@ export async function GET(request: NextRequest) {
       mealVoteTopics,
       billSettings,
       billPayments,
-      dutyDebts,
       memberPresence,
     },
   };

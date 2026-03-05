@@ -41,13 +41,6 @@ interface WashroomDuty {
   member: Member;
 }
 
-interface DutyDebtEntry {
-  id: string;
-  dutyType: string;
-  status: string;
-  owedBy: Member;
-  owedTo: Member;
-}
 
 export default function TransparencyPage() {
   const { data: session, status } = useSession();
@@ -58,7 +51,6 @@ export default function TransparencyPage() {
   const [billPayments, setBillPayments] = useState<BillPayment[]>([]);
   const [memberBills, setMemberBills] = useState<Record<string, number>>({});
   const [washroomDuties, setWashroomDuties] = useState<WashroomDuty[]>([]);
-  const [dutyDebts, setDutyDebts] = useState<DutyDebtEntry[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [bazarTrips, setBazarTrips] = useState<{ totalCost: number; date: string; buyerId: string; buyer: { id: string; name: string }; approved: boolean; companionIds: string[] }[]>([]);
   const [bazarTripCounts, setBazarTripCounts] = useState<Record<string, number>>({});
@@ -81,16 +73,14 @@ export default function TransparencyPage() {
       fetch(`/api/deposits?month=${month}&year=${year}`).then((r) => r.json()),
       fetch(`/api/bill-payments?month=${month}&year=${year}`).then((r) => r.json()),
       fetch(`/api/washroom?month=${month}&year=${year}`).then((r) => r.json()),
-      fetch(`/api/duty-debt?status=PENDING`).then((r) => r.json()),
       fetch(`/api/bazar?month=${month}&year=${year}`).then((r) => r.json()),
-    ]).then(([mealData, depositData, billData, washroomData, debtData, bazarData]) => {
+    ]).then(([mealData, depositData, billData, washroomData, bazarData]) => {
       setMeals(Array.isArray(mealData) ? mealData : []);
       setDeposits(Array.isArray(depositData) ? depositData : []);
       setBillPayments(billData?.payments || []);
       setMemberBills(billData?.memberBills || {});
       setMembers(billData?.members || []);
       setWashroomDuties(washroomData?.cleanings || []);
-      setDutyDebts(debtData?.debts || []);
       setBazarTrips(bazarData?.trips || []);
       setBazarTripCounts(bazarData?.tripCounts || {});
       setCompanionMap(bazarData?.companionMap || {});
@@ -139,14 +129,10 @@ export default function TransparencyPage() {
     // Bazar (approved trip counts from API)
     const bazarTripCount = bazarTripCounts[id] || 0;
 
-    // Debts
-    const debtsOwed = dutyDebts.filter((d) => d.owedBy.id === id).length;
-    const debtsCovered = dutyDebts.filter((d) => d.owedTo.id === id).length;
-
     return {
       id, name, totalMealsCount, mealCost, totalDeposit, mealDue,
       billDue, billPaid, billRemaining,
-      washroomCount, bazarTripCount, debtsOwed, debtsCovered,
+      washroomCount, bazarTripCount,
     };
   });
 
@@ -288,27 +274,6 @@ export default function TransparencyPage() {
               </div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Duty Debts */}
-      {dutyDebts.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">⚖️ Pending Duty Debts</h2>
-          <div className="divide-y dark:divide-gray-700">
-            {dutyDebts.map((d) => (
-              <div key={d.id} className="p-3 text-sm flex flex-wrap items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  d.dutyType === "WASHROOM" ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" : "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                }`}>
-                  {d.dutyType}
-                </span>
-                <span className="text-red-600 font-medium">{d.owedBy.name}</span>
-                <span className="text-gray-400">→</span>
-                <span className="text-green-600 font-medium">{d.owedTo.name}</span>
-              </div>
-            ))}
           </div>
         </div>
       )}

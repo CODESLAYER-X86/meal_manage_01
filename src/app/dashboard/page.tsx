@@ -520,10 +520,6 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
           <span className="text-xl">🛒</span>
           <p className="text-xs font-medium text-cyan-700 mt-1">Bazar Trips</p>
         </Link>
-        <Link href="/duty-debts" className="bg-pink-50 border border-pink-200 p-3 rounded-xl text-center hover:bg-pink-100 transition">
-          <span className="text-xl">⚖️</span>
-          <p className="text-xs font-medium text-pink-700 mt-1">Duty Debts</p>
-        </Link>
         <Link href="/transparency" className="bg-purple-50 border border-purple-200 p-3 rounded-xl text-center hover:bg-purple-100 transition">
           <span className="text-xl">👁️</span>
           <p className="text-xs font-medium text-purple-700 mt-1">Transparency</p>

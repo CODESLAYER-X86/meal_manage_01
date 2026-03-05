@@ -57,7 +57,6 @@ model Mess {
   mealVoteTopics    MealVoteTopic[]
   billSettings      BillSetting[]
   billPayments      BillPayment[]
-  dutyDebts         DutyDebt[]
   memberPresences   MemberPresence[]
   mealStatuses      MealStatus[]
   fines             Fine[]
@@ -96,8 +95,6 @@ model User {
   mealRatings       MealRating[]
   mealVotes         MealVote[]
   billPayments      BillPayment[]
-  debtsOwed         DutyDebt[]         @relation("DebtOwedBy")
-  debtsCovered      DutyDebt[]         @relation("DebtOwedTo")
   presences         MemberPresence[]
   mealStatuses      MealStatus[]
   fines             Fine[]
@@ -430,27 +427,6 @@ model BillPayment {
 
 // ========== BAZAR DUTY (Market rotation) ==========
 // BazarDuty removed - bazar trips are now tracked via BazarTrip approval system
-
-// ========== DUTY DEBT (Washroom/Bazar swap tracking) ==========
-model DutyDebt {
-  id          String    @id @default(cuid())
-  owedById    String
-  owedBy      User      @relation("DebtOwedBy", fields: [owedById], references: [id])
-  owedToId    String
-  owedTo      User      @relation("DebtOwedTo", fields: [owedToId], references: [id])
-  messId      String
-  mess        Mess      @relation(fields: [messId], references: [id])
-  dutyType    String    // "WASHROOM" | "BAZAR"
-  reason      String?
-  status      String    @default("PENDING") // PENDING | SETTLED
-  settledAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([messId])
-  @@index([owedById])
-  @@index([owedToId])
-}
 
 // ========== MEMBER PRESENCE (Home/Away toggle) ==========
 model MemberPresence {

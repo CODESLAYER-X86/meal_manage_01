@@ -106,6 +106,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "date, washroomNumber, and memberId are required" }, { status: 400 });
   }
 
+  // Verify member belongs to this mess
+  const targetMember = await prisma.user.findFirst({ where: { id: memberId, messId, isActive: true } });
+  if (!targetMember) {
+    return NextResponse.json({ error: "Member not found in this mess" }, { status: 404 });
+  }
+
   if (washroomNumber < 1 || washroomNumber > mess.washroomCount) {
     return NextResponse.json({ error: `Washroom number must be between 1 and ${mess.washroomCount}` }, { status: 400 });
   }
