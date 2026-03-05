@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+/* Force class-based dark mode only — disables OS/media dark mode.
+   The app is light-themed; dark: variants in bills & transparency
+   are kept for future use but won't activate based on system preference. */
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: #f9fafb;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {

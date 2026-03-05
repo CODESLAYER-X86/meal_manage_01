@@ -140,9 +140,9 @@ export default function TransparencyPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">👁️ Transparency Board</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{monthName} — Full accountability view for all members</p>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+        <h1 className="text-2xl font-bold text-gray-900">👁️ Transparency Board</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{monthName} — Full accountability view for all members</p>
       </div>
 
       {/* Overall Scorecard */}
