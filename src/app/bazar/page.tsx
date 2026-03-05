@@ -53,6 +53,13 @@ export default function BazarEntryPage() {
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [tab, setTab] = useState<"entry" | "history" | "pending">("entry");
 
+  // Edit state
+  const [editingTripId, setEditingTripId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [editItems, setEditItems] = useState<BazarItemForm[]>([]);
+  const [editSaving, setEditSaving] = useState(false);
+
   const isManager = (session?.user as { role?: string })?.role === "MANAGER";
   const userId = session?.user?.id;
 
@@ -210,6 +217,51 @@ export default function BazarEntryPage() {
       const data = await res.json();
       setError(data.error || "Failed");
     }
+  };
+
+  const startEdit = (trip: BazarTrip) => {
+    setEditingTripId(trip.id);
+    setEditDate(trip.date.split("T")[0]);
+    setEditNote(trip.note || "");
+    setEditItems(trip.items.map((item) => ({
+      itemName: item.itemName,
+      quantity: String(item.quantity),
+      unit: item.unit,
+      price: String(item.price),
+    })));
+  };
+
+  const cancelEdit = () => {
+    setEditingTripId(null);
+    setEditItems([]);
+  };
+
+  const saveEdit = async (tripId: string) => {
+    setEditSaving(true);
+    setError("");
+    const formattedItems = editItems
+      .filter((item) => item.itemName.trim() !== "")
+      .map((item) => ({
+        itemName: item.itemName,
+        quantity: parseFloat(item.quantity) || 0,
+        unit: item.unit,
+        price: parseFloat(item.price) || 0,
+      }));
+    const res = await fetch("/api/bazar", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: tripId, action: "edit", items: formattedItems, note: editNote || undefined, date: editDate }),
+    });
+    if (res.ok) {
+      setSuccess("Trip updated! ✅");
+      setEditingTripId(null);
+      fetchTrips();
+      setTimeout(() => setSuccess(""), 3000);
+    } else {
+      const data = await res.json();
+      setError(data.error || "Failed to save");
+    }
+    setEditSaving(false);
   };
 
   if (status === "loading") {
@@ -497,37 +549,83 @@ export default function BazarEntryPage() {
                     )}
 
                     {/* Delete (manager always, or own pending) */}
+                    {/* Edit button (manager always, or own pending trip) */}
+                    {(isManager || (isOwnTrip && !trip.approved)) && editingTripId !== trip.id && (
+                      <button onClick={() => startEdit(trip)} className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">✏️ Edit</button>
+                    )}
                     {(isManager || (isOwnTrip && !trip.approved)) && (
                       <button onClick={() => deleteTrip(trip.id)} className="text-xs bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500">🗑️</button>
                     )}
                   </div>
 
-                  {trip.note && <p className="px-4 pb-2 text-xs text-gray-400 italic">{trip.note}</p>}
-
-                  {/* Items list */}
-                  {trip.items.length > 0 && (
-                    <div className="border-t">
-                      <table className="w-full text-xs">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="text-left p-2 pl-4">Item</th>
-                            <th className="text-center p-2">Qty</th>
-                            <th className="text-center p-2">Unit</th>
-                            <th className="text-right p-2 pr-4">Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {trip.items.map((item) => (
-                            <tr key={item.id} className="border-t border-gray-100">
-                              <td className="p-2 pl-4 text-gray-700">{item.itemName}</td>
-                              <td className="p-2 text-center text-gray-600">{item.quantity}</td>
-                              <td className="p-2 text-center text-gray-600">{item.unit}</td>
-                              <td className="p-2 pr-4 text-right text-gray-700 font-medium">৳{item.price}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                  {/* Inline edit form */}
+                  {editingTripId === trip.id ? (
+                    <div className="border-t p-4 bg-blue-50 space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">📅 Date</label>
+                          <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">📝 Note</label>
+                          <input type="text" value={editNote} onChange={(e) => setEditNote(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none" placeholder="Optional note..." />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-600">Items:</p>
+                        {editItems.map((item, i) => (
+                          <div key={i} className="grid grid-cols-12 gap-1 items-center">
+                            <input type="text" value={item.itemName} onChange={(e) => { const u = [...editItems]; u[i].itemName = e.target.value; setEditItems(u); }} placeholder="Item name" className="col-span-4 px-2 py-1.5 border rounded text-xs focus:ring-1 focus:ring-blue-400 outline-none" />
+                            <input type="number" value={item.quantity} onChange={(e) => { const u = [...editItems]; u[i].quantity = e.target.value; setEditItems(u); }} placeholder="Qty" className="col-span-2 px-2 py-1.5 border rounded text-xs text-center focus:ring-1 focus:ring-blue-400 outline-none" />
+                            <select value={item.unit} onChange={(e) => { const u = [...editItems]; u[i].unit = e.target.value; setEditItems(u); }} className="col-span-2 px-1 py-1.5 border rounded text-xs focus:ring-1 focus:ring-blue-400 outline-none">
+                              {["kg","g","litre","ml","pcs","packet","dozen"].map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                            <input type="number" value={item.price} onChange={(e) => { const u = [...editItems]; u[i].price = e.target.value; setEditItems(u); }} placeholder="৳" className="col-span-3 px-2 py-1.5 border rounded text-xs text-right focus:ring-1 focus:ring-blue-400 outline-none" />
+                            <button type="button" onClick={() => setEditItems(editItems.filter((_, j) => j !== i))} className="col-span-1 text-red-400 hover:text-red-600 text-center">✕</button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => setEditItems([...editItems, { itemName: "", quantity: "", unit: "kg", price: "" }])} className="text-xs text-blue-600 hover:text-blue-800">➕ Add item</button>
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <button onClick={() => saveEdit(trip.id)} disabled={editSaving} className="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                          {editSaving ? "Saving..." : "💾 Save Changes"}
+                        </button>
+                        <button onClick={cancelEdit} className="px-4 py-2 bg-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-300">Cancel</button>
+                        <span className="text-xs text-gray-400 self-center ml-auto">
+                          Total: ৳{editItems.reduce((s, item) => s + (parseFloat(item.price) || 0), 0)}
+                        </span>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      {trip.note && <p className="px-4 pb-2 text-xs text-gray-400 italic">{trip.note}</p>}
+
+                      {/* Items list */}
+                      {trip.items.length > 0 && (
+                        <div className="border-t">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="text-left p-2 pl-4">Item</th>
+                                <th className="text-center p-2">Qty</th>
+                                <th className="text-center p-2">Unit</th>
+                                <th className="text-right p-2 pr-4">Price</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {trip.items.map((item) => (
+                                <tr key={item.id} className="border-t border-gray-100">
+                                  <td className="p-2 pl-4 text-gray-700">{item.itemName}</td>
+                                  <td className="p-2 text-center text-gray-600">{item.quantity}</td>
+                                  <td className="p-2 text-center text-gray-600">{item.unit}</td>
+                                  <td className="p-2 pr-4 text-right text-gray-700 font-medium">৳{item.price}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               );

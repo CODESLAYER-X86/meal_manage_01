@@ -12,6 +12,7 @@ interface Member {
 interface MealForm {
   memberId: string;
   memberName: string;
+  entryId: string | null;
   meals: Record<string, number>;
 }
 
@@ -72,6 +73,7 @@ export default function MealEntryPage() {
         return {
           memberId: m.id,
           memberName: m.name,
+          entryId: existing?.id ?? null,
           meals: mealsObj,
         };
       })
@@ -82,6 +84,18 @@ export default function MealEntryPage() {
     const updated = [...entries];
     updated[index] = { ...updated[index], meals: { ...updated[index].meals, [field]: value } };
     setEntries(updated);
+  };
+
+  const deleteMeal = async (index: number) => {
+    const entry = entries[index];
+    if (!entry.entryId) return;
+    if (!confirm(`Clear all meals for ${entry.memberName} on ${date}?`)) return;
+    const res = await fetch(`/api/meals?id=${entry.entryId}`, { method: "DELETE" });
+    if (res.ok) {
+      setSuccess(`${entry.memberName}'s meal entry deleted.`);
+      setTimeout(() => setSuccess(""), 3000);
+      loadData();
+    }
   };
 
   const handleSave = async () => {
@@ -123,9 +137,14 @@ export default function MealEntryPage() {
           <div key={entry.memberId} className="bg-white rounded-xl shadow-sm border p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-800">{entry.memberName}</span>
-              <span className="text-sm font-bold text-indigo-600">
-                Total: {Object.values(entry.meals).reduce((s, v) => s + v, 0)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-indigo-600">
+                  Total: {Object.values(entry.meals).reduce((s, v) => s + v, 0)}
+                </span>
+                {entry.entryId && (
+                  <button onClick={() => deleteMeal(i)} title="Delete entry" className="text-red-400 hover:text-red-600 text-lg leading-none">🗑️</button>
+                )}
+              </div>
             </div>
             <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${mealTypes.length}, 1fr)` }}>
               {mealTypes.map((field) => (
@@ -157,6 +176,7 @@ export default function MealEntryPage() {
                 <th key={mt} className="text-center p-4 text-sm font-semibold text-gray-600 capitalize">{mt}</th>
               ))}
               <th className="text-center p-4 text-sm font-semibold text-gray-600">Total</th>
+              <th className="p-4"></th>
             </tr>
           </thead>
           <tbody>
@@ -178,6 +198,11 @@ export default function MealEntryPage() {
                 ))}
                 <td className="p-4 text-center font-bold text-indigo-600">
                   {Object.values(entry.meals).reduce((s, v) => s + v, 0)}
+                </td>
+                <td className="p-4 text-center">
+                  {entry.entryId && (
+                    <button onClick={() => deleteMeal(i)} title="Delete entry" className="text-red-400 hover:text-red-600">🗑️</button>
+                  )}
                 </td>
               </tr>
             ))}
