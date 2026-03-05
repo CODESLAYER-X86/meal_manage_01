@@ -29,7 +29,7 @@ export default function MealVotePage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
-  const [optionsText, setOptionsText] = useState("");
+  const [options, setOptions] = useState<string[]>(["", ""]);
   const [targetDate, setTargetDate] = useState("");
   const [targetMeal, setTargetMeal] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -63,8 +63,8 @@ export default function MealVotePage() {
   const createTopic = async () => {
     setError("");
     if (!title.trim()) { setError("Title is required"); return; }
-    const opts = optionsText.split("\n").map((o) => o.trim()).filter(Boolean);
-    if (opts.length < 2) { setError("Enter at least 2 options (one per line)"); return; }
+    const opts = options.map((o) => o.trim()).filter(Boolean);
+    if (opts.length < 2) { setError("Add at least 2 options"); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/meal-vote", {
@@ -84,7 +84,7 @@ export default function MealVotePage() {
       }
       setShowForm(false);
       setTitle("");
-      setOptionsText("");
+      setOptions(["", ""]);
       setTargetDate("");
       setTargetMeal("");
       await fetchData();
@@ -179,15 +179,43 @@ export default function MealVotePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Options (one per line, minimum 2)
+              Options (minimum 2)
             </label>
-            <textarea
-              value={optionsText}
-              onChange={(e) => setOptionsText(e.target.value)}
-              placeholder={"Biryani\nKhichuri\nPasta\nFried Rice"}
-              rows={4}
-              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none resize-y"
-            />
+            <div className="space-y-2">
+              {options.map((opt, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-gray-400 w-5 text-right shrink-0">{idx + 1}.</span>
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => {
+                      const next = [...options];
+                      next[idx] = e.target.value;
+                      setOptions(next);
+                    }}
+                    placeholder={["e.g. Biryani", "e.g. Khichuri", "e.g. Pasta", "e.g. Fried Rice"][idx] || `Option ${idx + 1}`}
+                    className="flex-1 px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-purple-400 outline-none"
+                  />
+                  {options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setOptions(options.filter((_, i) => i !== idx))}
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove option"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setOptions([...options, ""])}
+                className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 mt-1"
+              >
+                ➕ Add another option
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
