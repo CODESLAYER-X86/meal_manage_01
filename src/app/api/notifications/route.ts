@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const unreadOnly = searchParams.get("unread") === "true";
-  const limit = Number(searchParams.get("limit") || 20);
+  const limit = Math.min(Number(searchParams.get("limit") || 20), 100);
 
   const where: Record<string, unknown> = { userId: session.user.id };
   if (unreadOnly) where.read = false;
@@ -49,6 +49,11 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (id) {
+    // IDOR fix: scope the update to the current user's own notifications only
+    const notification = await prisma.notification.findUnique({ where: { id } });
+    if (!notification || notification.userId !== session.user.id) {
+      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+    }
     await prisma.notification.update({
       where: { id },
       data: { read: true },

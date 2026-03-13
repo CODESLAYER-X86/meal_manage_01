@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit";
 
 // GET presence status for all members
 export async function GET() {
@@ -9,6 +10,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not in a mess" }, { status: 403 });
   }
   const messId = session.user.messId;
+
 
   const presences = await prisma.memberPresence.findMany({
     where: { messId },
@@ -74,16 +76,15 @@ export async function PATCH(request: NextRequest) {
   });
 
   // Audit
-  await prisma.auditLog.create({
-    data: {
-      editedById: session.user.id,
-      messId,
-      tableName: "MemberPresence",
-      recordId: presence.id,
-      fieldName: "isAway",
-      newValue: String(isAway),
-      action: "UPDATE",
-    },
+  await createAuditLog({
+    editedById: session.user.id,
+    messId,
+    tableName: "MemberPresence",
+    recordId: presence.id,
+    fieldName: "isAway",
+    oldValue: null,
+    newValue: String(isAway),
+    action: "UPDATE",
   });
 
   return NextResponse.json({ success: true, presence });
