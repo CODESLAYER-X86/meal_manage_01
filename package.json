@@ -17,16 +17,17 @@
     "@prisma/adapter-neon": "^7.4.2",
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
+    "@types/nodemailer": "^7.0.11",
     "@types/pg": "^8.18.0",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.1.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
+    "nodemailer": "^8.0.2",
     "pg": "^8.19.0",
     "prisma": "^7.4.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "resend": "^6.9.3"
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
