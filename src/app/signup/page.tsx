@@ -23,8 +23,20 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("Password must contain at least one lowercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
       return;
     }
 
@@ -141,6 +153,22 @@ export default function SignupPage() {
                 required
               />
             </div>
+
+            {/* Password requirements */}
+            {password.length > 0 && (
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                {[
+                  { label: "8+ characters", ok: password.length >= 8 },
+                  { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
+                  { label: "Lowercase letter", ok: /[a-z]/.test(password) },
+                  { label: "One number", ok: /[0-9]/.test(password) },
+                ].map(r => (
+                  <p key={r.label} className={`flex items-center gap-1 ${r.ok ? "text-green-600" : "text-gray-400"}`}>
+                    <span>{r.ok ? "✓" : "○"}</span> {r.label}
+                  </p>
+                ))}
+              </div>
+            )}
 
             <button
               type="submit"

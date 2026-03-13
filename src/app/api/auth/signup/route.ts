@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: "MEMBER",
         isActive: true,
-        emailVerified: false,
+        // emailVerified defaults to false in DB
       },
     });
 
