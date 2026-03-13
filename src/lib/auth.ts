@@ -1,7 +1,12 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcryptjs from "bcryptjs";
 import prisma from "@/lib/prisma";
+
+// Custom error so NextAuth v5 surfaces it to the client as error.code
+class EmailNotVerifiedError extends CredentialsSignin {
+  code = "email_not_verified";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -22,8 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Block login if email not verified
         if (!user.emailVerified) {
-          // Throw so NextAuth surfaces an error we can catch on the login page
-          throw new Error("EMAIL_NOT_VERIFIED:" + user.email);
+          throw new EmailNotVerifiedError();
         }
 
         const passwordMatch = await bcryptjs.compare(

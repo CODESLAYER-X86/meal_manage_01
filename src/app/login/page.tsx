@@ -28,7 +28,7 @@ function LoginForm() {
     });
 
     if (result?.error) {
-      if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+      if (result.error === "email_not_verified") {
         setNotVerified(true);
         setError("");
       } else {
