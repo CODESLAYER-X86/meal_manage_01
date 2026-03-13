@@ -9,6 +9,8 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notVerified, setNotVerified] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,7 +28,13 @@ function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      if (result.error.includes("EMAIL_NOT_VERIFIED")) {
+        setNotVerified(true);
+        setError("");
+      } else {
+        setError("Invalid email or password");
+        setNotVerified(false);
+      }
       setLoading(false);
     } else {
       router.push("/");
@@ -36,8 +44,33 @@ function LoginForm() {
   return (
     <>
       {justRegistered && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-          <span>✅</span> Account created! Please log in.
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 text-sm flex items-start gap-2">
+          <span>📬</span>
+          <span>Account created! Check your email to verify before logging in.</span>
+        </div>
+      )}
+
+      {notVerified && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-4 text-sm">
+          <p className="font-semibold mb-1">📧 Email not verified</p>
+          <p>Please check your inbox and click the verification link.</p>
+          {!resendSent ? (
+            <button
+              onClick={async () => {
+                await fetch("/api/auth/resend-verification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email }),
+                });
+                setResendSent(true);
+              }}
+              className="mt-2 text-indigo-700 underline text-xs"
+            >
+              Resend verification email
+            </button>
+          ) : (
+            <p className="mt-2 text-green-700 text-xs font-medium">✅ Sent! Check your inbox.</p>
+          )}
         </div>
       )}
 
@@ -85,7 +118,10 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center space-y-2">
+        <Link href="/forgot-password" className="block text-sm text-indigo-600 hover:underline">
+          Forgot your password?
+        </Link>
         <p className="text-gray-500 text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
