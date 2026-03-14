@@ -10,6 +10,19 @@ function getBDTime() {
   return { hour: bd.getUTCHours(), minute: bd.getUTCMinutes(), now, bd };
 }
 
+// Helper: get today's date string in Bangladesh timezone (YYYY-MM-DD)
+function getTodayBD(): { todayStr: string; todayDate: Date; tomorrowDate: Date } {
+  const { bd } = getBDTime();
+  const y = bd.getUTCFullYear();
+  const m = String(bd.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(bd.getUTCDate()).padStart(2, '0');
+  const todayStr = `${y}-${m}-${d}`;
+  const todayDate = new Date(todayStr + "T00:00:00.000Z");
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  return { todayStr, todayDate, tomorrowDate };
+}
+
 // Helper: check if a meal is in a blackout window right now (supports minute precision)
 function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: number; startMinute?: number; endHour: number; endMinute?: number }[]): boolean {
   const { hour, minute } = getBDTime();
@@ -114,11 +127,8 @@ export async function GET(request: NextRequest) {
     orderBy: { name: "asc" },
   }) as { id: string; name: string; role: string }[];
 
-  // Determine dates to fetch
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Determine dates to fetch (use Bangladesh timezone)
+  const { todayDate: today, tomorrowDate: tomorrow } = getTodayBD();
 
   let dates: Date[];
   if (dateParam) {
@@ -175,8 +185,7 @@ export async function GET(request: NextRequest) {
   });
 
   // ===== AUTO-FILL: When blackout has started for today's meals, create MealEntry from MealStatus =====
-  const todayStr = new Date().toISOString().split("T")[0];
-  const todayDate = new Date(todayStr + "T00:00:00.000Z");
+  const { todayDate } = getTodayBD();
   for (const meal of mealsList) {
     if (!hasBlackoutStarted(meal, blackouts)) continue;
     // Check which members don't have a MealEntry for today yet
