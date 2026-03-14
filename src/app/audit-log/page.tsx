@@ -73,11 +73,10 @@ export default function AuditLogPage() {
             <button
               key={t.value}
               onClick={() => setFilter(t.value)}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                filter === t.value
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${filter === t.value
                   ? "bg-indigo-600 text-white"
                   : "bg-gray-100 text-slate-400 hover:bg-gray-200"
-              }`}
+                }`}
             >
               {t.label}
             </button>
@@ -92,7 +91,7 @@ export default function AuditLogPage() {
             onChange={(e) => setFromDate(e.target.value)}
             className="px-3 py-2.5 border rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-indigo-500"
           />
-          <span className="text-slate-500 text-sm">to</span>
+          <span className="text-slate-400 text-sm">to</span>
           <input
             type="date"
             value={toDate}
@@ -113,7 +112,7 @@ export default function AuditLogPage() {
       {/* Log Entries */}
       <div className="space-y-2">
         {logs.length === 0 ? (
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-8 rounded-xl shadow-md shadow-black/10 border text-center text-slate-500">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-8 rounded-xl shadow-md shadow-black/10 border text-center text-slate-400">
             No audit logs yet
           </div>
         ) : (
@@ -121,29 +120,28 @@ export default function AuditLogPage() {
             <div key={log.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                    log.action === "CREATE"
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${log.action === "CREATE"
                       ? "bg-green-100 text-green-700"
                       : log.action === "UPDATE"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                  }`}>
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}>
                     {log.action}
                   </span>
                   <span className="text-slate-400 text-xs">by {log.editedBy.name}</span>
                 </div>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   {new Date(log.createdAt).toLocaleString()}
                 </span>
               </div>
               <div className="mt-2 text-sm text-slate-400">
                 <span className="font-medium text-slate-100">{log.fieldName}</span>
-                <span className="text-slate-500"> ({log.tableName})</span>
+                <span className="text-slate-400"> ({log.tableName})</span>
               </div>
               {log.action === "UPDATE" && (
                 <div className="mt-1 text-sm">
                   <span className="text-red-500 line-through">{log.oldValue}</span>
-                  <span className="text-slate-500"> → </span>
+                  <span className="text-slate-400"> → </span>
                   <span className="text-green-600 font-medium">{log.newValue}</span>
                 </div>
               )}

@@ -193,10 +193,10 @@ export default function BazarDutyPage() {
 
       {/* Duty list */}
       {loading ? (
-        <div className="text-center py-10 text-slate-500">Loading...</div>
+        <div className="text-center py-10 text-slate-400">Loading...</div>
       ) : duties.length === 0 ? (
         <div className="text-center py-10 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl border">
-          <p className="text-slate-500">No bazar duties scheduled this month</p>
+          <p className="text-slate-400">No bazar duties scheduled this month</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -255,7 +255,7 @@ export default function BazarDutyPage() {
             <div key={sr.id} className="flex items-center justify-between bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-3 rounded-lg border">
               <div className="text-sm">
                 <span className="font-medium">{sr.fromDuty?.member?.name}</span>
-                <span className="text-slate-500 mx-1">↔</span>
+                <span className="text-slate-400 mx-1">↔</span>
                 <span className="font-medium">{sr.toDuty?.member?.name}</span>
                 <span className="text-xs text-slate-400 ml-2">
                   ({sr.fromDuty?.date?.split("T")[0]} ↔ {sr.toDuty?.date?.split("T")[0]})

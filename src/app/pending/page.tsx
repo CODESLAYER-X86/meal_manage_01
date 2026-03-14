@@ -92,7 +92,7 @@ export default function PendingPage() {
 
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="w-full text-slate-500 hover:text-red-500 text-sm py-2 transition-colors"
+              className="w-full text-slate-400 hover:text-red-500 text-sm py-2 transition-colors"
             >
               🚪 Logout
             </button>

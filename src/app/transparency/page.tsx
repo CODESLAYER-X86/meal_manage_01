@@ -177,12 +177,12 @@ export default function TransparencyPage() {
                   ৳{s.billPaid.toFixed(0)}
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-500"}>
+                  <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-400"}>
                     {s.washroomCount}
                   </span>
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-500"}>
+                  <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-400"}>
                     {s.bazarTripCount}
                   </span>
                 </td>
@@ -191,7 +191,7 @@ export default function TransparencyPage() {
           </tbody>
         </table>
         {mealRate > 0 && (
-          <div className="p-3 border-t dark:border-gray-700 text-xs text-slate-400 dark:text-slate-500">
+          <div className="p-3 border-t dark:border-gray-700 text-xs text-slate-400 dark:text-slate-400">
             Meal rate: ৳{mealRate.toFixed(2)}/meal | Total bazar: ৳{totalBazar.toFixed(0)} | Total meals: {totalAllMeals}
           </div>
         )}
@@ -218,7 +218,7 @@ export default function TransparencyPage() {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  <div className="flex justify-between text-xs text-slate-400 dark:text-slate-400 mt-1">
                     <span>Paid: ৳{s.billPaid.toFixed(0)}</span>
                     <span>Due: ৳{s.billDue.toFixed(0)}</span>
                   </div>
@@ -236,9 +236,9 @@ export default function TransparencyPage() {
           <div className="divide-y dark:divide-gray-700">
             {washroomDuties.map((d) => (
               <div key={d.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-slate-400 dark:text-slate-500 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
+                <span className="text-slate-400 dark:text-slate-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
                 <span className="font-medium text-slate-100 dark:text-gray-200">{d.member.name}</span>
-                <span className="text-xs text-slate-500">WR-{d.washroomNumber}</span>
+                <span className="text-xs text-slate-400">WR-{d.washroomNumber}</span>
                 <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
                   ✅ Done
                 </span>
@@ -257,16 +257,16 @@ export default function TransparencyPage() {
               const companions = t.companionIds?.map((cid) => companionMap[cid]).filter(Boolean) || [];
               return (
                 <div key={i} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-slate-400 dark:text-slate-500 text-xs">{new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                  <span className="text-slate-400 dark:text-slate-400 text-xs">{new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                   <span className="font-medium text-slate-100 dark:text-gray-200">
                     {t.buyer?.name || "Unknown"}
                     {companions.length > 0 && (
-                      <span className="text-slate-400 dark:text-slate-500 font-normal"> + {companions.join(", ")}</span>
+                      <span className="text-slate-400 dark:text-slate-400 font-normal"> + {companions.join(", ")}</span>
                     )}
                   </span>
                   <span className="font-bold text-orange-700 dark:text-orange-400">৳{t.totalCost}</span>
                   <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${t.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
                     }`}>
                     {t.approved ? "✅ Approved" : "⏳ Pending"}
                   </span>

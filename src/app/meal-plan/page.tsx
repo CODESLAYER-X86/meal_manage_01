@@ -304,7 +304,7 @@ export default function MealPlanPage() {
                       <td className="py-2.5 pr-3">
                         <span className="font-medium text-slate-300 text-sm">{member.name}</span>
                         {member.id === session?.user?.id && (
-                          <span className="ml-1 text-xs text-slate-500">(you)</span>
+                          <span className="ml-1 text-xs text-slate-400">(you)</span>
                         )}
                       </td>
                       {meals.map((meal) => {
@@ -322,8 +322,8 @@ export default function MealPlanPage() {
                                 onClick={() => handleToggle(member.id, meal)}
                                 disabled={isToggling}
                                 className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${isOff
-                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                    : "bg-green-100 text-green-600 hover:bg-green-200"
+                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                  : "bg-green-100 text-green-600 hover:bg-green-200"
                                   } ${isToggling ? "opacity-50" : ""}`}
                                 title={isOff ? "Click to turn ON" : "Click to turn OFF"}
                               >
@@ -446,7 +446,7 @@ export default function MealPlanPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {isManager && !isEditing && (
-                    <span className="text-xs text-slate-500 hidden sm:inline">tap to edit</span>
+                    <span className="text-xs text-slate-400 hidden sm:inline">tap to edit</span>
                   )}
                 </div>
               </div>
@@ -502,7 +502,7 @@ export default function MealPlanPage() {
                           <div key={mt} className="flex items-start gap-2">
                             <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
                             <div>
-                              <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                              <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
                               <p className="text-sm text-slate-100">{val}</p>
                             </div>
                           </div>
@@ -513,7 +513,7 @@ export default function MealPlanPage() {
                 </div>
               ) : (
                 <div className="px-4 py-3">
-                  <p className="text-sm text-slate-500 italic">No menu planned</p>
+                  <p className="text-sm text-slate-400 italic">No menu planned</p>
                 </div>
               )}
             </div>

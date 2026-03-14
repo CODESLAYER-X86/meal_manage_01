@@ -387,8 +387,8 @@ function ArchiveViewer({
             key={tab.id}
             onClick={() => setViewTab(tab.id)}
             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${viewTab === tab.id
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-slate-400 hover:bg-gray-200"
+              ? "bg-indigo-600 text-white"
+              : "bg-gray-100 text-slate-400 hover:bg-gray-200"
               }`}
           >
             {tab.emoji} {tab.label}
@@ -502,10 +502,10 @@ function TransparencyView({ archive }: { archive: any }) {
                     ৳{s.billPaid.toFixed(0)}
                   </td>
                   <td className="p-2 sm:p-3 text-center">
-                    <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-500"}>{s.washroomCount}</span>
+                    <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-400"}>{s.washroomCount}</span>
                   </td>
                   <td className="p-2 sm:p-3 text-center">
-                    <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-500"}>{s.bazarTripCount}</span>
+                    <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-400"}>{s.bazarTripCount}</span>
                   </td>
                 </tr>
               ))}
@@ -560,7 +560,7 @@ function TransparencyView({ archive }: { archive: any }) {
               <div key={d.id} className="p-3 bg-white/[0.02] rounded-lg flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-slate-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
                 <span className="font-medium text-slate-100">{d.member?.name || "Unknown"}</span>
-                <span className="text-xs text-slate-500">WR-{d.washroomNumber}</span>
+                <span className="text-xs text-slate-400">WR-{d.washroomNumber}</span>
                 <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✅ Done</span>
               </div>
             ))}
@@ -598,7 +598,7 @@ function TransparencyView({ archive }: { archive: any }) {
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${d.dutyType === "WASHROOM" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
                   }`}>{d.dutyType}</span>
                 <span className="text-red-600 font-medium">{d.owedBy?.name}</span>
-                <span className="text-slate-500">→</span>
+                <span className="text-slate-400">→</span>
                 <span className="text-green-600 font-medium">{d.owedTo?.name}</span>
                 <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
                   }`}>{d.status}</span>
@@ -751,7 +751,7 @@ function CalendarView({ archive }: { archive: any }) {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No menu set for this day</p>
+              <p className="text-sm text-slate-400">No menu set for this day</p>
             )}
           </div>
 
@@ -759,7 +759,7 @@ function CalendarView({ archive }: { archive: any }) {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🍛 Meals</h4>
             {selMeals.length === 0 ? (
-              <p className="text-sm text-slate-500">No meals recorded</p>
+              <p className="text-sm text-slate-400">No meals recorded</p>
             ) : (
               <>
                 {/* Mobile cards */}
@@ -768,10 +768,10 @@ function CalendarView({ archive }: { archive: any }) {
                     <div key={m.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-lg p-3 border">
                       <p className="font-medium text-white text-sm mb-1">{m.member?.name || "Unknown"}</p>
                       <div className="grid grid-cols-4 gap-2 text-xs text-center">
-                        <div><p className="text-slate-500">B</p><p className="font-bold">{m.breakfast}</p></div>
-                        <div><p className="text-slate-500">L</p><p className="font-bold">{m.lunch}</p></div>
-                        <div><p className="text-slate-500">D</p><p className="font-bold">{m.dinner}</p></div>
-                        <div><p className="text-slate-500">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                        <div><p className="text-slate-400">B</p><p className="font-bold">{m.breakfast}</p></div>
+                        <div><p className="text-slate-400">L</p><p className="font-bold">{m.lunch}</p></div>
+                        <div><p className="text-slate-400">D</p><p className="font-bold">{m.dinner}</p></div>
+                        <div><p className="text-slate-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
                       </div>
                     </div>
                   ))}
@@ -809,7 +809,7 @@ function CalendarView({ archive }: { archive: any }) {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🛒 Bazar / Market Purchases</h4>
             {selBazar.length === 0 ? (
-              <p className="text-sm text-slate-500">No market purchases</p>
+              <p className="text-sm text-slate-400">No market purchases</p>
             ) : (
               selBazar.map((trip: any) => (
                 <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -852,7 +852,7 @@ function CalendarView({ archive }: { archive: any }) {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🚿 Washroom Cleaning</h4>
             {selWashroom.length === 0 ? (
-              <p className="text-sm text-slate-500">No washroom cleaning</p>
+              <p className="text-sm text-slate-400">No washroom cleaning</p>
             ) : (
               <div className="space-y-1">
                 {selWashroom.map((w: any) => (
@@ -869,7 +869,7 @@ function CalendarView({ archive }: { archive: any }) {
       )}
 
       {!selectedDate && (
-        <p className="text-center text-slate-500 text-sm py-4">👆 Click on a date to see details</p>
+        <p className="text-center text-slate-400 text-sm py-4">👆 Click on a date to see details</p>
       )}
     </div>
   );
@@ -972,7 +972,7 @@ function MealsView({ mealEntries }: { mealEntries: any[] }) {
         </div>
       ))}
       {(!mealEntries || mealEntries.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No meal entries in this archive</p>
+        <p className="text-slate-400 text-center py-6">No meal entries in this archive</p>
       )}
     </div>
   );
@@ -1005,7 +1005,7 @@ function DepositsView({ deposits }: { deposits: any[] }) {
         </table>
       </div>
       {(!deposits || deposits.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No deposits in this archive</p>
+        <p className="text-slate-400 text-center py-6">No deposits in this archive</p>
       )}
     </div>
   );
@@ -1053,7 +1053,7 @@ function BazarView({ bazarTrips }: { bazarTrips: any[] }) {
         </div>
       ))}
       {(!bazarTrips || bazarTrips.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No bazar trips in this archive</p>
+        <p className="text-slate-400 text-center py-6">No bazar trips in this archive</p>
       )}
     </div>
   );
@@ -1089,23 +1089,23 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">
                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${log.action === "CREATE" ? "bg-green-100 text-green-700"
-                    : log.action === "UPDATE" ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
+                  : log.action === "UPDATE" ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
                   }`}>
                   {log.action}
                 </span>
                 <span className="text-xs text-slate-400">by {log.editedBy?.name}</span>
               </div>
-              <span className="text-xs text-slate-500">{new Date(log.createdAt).toLocaleString()}</span>
+              <span className="text-xs text-slate-400">{new Date(log.createdAt).toLocaleString()}</span>
             </div>
             <div className="mt-1.5 text-sm">
               <span className="font-medium text-slate-100">{log.fieldName}</span>
-              <span className="text-slate-500 text-xs ml-1">({log.tableName})</span>
+              <span className="text-slate-400 text-xs ml-1">({log.tableName})</span>
             </div>
             {log.action === "UPDATE" && (
               <div className="mt-1 text-sm">
                 <span className="text-red-500 line-through">{log.oldValue}</span>
-                <span className="text-slate-500"> → </span>
+                <span className="text-slate-400"> → </span>
                 <span className="text-green-600 font-medium">{log.newValue}</span>
               </div>
             )}
@@ -1116,7 +1116,7 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
         ))}
       </div>
       {filtered.length === 0 && (
-        <p className="text-slate-500 text-center py-6">No audit logs in this archive</p>
+        <p className="text-slate-400 text-center py-6">No audit logs in this archive</p>
       )}
     </div>
   );
@@ -1144,8 +1144,8 @@ function WashroomView({ duties }: { duties: any[] }) {
                 <td className="p-2 sm:p-3">{d.member?.name || d.memberId}</td>
                 <td className="p-2 sm:p-3 text-center">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.status === "DONE" ? "bg-green-100 text-green-700"
-                      : d.status === "SKIPPED" ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
+                    : d.status === "SKIPPED" ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700"
                     }`}>
                     {d.status}
                   </span>
@@ -1156,7 +1156,7 @@ function WashroomView({ duties }: { duties: any[] }) {
         </table>
       </div>
       {(!duties || duties.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No washroom duties in this archive</p>
+        <p className="text-slate-400 text-center py-6">No washroom duties in this archive</p>
       )}
     </div>
   );
@@ -1180,14 +1180,14 @@ function MealPlanView({ plans }: { plans: any[] }) {
                   {p.breakfast && <span>🌅 {p.breakfast}</span>}
                   {p.lunch && <span>☀️ {p.lunch}</span>}
                   {p.dinner && <span>🌙 {p.dinner}</span>}
-                  {!p.breakfast && !p.lunch && !p.dinner && <span className="text-slate-500 italic">No menu</span>}
+                  {!p.breakfast && !p.lunch && !p.dinner && <span className="text-slate-400 italic">No menu</span>}
                 </div>
               </div>
             );
           })}
       </div>
       {(!plans || plans.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No meal plans in this archive</p>
+        <p className="text-slate-400 text-center py-6">No meal plans in this archive</p>
       )}
     </div>
   );
@@ -1211,7 +1211,7 @@ function RatingsView({ ratings }: { ratings: any[] }) {
         ))}
       </div>
       {(!ratings || ratings.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No ratings in this archive</p>
+        <p className="text-slate-400 text-center py-6">No ratings in this archive</p>
       )}
     </div>
   );
@@ -1229,14 +1229,14 @@ function AnnouncementsView({ announcements }: { announcements: any[] }) {
               <h3 className="font-medium text-slate-100">{a.title}</h3>
             </div>
             <p className="text-sm text-slate-400 mt-1">{a.body}</p>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-400 mt-2">
               — {a.author?.name} · {new Date(a.createdAt).toLocaleDateString()}
             </p>
           </div>
         ))}
       </div>
       {(!announcements || announcements.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No announcements in this archive</p>
+        <p className="text-slate-400 text-center py-6">No announcements in this archive</p>
       )}
     </div>
   );
@@ -1280,13 +1280,13 @@ function VotesView({ topics }: { topics: any[] }) {
                   );
                 })}
               </div>
-              <p className="text-xs text-slate-500 mt-2">{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-slate-400 mt-2">{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</p>
             </div>
           );
         })}
       </div>
       {(!topics || topics.length === 0) && (
-        <p className="text-slate-500 text-center py-6">No vote topics in this archive</p>
+        <p className="text-slate-400 text-center py-6">No vote topics in this archive</p>
       )}
     </div>
   );
@@ -1331,7 +1331,7 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
                 <tr key={m.id} className="border-t">
                   <td className="p-2 sm:p-3 font-medium">{m.name}</td>
                   <td className="p-2 sm:p-3 text-right">৳{rent}</td>
-                  <td className="p-2 sm:p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-slate-500">—</span>}</td>
+                  <td className="p-2 sm:p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-slate-400">—</span>}</td>
                   <td className="p-2 sm:p-3 text-center">
                     {payment ? (
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${payment.confirmed ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
@@ -1348,7 +1348,7 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
       </div>
 
       {(!payments || payments.length === 0) && (!setting) && (
-        <p className="text-slate-500 text-center py-6">No bill data in this archive</p>
+        <p className="text-slate-400 text-center py-6">No bill data in this archive</p>
       )}
     </div>
   );

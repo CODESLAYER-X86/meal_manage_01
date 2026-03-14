@@ -184,7 +184,7 @@ export default function MealVotePage() {
             <div className="space-y-2">
               {options.map((opt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
+                  <span className="text-xs font-medium text-slate-400 w-5 text-right shrink-0">{idx + 1}.</span>
                   <input
                     type="text"
                     value={opt}
@@ -200,7 +200,7 @@ export default function MealVotePage() {
                     <button
                       type="button"
                       onClick={() => setOptions(options.filter((_, i) => i !== idx))}
-                      className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove option"
                     >
                       ✕
@@ -260,7 +260,7 @@ export default function MealVotePage() {
             {showClosed ? "No closed votes" : "No active votes right now"}
           </p>
           {isManager && !showClosed && (
-            <p className="text-sm text-slate-500 mt-1">Create one above to let members vote!</p>
+            <p className="text-sm text-slate-400 mt-1">Create one above to let members vote!</p>
           )}
         </div>
       ) : (
@@ -282,7 +282,7 @@ export default function MealVotePage() {
                 <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-base font-semibold text-white">{topic.title}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap gap-1.5">
+                    <p className="text-xs text-slate-400 mt-0.5 flex flex-wrap gap-1.5">
                       {topic.targetDate && (
                         <span>📅 {new Date(topic.targetDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                       )}
@@ -295,11 +295,11 @@ export default function MealVotePage() {
                   {isManager && (
                     <div className="flex gap-1 shrink-0">
                       {topic.active && (
-                        <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-slate-500 hover:text-orange-600 rounded-lg hover:bg-white/[0.02]" title="Close voting">
+                        <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-slate-400 hover:text-orange-600 rounded-lg hover:bg-white/[0.02]" title="Close voting">
                           🔒
                         </button>
                       )}
-                      <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-slate-500 hover:text-red-600 rounded-lg hover:bg-white/[0.02]" title="Delete">
+                      <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-slate-400 hover:text-red-600 rounded-lg hover:bg-white/[0.02]" title="Delete">
                         🗑️
                       </button>
                     </div>
@@ -341,10 +341,10 @@ export default function MealVotePage() {
                         <div className="relative flex items-center gap-3">
                           {/* Radio circle indicator */}
                           <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isMyChoice
-                              ? "border-indigo-500 bg-indigo-500"
-                              : isWinner
-                                ? "border-green-500 bg-green-500"
-                                : "border-gray-300"
+                            ? "border-indigo-500 bg-indigo-500"
+                            : isWinner
+                              ? "border-green-500 bg-green-500"
+                              : "border-gray-300"
                             }`}>
                             {(isMyChoice || isWinner) && (
                               <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -363,7 +363,7 @@ export default function MealVotePage() {
                               )}
                             </div>
                             {voters.length > 0 && (
-                              <p className="text-xs text-slate-500 mt-0.5 truncate">{voters.join(", ")}</p>
+                              <p className="text-xs text-slate-400 mt-0.5 truncate">{voters.join(", ")}</p>
                             )}
                           </div>
 
@@ -373,7 +373,7 @@ export default function MealVotePage() {
                               }`}>
                               {count}
                             </span>
-                            <span className="text-xs text-slate-500 ml-1">({pct}%)</span>
+                            <span className="text-xs text-slate-400 ml-1">({pct}%)</span>
                           </div>
                         </div>
 
@@ -395,7 +395,7 @@ export default function MealVotePage() {
                 {/* Loading indicator */}
                 {voting === topic.id && (
                   <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-                    <p className="text-xs text-slate-500 text-center">Casting vote...</p>
+                    <p className="text-xs text-slate-400 text-center">Casting vote...</p>
                   </div>
                 )}
               </div>

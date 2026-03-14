@@ -199,7 +199,7 @@ export default function DashboardPage() {
                     <div key={mt} className="flex items-start gap-2">
                       <span>{mealIcons[mt] || "🍽️"}</span>
                       <div>
-                        <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                        <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
                         <p className="text-sm text-slate-100">{val}</p>
                       </div>
                     </div>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
               })()}
             </div>
           ) : (
-            <p className="text-sm text-slate-500 italic">No menu planned for today</p>
+            <p className="text-sm text-slate-400 italic">No menu planned for today</p>
           )}
         </div>
         {/* Tomorrow */}
@@ -235,7 +235,7 @@ export default function DashboardPage() {
                     <div key={mt} className="flex items-start gap-2">
                       <span>{mealIcons[mt] || "🍽️"}</span>
                       <div>
-                        <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                        <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
                         <p className="text-sm text-slate-100">{val}</p>
                       </div>
                     </div>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
               })()}
             </div>
           ) : (
-            <p className="text-sm text-slate-500 italic">No menu planned for tomorrow</p>
+            <p className="text-sm text-slate-400 italic">No menu planned for tomorrow</p>
           )}
         </div>
       </div>
@@ -399,7 +399,7 @@ export default function DashboardPage() {
               {/* Cook Count */}
               <div className="flex flex-wrap gap-2 mt-1">
                 {meals.map((meal) => (
-                  <span key={meal} className="text-xs text-slate-500">
+                  <span key={meal} className="text-xs text-slate-400">
                     {meal}: <strong className="text-slate-400">{data.mealCounts?.[meal] ?? 0}</strong> eating
                   </span>
                 ))}
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                     ) : paid === 0 && totalBill > 0 ? (
                       <span className="text-red-600 font-medium">❌ Unpaid</span>
                     ) : (
-                      <span className="text-slate-500">—</span>
+                      <span className="text-slate-400">—</span>
                     )}
                   </span>
                 </div>
@@ -539,7 +539,7 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium text-slate-100">{a.title}</p>
                 </div>
                 <p className="text-xs text-slate-400 mt-1 line-clamp-2">{a.body}</p>
-                <p className="text-xs text-slate-500 mt-1">— {a.author.name}</p>
+                <p className="text-xs text-slate-400 mt-1">— {a.author.name}</p>
               </div>
             ))}
           </div>
@@ -582,13 +582,13 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2 text-sm max-h-64 overflow-y-auto">
             {auditLogs.length === 0 ? (
-              <p className="text-slate-500">No changes recorded yet</p>
+              <p className="text-slate-400">No changes recorded yet</p>
             ) : (
               auditLogs.map((log) => (
                 <div key={log.id} className="p-2 bg-gray-50 rounded-lg">
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-300">{log.fieldName}</span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-slate-400">
                       {new Date(log.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -597,12 +597,12 @@ export default function DashboardPage() {
                       <>
                         <span className="text-red-500 line-through">{log.oldValue}</span> →{" "}
                         <span className="text-green-600">{log.newValue}</span>
-                        <span className="text-slate-500 text-xs ml-1">(by {log.editedBy.name})</span>
+                        <span className="text-slate-400 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     ) : (
                       <>
                         {log.action}: {log.newValue}
-                        <span className="text-slate-500 text-xs ml-1">(by {log.editedBy.name})</span>
+                        <span className="text-slate-400 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     )}
                   </p>

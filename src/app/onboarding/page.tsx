@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                   <p className="font-semibold text-white">I&apos;m a Manager</p>
                   <p className="text-sm text-slate-400">Create a mess and invite members</p>
                 </div>
-                <span className="ml-auto text-slate-500">→</span>
+                <span className="ml-auto text-slate-400">→</span>
               </button>
 
               <button
@@ -172,7 +172,7 @@ export default function OnboardingPage() {
                   <p className="font-semibold text-white">Join a Mess</p>
                   <p className="text-sm text-slate-400">Enter an invite code to join</p>
                 </div>
-                <span className="ml-auto text-slate-500">→</span>
+                <span className="ml-auto text-slate-400">→</span>
               </button>
             </div>
           )}

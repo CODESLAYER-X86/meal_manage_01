@@ -114,7 +114,7 @@ export default function BillingPage() {
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-md shadow-black/10 border text-center">
           <p className="text-sm text-slate-400">Meal Rate</p>
           <p className="text-xl sm:text-2xl font-bold text-indigo-600">৳{bill?.mealRate || 0}</p>
-          <p className="text-xs text-slate-500">per meal</p>
+          <p className="text-xs text-slate-400">per meal</p>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export default function BillingPage() {
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 w-12">Cost</span>
+                      <span className="text-xs text-slate-400 w-12">Cost</span>
                       <div className="flex-1 bg-gray-100 rounded-full h-3">
                         <div
                           className="bg-red-400 h-3 rounded-full transition-all"
@@ -148,7 +148,7 @@ export default function BillingPage() {
                       <span className="text-xs text-slate-400 w-14 text-right">৳{m.mealCost}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 w-12">Deposit</span>
+                      <span className="text-xs text-slate-400 w-12">Deposit</span>
                       <div className="flex-1 bg-gray-100 rounded-full h-3">
                         <div
                           className="bg-green-400 h-3 rounded-full transition-all"
@@ -162,7 +162,7 @@ export default function BillingPage() {
               );
             })}
           </div>
-          <div className="flex gap-4 mt-4 text-xs text-slate-500">
+          <div className="flex gap-4 mt-4 text-xs text-slate-400">
             <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-400 rounded-full" /> Meal Cost</div>
             <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-400 rounded-full" /> Deposited</div>
           </div>
@@ -198,10 +198,10 @@ export default function BillingPage() {
                   </td>
                   <td className="p-2 sm:p-4 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0
-                        ? "bg-red-100 text-red-700"
-                        : m.netDue < 0
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-slate-400"
+                      ? "bg-red-100 text-red-700"
+                      : m.netDue < 0
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-slate-400"
                       }`}>
                       {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
                     </span>

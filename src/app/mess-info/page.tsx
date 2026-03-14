@@ -276,7 +276,7 @@ export default function MessInfoPage() {
               {copied ? "✅ Copied!" : "📋 Copy"}
             </button>
           </div>
-          <p className="text-xs text-slate-500 mt-2">Members who use this code will need your approval to join</p>
+          <p className="text-xs text-slate-400 mt-2">Members who use this code will need your approval to join</p>
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export default function MessInfoPage() {
                   <p className="font-medium text-white">{req.user.name}</p>
                   <p className="text-sm text-slate-400 truncate">{req.user.email}</p>
                   {req.user.phone && (
-                    <p className="text-xs text-slate-500">📱 {req.user.phone}</p>
+                    <p className="text-xs text-slate-400">📱 {req.user.phone}</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -343,17 +343,17 @@ export default function MessInfoPage() {
                     </span>
                   )}
                   {member.id === session?.user?.id && (
-                    <span className="ml-1 text-xs text-slate-500">(you)</span>
+                    <span className="ml-1 text-xs text-slate-400">(you)</span>
                   )}
                 </p>
                 <p className="text-sm text-slate-400 truncate">{member.email}</p>
                 {member.phone && (
-                  <p className="text-xs text-slate-500 sm:hidden">📱 {member.phone}</p>
+                  <p className="text-xs text-slate-400 sm:hidden">📱 {member.phone}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {member.phone && (
-                  <span className="text-sm text-slate-500 hidden sm:inline">📱 {member.phone}</span>
+                  <span className="text-sm text-slate-400 hidden sm:inline">📱 {member.phone}</span>
                 )}
                 {/* Kick button - manager only, not for self, not for other managers */}
                 {isManager && member.role !== "MANAGER" && member.id !== session?.user?.id && (
@@ -402,7 +402,7 @@ export default function MessInfoPage() {
           {/* Meal Types Selection */}
           <div className="mb-5">
             <label className="text-sm text-slate-300 font-medium block mb-2">Meal Types</label>
-            <p className="text-xs text-slate-500 mb-3">Select which meals your mess has. You can also add custom meal names.</p>
+            <p className="text-xs text-slate-400 mb-3">Select which meals your mess has. You can also add custom meal names.</p>
             <div className="flex flex-wrap gap-3 mb-3">
               {["breakfast", "lunch", "dinner", "snacks", "supper"].map((meal) => (
                 <label key={meal} className="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -469,7 +469,7 @@ export default function MessInfoPage() {
             {mealTypesInput.length === 0 && (
               <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal type</p>
             )}
-            <p className="mt-2 text-xs text-slate-500">Current: {mealTypesInput.length} meal{mealTypesInput.length !== 1 ? "s" : ""}/day — {mealTypesInput.join(", ")}</p>
+            <p className="mt-2 text-xs text-slate-400">Current: {mealTypesInput.length} meal{mealTypesInput.length !== 1 ? "s" : ""}/day — {mealTypesInput.join(", ")}</p>
           </div>
 
           {/* Blackout Windows */}
@@ -477,12 +477,12 @@ export default function MessInfoPage() {
             <label className="text-sm text-slate-300 font-medium block mb-2">
               ⏰ Blackout Windows (Restrictions)
             </label>
-            <p className="text-xs text-slate-500 mb-3">
+            <p className="text-xs text-slate-400 mb-3">
               Members cannot toggle meals ON/OFF during these times. They must send a special request instead.
             </p>
 
             {blackoutsInput.length === 0 && (
-              <p className="text-sm text-slate-500 italic mb-3">No restrictions set — members can toggle meals anytime.</p>
+              <p className="text-sm text-slate-400 italic mb-3">No restrictions set — members can toggle meals anytime.</p>
             )}
 
             <div className="space-y-3">
@@ -628,7 +628,7 @@ export default function MessInfoPage() {
               {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "⚠️" : "✅"} {mealConfigMsg}
             </p>
           )}
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-400">
             {mess && blackoutsInput.length > 0
               ? `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · ${blackoutsInput.length} restriction${blackoutsInput.length !== 1 ? "s" : ""} active`
               : `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · No restrictions — members can toggle anytime`}
@@ -664,7 +664,7 @@ export default function MessInfoPage() {
           {washroomMsg && (
             <p className="mt-2 text-sm text-green-600">✅ {washroomMsg}</p>
           )}
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-400">
             {mess && mess.washroomCount > 0
               ? `Currently: ${mess.washroomCount} washroom${mess.washroomCount !== 1 ? "s" : ""} · Rotation is active`
               : "Currently: Disabled · Members won't see the washroom page"}
@@ -701,7 +701,7 @@ export default function MessInfoPage() {
           {thresholdMsg && (
             <p className="mt-2 text-sm text-green-600">✅ {thresholdMsg}</p>
           )}
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-400">
             {mess && mess.dueThreshold > 0
               ? `Currently: ৳${mess.dueThreshold} · Members owing more than this will see a warning`
               : "Currently: Disabled · No deposit reminders will be shown"}
@@ -735,7 +735,7 @@ export default function MessInfoPage() {
               >
                 <div className={`w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${hasGasInput ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
-              <span className="text-xs text-slate-500">{hasGasInput ? 'Enabled' : 'Disabled'}</span>
+              <span className="text-xs text-slate-400">{hasGasInput ? 'Enabled' : 'Disabled'}</span>
             </div>
             <div className="flex items-center gap-3">
               <label className="text-sm text-slate-300 font-medium w-40">Has Cook:</label>
@@ -745,7 +745,7 @@ export default function MessInfoPage() {
               >
                 <div className={`w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${hasCookInput ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
-              <span className="text-xs text-slate-500">{hasCookInput ? 'Enabled' : 'Disabled'}</span>
+              <span className="text-xs text-slate-400">{hasCookInput ? 'Enabled' : 'Disabled'}</span>
             </div>
             <button
               onClick={async () => {

@@ -103,7 +103,7 @@ export default function AdminMessesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[#12122a] border border-white/10 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <h2 className="text-base font-semibold text-white">Change Manager</h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Select a new manager for <span className="text-white font-medium">{managerModal.messName}</span>
             </p>
             {membersLoading ? (
@@ -117,11 +117,10 @@ export default function AdminMessesPage() {
                 {members.map((m) => (
                   <label
                     key={m.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer border transition-all ${
-                      selectedMemberId === m.id
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer border transition-all ${selectedMemberId === m.id
                         ? "border-violet-500/50 bg-violet-500/10"
                         : "border-white/5 bg-white/[0.03] hover:bg-white/[0.06]"
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -147,7 +146,7 @@ export default function AdminMessesPage() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setManagerModal(null)}
-                className="flex-1 px-4 py-2 text-sm bg-white/5 border border-white/10 text-slate-500 rounded-xl hover:bg-white/10 transition-colors"
+                className="flex-1 px-4 py-2 text-sm bg-white/5 border border-white/10 text-slate-400 rounded-xl hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -172,7 +171,7 @@ export default function AdminMessesPage() {
       {messes.length === 0 ? (
         <div className="bg-[#1a1a3e]/50 border border-white/5 rounded-2xl p-12 text-center">
           <p className="text-4xl mb-3">🏠</p>
-          <p className="text-slate-500">No messes created yet</p>
+          <p className="text-slate-400">No messes created yet</p>
         </div>
       ) : (
         <>
@@ -209,13 +208,13 @@ export default function AdminMessesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Invite Code</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Creator</th>
-                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Members</th>
-                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Meals</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Created</th>
-                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Name</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Invite Code</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Creator</th>
+                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Members</th>
+                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Meals</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Created</th>
+                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -227,11 +226,11 @@ export default function AdminMessesPage() {
                       <td className="px-5 py-4">
                         <span className="font-mono text-xs text-violet-400 bg-violet-500/10 px-2 py-1 rounded-md">{m.inviteCode}</span>
                       </td>
-                      <td className="px-5 py-4 text-slate-500 text-xs">{m.createdBy.name}</td>
+                      <td className="px-5 py-4 text-slate-400 text-xs">{m.createdBy.name}</td>
                       <td className="px-5 py-4 text-center">
                         <span className="inline-flex items-center justify-center min-w-[28px] px-2 py-0.5 bg-blue-500/10 text-blue-400 text-xs font-medium rounded-full">{m._count.members}</span>
                       </td>
-                      <td className="px-5 py-4 text-center text-slate-500 text-xs">{m._count.mealEntries}</td>
+                      <td className="px-5 py-4 text-center text-slate-400 text-xs">{m._count.mealEntries}</td>
                       <td className="px-5 py-4 text-slate-400 text-xs">{new Date(m.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-4 text-right">
                         <div className="flex justify-end gap-1.5">
@@ -264,7 +263,7 @@ export default function AdminMessesPage() {
           <button
             onClick={() => fetchMesses(page - 1)}
             disabled={page <= 1}
-            className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-500 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-400 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             ← Prev
           </button>
@@ -274,7 +273,7 @@ export default function AdminMessesPage() {
           <button
             onClick={() => fetchMesses(page + 1)}
             disabled={page >= pages}
-            className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-500 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-400 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             Next →
           </button>

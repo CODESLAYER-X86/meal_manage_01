@@ -72,7 +72,7 @@ export default function AdminDashboard() {
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl" />
         <div className="relative">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Admin Overview</h1>
-          <p className="text-slate-500 text-sm">Platform health & statistics at a glance</p>
+          <p className="text-slate-400 text-sm">Platform health & statistics at a glance</p>
         </div>
       </div>
 
@@ -120,11 +120,11 @@ export default function AdminDashboard() {
           <h2 className="text-sm font-semibold text-white">Admin Account</h2>
         </div>
         <div className="space-y-2 text-xs">
-          <p className="text-slate-500">
-            Login: <span className="text-slate-500 font-mono bg-white/5 px-2 py-0.5 rounded">admin@messmeal.app</span>
+          <p className="text-slate-400">
+            Login: <span className="text-slate-400 font-mono bg-white/5 px-2 py-0.5 rounded">admin@messmeal.app</span>
           </p>
           <p className="text-slate-400">
-            Recovery: POST to <span className="font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded">/api/admin/recovery</span> with email + recoveryKey + newPassword
+            Recovery: POST to <span className="font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded">/api/admin/recovery</span> with email + recoveryKey + newPassword
           </p>
         </div>
       </div>

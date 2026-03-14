@@ -270,7 +270,7 @@ export default function DepositsPage() {
                 </tr>
               ))}
               {deposits.length === 0 && (
-                <tr><td colSpan={5} className="p-4 text-center text-slate-500">No deposits this month</td></tr>
+                <tr><td colSpan={5} className="p-4 text-center text-slate-400">No deposits this month</td></tr>
               )}
             </tbody>
           </table>

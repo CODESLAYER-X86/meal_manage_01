@@ -198,7 +198,7 @@ export default function MealRatingPage() {
                     <div key={r.id} className="flex items-center gap-2 text-xs text-slate-400">
                       <span className="font-medium text-slate-300">{r.member.name}</span>
                       <span>{"⭐".repeat(r.rating)}</span>
-                      {r.comment && <span className="text-slate-500">— {r.comment}</span>}
+                      {r.comment && <span className="text-slate-400">— {r.comment}</span>}
                     </div>
                   ))}
                 </div>
@@ -218,7 +218,7 @@ export default function MealRatingPage() {
               <div key={meal} className="text-center">
                 <p className="text-sm text-slate-400 capitalize">{MEAL_ICONS[meal]} {meal}</p>
                 <p className="text-xl font-bold text-indigo-600">{avg > 0 ? avg.toFixed(1) : "—"}</p>
-                <p className="text-xs text-slate-500">{count} rating{count !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-slate-400">{count} rating{count !== 1 ? "s" : ""}</p>
                 {avg > 0 && (
                   <div className="flex justify-center gap-0.5 mt-1">
                     {STARS.map((s) => (

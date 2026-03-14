@@ -308,7 +308,7 @@ export default function BazarEntryPage() {
               <div key={m.id} className="bg-gray-50 rounded-lg p-3 text-center">
                 <p className="text-sm font-medium text-white truncate">{m.name}</p>
                 <p className="text-xl font-bold text-orange-600">{tripCounts[m.id] || 0}</p>
-                <p className="text-xs text-slate-500">trips</p>
+                <p className="text-xs text-slate-400">trips</p>
               </div>
             ))}
           </div>
@@ -365,8 +365,8 @@ export default function BazarEntryPage() {
                   type="button"
                   onClick={handleAloneToggle}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${alone
-                      ? "bg-orange-600 text-white border-orange-600"
-                      : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
+                    ? "bg-orange-600 text-white border-orange-600"
+                    : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
                     }`}
                 >
                   🙋 Alone
@@ -380,15 +380,15 @@ export default function BazarEntryPage() {
                       toggleCompanion(m.id);
                     }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${companions.includes(m.id)
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
                       }`}
                   >
                     👤 {m.name}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 {alone
                   ? `${session?.user?.name} went alone`
                   : companions.length > 0
@@ -527,7 +527,7 @@ export default function BazarEntryPage() {
                       {trip.buyer.name}{isOwnTrip && " (you)"}
                     </span>
                     {companionNames.length > 0 && (
-                      <span className="text-xs text-slate-500">+ {companionNames.join(", ")}</span>
+                      <span className="text-xs text-slate-400">+ {companionNames.join(", ")}</span>
                     )}
                     <span className="text-sm font-bold text-orange-600 ml-auto">৳{trip.totalCost}</span>
 
@@ -589,14 +589,14 @@ export default function BazarEntryPage() {
                           {editSaving ? "Saving..." : "💾 Save Changes"}
                         </button>
                         <button onClick={cancelEdit} className="px-4 py-2 bg-gray-200 text-slate-300 text-xs font-medium rounded-lg hover:bg-gray-300">Cancel</button>
-                        <span className="text-xs text-slate-500 self-center ml-auto">
+                        <span className="text-xs text-slate-400 self-center ml-auto">
                           Total: ৳{editItems.reduce((s, item) => s + (parseFloat(item.price) || 0), 0)}
                         </span>
                       </div>
                     </div>
                   ) : (
                     <>
-                      {trip.note && <p className="px-4 pb-2 text-xs text-slate-500 italic">{trip.note}</p>}
+                      {trip.note && <p className="px-4 pb-2 text-xs text-slate-400 italic">{trip.note}</p>}
 
                       {/* Items list */}
                       {trip.items.length > 0 && (

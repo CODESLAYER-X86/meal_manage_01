@@ -170,7 +170,7 @@ export default function AnnouncementsPage() {
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-10 text-center">
           <div className="text-5xl mb-4">📢</div>
           <p className="text-slate-400 text-lg">No announcements yet</p>
-          {isManager && <p className="text-sm text-slate-500 mt-1">Post one above to notify your mess members</p>}
+          {isManager && <p className="text-sm text-slate-400 mt-1">Post one above to notify your mess members</p>}
         </div>
       ) : (
         <div className="space-y-3">
@@ -192,7 +192,7 @@ export default function AnnouncementsPage() {
                       <h3 className="text-base font-semibold text-white">{a.title}</h3>
                     </div>
                     <p className="text-sm text-slate-300 mt-2 whitespace-pre-wrap">{a.body}</p>
-                    <p className="text-xs text-slate-500 mt-3">
+                    <p className="text-xs text-slate-400 mt-3">
                       By {a.author.name} · {new Date(a.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       {" "}at {new Date(a.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                     </p>
@@ -201,14 +201,14 @@ export default function AnnouncementsPage() {
                     <div className="flex gap-1 shrink-0">
                       <button
                         onClick={() => togglePin(a.id, a.pinned)}
-                        className="p-2 text-sm text-slate-500 hover:text-amber-600 rounded-lg hover:bg-gray-50"
+                        className="p-2 text-sm text-slate-400 hover:text-amber-600 rounded-lg hover:bg-gray-50"
                         title={a.pinned ? "Unpin" : "Pin"}
                       >
                         📌
                       </button>
                       <button
                         onClick={() => deleteAnnouncement(a.id)}
-                        className="p-2 text-sm text-slate-500 hover:text-red-600 rounded-lg hover:bg-gray-50"
+                        className="p-2 text-sm text-slate-400 hover:text-red-600 rounded-lg hover:bg-gray-50"
                         title="Delete"
                       >
                         🗑️

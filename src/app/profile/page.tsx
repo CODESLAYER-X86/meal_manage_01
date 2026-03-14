@@ -123,24 +123,23 @@ export default function ProfilePage() {
         <h2 className="text-lg font-semibold text-slate-300 mb-4">Profile Info</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-slate-500">Name</p>
+            <p className="text-slate-400">Name</p>
             <p className="font-medium text-slate-100">{profile.name}</p>
           </div>
           <div>
-            <p className="text-slate-500">Email</p>
+            <p className="text-slate-400">Email</p>
             <p className="font-medium text-slate-100">{profile.email}</p>
           </div>
           <div>
-            <p className="text-slate-500">Phone</p>
+            <p className="text-slate-400">Phone</p>
             <p className="font-medium text-slate-100">{profile.phone || "Not set"}</p>
           </div>
           <div>
-            <p className="text-slate-500">Role</p>
-            <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
-              profile.role === "MANAGER"
+            <p className="text-slate-400">Role</p>
+            <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${profile.role === "MANAGER"
                 ? "bg-indigo-100 text-indigo-700"
                 : "bg-gray-100 text-slate-400"
-            }`}>
+              }`}>
               {profile.role}
             </span>
           </div>

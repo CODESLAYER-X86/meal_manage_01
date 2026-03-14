@@ -141,11 +141,11 @@ export default function WashroomPage() {
           <h1 className="text-2xl font-bold text-white mb-2">Washroom Cleaning</h1>
           <p className="text-slate-400 text-lg mb-4">Washroom cleaning is not enabled for this mess.</p>
           {isManager ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Go to <a href="/mess-info" className="text-indigo-600 hover:underline font-medium">Mess Info</a> → Washroom Settings to enable it.
             </p>
           ) : (
-            <p className="text-sm text-slate-500">Ask your manager to enable it from Mess Info settings.</p>
+            <p className="text-sm text-slate-400">Ask your manager to enable it from Mess Info settings.</p>
           )}
         </div>
       </div>
@@ -217,7 +217,7 @@ export default function WashroomPage() {
                       {overdue && <p className="text-xs text-red-500 font-medium">⚠️ Overdue!</p>}
                     </>
                   ) : (
-                    <p className="text-sm text-slate-500 italic">Never cleaned</p>
+                    <p className="text-sm text-slate-400 italic">Never cleaned</p>
                   )}
                 </div>
               );
@@ -292,7 +292,7 @@ export default function WashroomPage() {
                 <div key={m.id} className="bg-white/[0.02] rounded-lg p-3 text-center">
                   <p className="text-sm font-medium text-white truncate">{m.name}</p>
                   <p className="text-2xl font-bold text-indigo-600">{count}</p>
-                  <p className="text-xs text-slate-500">cleanings</p>
+                  <p className="text-xs text-slate-400">cleanings</p>
                 </div>
               );
             })}
@@ -308,16 +308,16 @@ export default function WashroomPage() {
           <div className="text-5xl mb-4">🚿</div>
           <p className="text-slate-400 text-lg mb-2">No cleanings recorded for {MONTH_NAMES[month - 1]} {year}</p>
           {isManager ? (
-            <p className="text-sm text-slate-500">Use the form above to log when someone cleans a washroom</p>
+            <p className="text-sm text-slate-400">Use the form above to log when someone cleans a washroom</p>
           ) : (
-            <p className="text-sm text-slate-500">Manager will log cleaning records</p>
+            <p className="text-sm text-slate-400">Manager will log cleaning records</p>
           )}
         </div>
       ) : (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 overflow-hidden">
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold text-white">🧹 Cleaning Log — {MONTH_NAMES[month - 1]} {year}</h2>
-            <p className="text-xs text-slate-500">{cleanings.length} record{cleanings.length !== 1 ? "s" : ""}</p>
+            <p className="text-xs text-slate-400">{cleanings.length} record{cleanings.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="divide-y">
             {cleanings.map((c) => {
@@ -331,7 +331,7 @@ export default function WashroomPage() {
                   <span className={`font-medium ${isOwn ? "text-indigo-700" : "text-slate-100"}`}>
                     {c.member.name}{isOwn && " (you)"}
                   </span>
-                  {c.note && <span className="text-xs text-slate-500 italic">— {c.note}</span>}
+                  {c.note && <span className="text-xs text-slate-400 italic">— {c.note}</span>}
 
                   <div className="ml-auto flex items-center gap-2">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">

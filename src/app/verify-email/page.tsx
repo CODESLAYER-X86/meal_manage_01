@@ -50,7 +50,7 @@ function VerifyEmailContent() {
                         <div className="text-5xl mb-4">✅</div>
                         <h1 className="text-xl font-bold text-white mb-2">Email Verified!</h1>
                         <p className="text-slate-400 text-sm mb-4">{message}</p>
-                        <p className="text-xs text-slate-500">Redirecting to login in 3 seconds…</p>
+                        <p className="text-xs text-slate-400">Redirecting to login in 3 seconds…</p>
                         <Link href="/login" className="inline-block mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors">
                             Go to Login
                         </Link>
@@ -89,7 +89,7 @@ function ResendForm() {
 
     return (
         <div className="space-y-3">
-            <p className="text-xs text-slate-500 mb-2">Enter your email to get a new verification link:</p>
+            <p className="text-xs text-slate-400 mb-2">Enter your email to get a new verification link:</p>
             <input
                 type="email"
                 value={email}

@@ -128,7 +128,7 @@ export default function NotificationsPage() {
                       )}
                     </div>
                     <p className="text-sm text-slate-400 mt-0.5">{n.message}</p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       {new Date(n.createdAt).toLocaleDateString("en-GB", {
                         day: "numeric",
                         month: "short",

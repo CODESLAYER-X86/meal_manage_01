@@ -255,7 +255,7 @@ export default function CalendarPage() {
                 })()}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No menu set for this day</p>
+              <p className="text-sm text-slate-400">No menu set for this day</p>
             )}
           </div>
 
@@ -263,7 +263,7 @@ export default function CalendarPage() {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🍛 Meal Entries</h4>
             {selectedMeals.length === 0 ? (
-              <p className="text-sm text-slate-500">No meal entries</p>
+              <p className="text-sm text-slate-400">No meal entries</p>
             ) : (
               <>
                 {/* Mobile cards */}
@@ -279,9 +279,9 @@ export default function CalendarPage() {
                         <p className="font-medium text-white text-sm mb-1">{m.member.name}</p>
                         <div className={`grid gap-2 text-xs text-center`} style={{ gridTemplateColumns: `repeat(${mealTypesList.length + 1}, 1fr)` }}>
                           {mealTypesList.map((mt) => (
-                            <div key={mt}><p className="text-slate-500 capitalize">{mt.charAt(0).toUpperCase()}</p><p className="font-bold">{mealsObj[mt] ?? 0}</p></div>
+                            <div key={mt}><p className="text-slate-400 capitalize">{mt.charAt(0).toUpperCase()}</p><p className="font-bold">{mealsObj[mt] ?? 0}</p></div>
                           ))}
-                          <div><p className="text-slate-500">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                          <div><p className="text-slate-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
                         </div>
                       </div>
                     );
@@ -327,7 +327,7 @@ export default function CalendarPage() {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🛒 Bazar / Market Purchases</h4>
             {selectedBazar.length === 0 ? (
-              <p className="text-sm text-slate-500">No market purchases</p>
+              <p className="text-sm text-slate-400">No market purchases</p>
             ) : (
               selectedBazar.map((trip) => (
                 <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg">
@@ -368,7 +368,7 @@ export default function CalendarPage() {
           <div>
             <h4 className="text-sm font-semibold text-slate-400 mb-2">🚿 Washroom Cleaning</h4>
             {selectedWashroom.length === 0 ? (
-              <p className="text-sm text-slate-500">No washroom cleaning</p>
+              <p className="text-sm text-slate-400">No washroom cleaning</p>
             ) : (
               <div className="space-y-1">
                 {selectedWashroom.map((w) => (
