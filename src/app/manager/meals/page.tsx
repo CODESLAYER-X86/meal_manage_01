@@ -118,11 +118,11 @@ export default function MealEntryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">✏️ Enter Daily Meals</h1>
+      <h1 className="text-2xl font-bold text-slate-100">✏️ Enter Daily Meals</h1>
 
       {/* Date Picker */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border">
+        <label className="block text-sm font-medium text-slate-300 mb-1">Select Date</label>
         <input
           type="date"
           value={date}
@@ -134,9 +134,9 @@ export default function MealEntryPage() {
       {/* Meal Entry — Mobile Cards */}
       <div className="md:hidden space-y-3">
         {entries.map((entry, i) => (
-          <div key={entry.memberId} className="bg-white rounded-xl shadow-sm border p-4 space-y-3">
+          <div key={entry.memberId} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-800">{entry.memberName}</span>
+              <span className="font-semibold text-slate-100">{entry.memberName}</span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-indigo-600">
                   Total: {Object.values(entry.meals).reduce((s, v) => s + v, 0)}
@@ -149,11 +149,11 @@ export default function MealEntryPage() {
             <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${mealTypes.length}, 1fr)` }}>
               {mealTypes.map((field) => (
                 <div key={field}>
-                  <label className="block text-xs text-gray-500 mb-1 text-center capitalize">{field}</label>
+                  <label className="block text-xs text-slate-400 mb-1 text-center capitalize">{field}</label>
                   <select
                     value={entry.meals[field] ?? 0}
                     onChange={(e) => updateEntry(i, field, parseFloat(e.target.value))}
-                    className="w-full px-2 py-2 border rounded-lg text-center text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-2 border rounded-lg text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((v) => (
                       <option key={v} value={v}>{v}</option>
@@ -167,22 +167,22 @@ export default function MealEntryPage() {
       </div>
 
       {/* Meal Entry — Desktop Table */}
-      <div className="hidden md:block bg-white rounded-xl shadow-sm border overflow-hidden">
+      <div className="hidden md:block bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/[0.02]">
             <tr>
-              <th className="text-left p-4 text-sm font-semibold text-gray-600">Member</th>
+              <th className="text-left p-4 text-sm font-semibold text-slate-400">Member</th>
               {mealTypes.map((mt) => (
-                <th key={mt} className="text-center p-4 text-sm font-semibold text-gray-600 capitalize">{mt}</th>
+                <th key={mt} className="text-center p-4 text-sm font-semibold text-slate-400 capitalize">{mt}</th>
               ))}
-              <th className="text-center p-4 text-sm font-semibold text-gray-600">Total</th>
+              <th className="text-center p-4 text-sm font-semibold text-slate-400">Total</th>
               <th className="p-4"></th>
             </tr>
           </thead>
           <tbody>
             {entries.map((entry, i) => (
-              <tr key={entry.memberId} className="border-t hover:bg-gray-50">
-                <td className="p-4 font-medium text-gray-700">{entry.memberName}</td>
+              <tr key={entry.memberId} className="border-t hover:bg-white/[0.02]">
+                <td className="p-4 font-medium text-slate-300">{entry.memberName}</td>
                 {mealTypes.map((field) => (
                   <td key={field} className="p-4 text-center">
                     <select

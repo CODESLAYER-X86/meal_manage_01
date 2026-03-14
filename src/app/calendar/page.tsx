@@ -149,24 +149,24 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">📅 Meal Calendar</h1>
+      <h1 className="text-2xl font-bold text-slate-100">📅 Meal Calendar</h1>
 
       {/* Month Navigation */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border">
+      <div className="flex items-center justify-between bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border">
         <button onClick={prevMonth} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
           ← Prev
         </button>
-        <h2 className="text-lg font-semibold text-gray-800">{monthName}</h2>
+        <h2 className="text-lg font-semibold text-slate-100">{monthName}</h2>
         <button onClick={nextMonth} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
           Next →
         </button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="grid grid-cols-7 bg-gray-50">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden">
+        <div className="grid grid-cols-7 bg-white/[0.02]">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-500 border-b">
+            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-slate-400 border-b">
               {d}
             </div>
           ))}
@@ -174,7 +174,7 @@ export default function CalendarPage() {
         <div className="grid grid-cols-7">
           {/* Empty cells */}
           {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-gray-50" />
+            <div key={`empty-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-white/[0.02]" />
           ))}
           {/* Day cells */}
           {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -190,11 +190,10 @@ export default function CalendarPage() {
               <div
                 key={day}
                 onClick={() => setSelectedDate(day)}
-                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${
-                  isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
-                }`}
+                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
+                  }`}
               >
-                <div className="text-xs sm:text-sm font-medium text-gray-700">{day}</div>
+                <div className="text-xs sm:text-sm font-medium text-slate-300">{day}</div>
                 {totalMeals > 0 && (
                   <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-full inline-block">
                     🍛{totalMeals}
@@ -223,14 +222,14 @@ export default function CalendarPage() {
 
       {/* Selected Date Detail */}
       {selectedDate && (
-        <div className="bg-white rounded-xl shadow-sm border p-5 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-5 space-y-4">
+          <h3 className="text-lg font-semibold text-slate-100">
             📋 {monthName.split(" ")[0]} {selectedDate}, {currentYear}
           </h3>
 
           {/* Menu */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍽️ Menu</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🍽️ Menu</h4>
             {selectedPlan && (selectedPlan.breakfast || selectedPlan.lunch || selectedPlan.dinner || selectedPlan.meals) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {(() => {
@@ -249,22 +248,22 @@ export default function CalendarPage() {
                     return (
                       <div key={mt} className={`bg-${color}-50 border border-${color}-200 rounded-lg p-3`}>
                         <p className={`text-xs font-semibold text-${color}-600 mb-1`}>{DEFAULT_ICONS[mt] || "🍽️"} <span className="capitalize">{mt}</span></p>
-                        <p className="text-sm text-gray-800">{val}</p>
+                        <p className="text-sm text-slate-100">{val}</p>
                       </div>
                     );
                   });
                 })()}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">No menu set for this day</p>
+              <p className="text-sm text-slate-500">No menu set for this day</p>
             )}
           </div>
 
           {/* Meals */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meal Entries</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🍛 Meal Entries</h4>
             {selectedMeals.length === 0 ? (
-              <p className="text-sm text-gray-400">No meal entries</p>
+              <p className="text-sm text-slate-500">No meal entries</p>
             ) : (
               <>
                 {/* Mobile cards */}
@@ -276,13 +275,13 @@ export default function CalendarPage() {
                       mealsObj = { breakfast: m.breakfast, lunch: m.lunch, dinner: m.dinner };
                     }
                     return (
-                      <div key={m.id} className="bg-gray-50 rounded-lg p-3">
-                        <p className="font-medium text-gray-900 text-sm mb-1">{m.member.name}</p>
+                      <div key={m.id} className="bg-white/[0.02] rounded-lg p-3">
+                        <p className="font-medium text-white text-sm mb-1">{m.member.name}</p>
                         <div className={`grid gap-2 text-xs text-center`} style={{ gridTemplateColumns: `repeat(${mealTypesList.length + 1}, 1fr)` }}>
                           {mealTypesList.map((mt) => (
-                            <div key={mt}><p className="text-gray-400 capitalize">{mt.charAt(0).toUpperCase()}</p><p className="font-bold">{mealsObj[mt] ?? 0}</p></div>
+                            <div key={mt}><p className="text-slate-500 capitalize">{mt.charAt(0).toUpperCase()}</p><p className="font-bold">{mealsObj[mt] ?? 0}</p></div>
                           ))}
-                          <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                          <div><p className="text-slate-500">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
                         </div>
                       </div>
                     );
@@ -291,7 +290,7 @@ export default function CalendarPage() {
                 {/* Desktop table */}
                 <div className="hidden md:block">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-white/[0.02]">
                       <tr>
                         <th className="text-left p-2">Member</th>
                         {mealTypesList.map((mt) => (
@@ -326,9 +325,9 @@ export default function CalendarPage() {
 
           {/* Bazar Items */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🛒 Bazar / Market Purchases</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🛒 Bazar / Market Purchases</h4>
             {selectedBazar.length === 0 ? (
-              <p className="text-sm text-gray-400">No market purchases</p>
+              <p className="text-sm text-slate-500">No market purchases</p>
             ) : (
               selectedBazar.map((trip) => (
                 <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg">
@@ -337,28 +336,28 @@ export default function CalendarPage() {
                     <span className="font-bold text-orange-700">৳{trip.totalCost}</span>
                   </div>
                   <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-orange-100">
-                      <tr>
-                        <th className="text-left p-1.5">SL</th>
-                        <th className="text-left p-1.5">Item</th>
-                        <th className="text-center p-1.5">Qty</th>
-                        <th className="text-center p-1.5">Unit</th>
-                        <th className="text-right p-1.5">Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {trip.items.map((item) => (
-                        <tr key={item.serialNo} className="border-t border-orange-200">
-                          <td className="p-1.5">{item.serialNo}</td>
-                          <td className="p-1.5">{item.itemName}</td>
-                          <td className="text-center p-1.5">{item.quantity}</td>
-                          <td className="text-center p-1.5">{item.unit}</td>
-                          <td className="text-right p-1.5">৳{item.price}</td>
+                    <table className="w-full text-sm">
+                      <thead className="bg-orange-100">
+                        <tr>
+                          <th className="text-left p-1.5">SL</th>
+                          <th className="text-left p-1.5">Item</th>
+                          <th className="text-center p-1.5">Qty</th>
+                          <th className="text-center p-1.5">Unit</th>
+                          <th className="text-right p-1.5">Price</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {trip.items.map((item) => (
+                          <tr key={item.serialNo} className="border-t border-orange-200">
+                            <td className="p-1.5">{item.serialNo}</td>
+                            <td className="p-1.5">{item.itemName}</td>
+                            <td className="text-center p-1.5">{item.quantity}</td>
+                            <td className="text-center p-1.5">{item.unit}</td>
+                            <td className="text-right p-1.5">৳{item.price}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               ))
@@ -367,15 +366,15 @@ export default function CalendarPage() {
 
           {/* Washroom Cleanings */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🚿 Washroom Cleaning</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🚿 Washroom Cleaning</h4>
             {selectedWashroom.length === 0 ? (
-              <p className="text-sm text-gray-400">No washroom cleaning</p>
+              <p className="text-sm text-slate-500">No washroom cleaning</p>
             ) : (
               <div className="space-y-1">
                 {selectedWashroom.map((w) => (
                   <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-lg p-2">
                     <span className="text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
-                    <span className="text-gray-700">{w.member.name}</span>
+                    <span className="text-slate-300">{w.member.name}</span>
                     <span className="ml-auto text-xs text-green-600 font-bold">✅ Done</span>
                   </div>
                 ))}

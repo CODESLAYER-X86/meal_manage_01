@@ -79,7 +79,7 @@ export default function HandoverPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">🔄 Hand Over Manager Role</h1>
+      <h1 className="text-2xl font-bold text-slate-100">🔄 Hand Over Manager Role</h1>
 
       {/* Current Manager */}
       <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
@@ -91,15 +91,15 @@ export default function HandoverPage() {
         ⚠️ <strong>Warning:</strong> This will immediately transfer the manager role to another member. You will become a regular member and lose all edit access. This action is recorded in the audit log.
       </div>
 
-      <div className="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-300 mb-1">
             Select Next Manager
           </label>
           <select
             value={nextManagerId}
             onChange={(e) => setNextManagerId(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
           >
             {members.map((m) => (
               <option key={m.id} value={m.id}>{m.name}</option>
@@ -108,10 +108,10 @@ export default function HandoverPage() {
         </div>
 
         {selectedMember && (
-          <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
+          <div className="bg-white/[0.02] p-3 rounded-lg text-sm text-slate-400">
             <p>After handover:</p>
             <p className="mt-1">• <strong>{selectedMember.name}</strong> → becomes <span className="text-indigo-600 font-medium">MANAGER</span></p>
-            <p>• <strong>{session?.user?.name}</strong> → becomes <span className="text-gray-500 font-medium">MEMBER</span></p>
+            <p>• <strong>{session?.user?.name}</strong> → becomes <span className="text-slate-400 font-medium">MEMBER</span></p>
           </div>
         )}
 

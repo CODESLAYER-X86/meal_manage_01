@@ -198,9 +198,9 @@ export default function ArchivePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
-        <h1 className="text-2xl font-bold text-gray-900">📦 Data Archive</h1>
-        <p className="text-sm text-gray-500 mt-1">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
+        <h1 className="text-2xl font-bold text-white">📦 Data Archive</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Export monthly data, import old archives for investigation, and manage auto-cleanup.
         </p>
         <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
@@ -210,9 +210,9 @@ export default function ArchivePage() {
       </div>
 
       {/* Export Section */}
-      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">📤 Export Monthly Archive</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
+        <h2 className="text-lg font-semibold text-white mb-3">📤 Export Monthly Archive</h2>
+        <p className="text-sm text-slate-400 mb-4">
           Download your monthly data as a <code className="bg-gray-100 px-1 rounded">.messmate</code> archive (for this app) or as a <code className="bg-gray-100 px-1 rounded">.csv</code> spreadsheet file.
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -254,11 +254,11 @@ export default function ArchivePage() {
       </div>
 
       {/* Import Section */}
-      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">📥 Import & Investigate Archive</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
+        <h2 className="text-lg font-semibold text-white mb-3">📥 Import & Investigate Archive</h2>
+        <p className="text-sm text-slate-400 mb-4">
           Open a <code className="bg-gray-100 px-1 rounded">.messmate</code> file to analyze old data — audit logs, billing, meals, bazar, everything.
-          <strong className="text-gray-700"> The file stays on your device</strong> — nothing is uploaded to any server.
+          <strong className="text-slate-300"> The file stays on your device</strong> — nothing is uploaded to any server.
           It&apos;s verified locally for integrity (tamper detection).
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -269,7 +269,7 @@ export default function ArchivePage() {
             onChange={handleImport}
             className="text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
           />
-          {importing && <span className="text-sm text-gray-500">Validating...</span>}
+          {importing && <span className="text-sm text-slate-400">Validating...</span>}
         </div>
         {importError && (
           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -280,7 +280,7 @@ export default function ArchivePage() {
 
       {/* Cleanup Section (Manager Only) */}
       {isManager && (
-        <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-4 sm:p-6">
+        <div className="bg-red-50 rounded-xl shadow-md shadow-black/10 border border-red-200 p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-red-900 mb-3">🗑️ Manual Cleanup (Manager)</h2>
           <p className="text-sm text-red-700 mb-4">
             Delete all data older than 2 months. This runs automatically on the 1st of each month,
@@ -295,17 +295,17 @@ export default function ArchivePage() {
           </button>
           {cleanupResult && (
             <div className="mt-4 p-3 bg-white border border-red-200 rounded-lg text-sm">
-              <p className="font-medium text-gray-800">
+              <p className="font-medium text-slate-100">
                 ✅ Cleanup complete — {cleanupResult.totalDeleted} records deleted
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Cutoff: {new Date(cleanupResult.cutoffDate).toLocaleDateString()}
               </p>
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                 {Object.entries(cleanupResult.details || {}).map(([key, count]) => (
-                  <div key={key} className="bg-gray-50 rounded p-2">
-                    <span className="text-gray-600">{key}:</span>{" "}
-                    <span className="font-medium text-gray-800">{count as number}</span>
+                  <div key={key} className="bg-white/[0.02] rounded p-2">
+                    <span className="text-slate-400">{key}:</span>{" "}
+                    <span className="font-medium text-slate-100">{count as number}</span>
                   </div>
                 ))}
               </div>
@@ -355,22 +355,22 @@ function ArchiveViewer({
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-sm border border-indigo-200 p-4 sm:p-6">
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl shadow-md shadow-black/10 border border-indigo-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">📂</span>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
                 Archive: {monthName}
               </h1>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               {mess?.name} · Exported {new Date(exportedAt).toLocaleDateString()} by {exportedBy?.name}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-300 text-sm font-medium rounded-lg transition-colors"
           >
             ✕ Close Archive
           </button>
@@ -381,16 +381,15 @@ function ArchiveViewer({
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 bg-white rounded-xl shadow-sm border p-3">
+      <div className="flex flex-wrap gap-2 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-3">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setViewTab(tab.id)}
-            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-              viewTab === tab.id
+            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${viewTab === tab.id
                 ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+                : "bg-gray-100 text-slate-400 hover:bg-gray-200"
+              }`}
           >
             {tab.emoji} {tab.label}
           </button>
@@ -398,7 +397,7 @@ function ArchiveViewer({
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-xl shadow-sm border p-4 sm:p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
         {viewTab === "transparency" && <TransparencyView archive={archive} />}
         {viewTab === "calendar" && <CalendarView archive={archive} />}
         {viewTab === "billing" && <BillingView billing={billing} />}
@@ -472,10 +471,10 @@ function TransparencyView({ archive }: { archive: any }) {
     <div className="space-y-6">
       {/* Scorecard */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 Member Scorecard</h2>
+        <h2 className="text-lg font-semibold text-white mb-3">📊 Member Scorecard</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm min-w-[700px]">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/[0.02]">
               <tr>
                 <th className="text-left p-2 sm:p-3">Member</th>
                 <th className="text-center p-2 sm:p-3">Meals</th>
@@ -490,8 +489,8 @@ function TransparencyView({ archive }: { archive: any }) {
             </thead>
             <tbody>
               {scorecard.map((s: any) => (
-                <tr key={s.id} className="border-t hover:bg-gray-50">
-                  <td className="p-2 sm:p-3 font-medium text-gray-800">{s.name}</td>
+                <tr key={s.id} className="border-t hover:bg-white/[0.02]">
+                  <td className="p-2 sm:p-3 font-medium text-slate-100">{s.name}</td>
                   <td className="p-2 sm:p-3 text-center">{s.totalMealsCount}</td>
                   <td className="p-2 sm:p-3 text-right">৳{s.mealCost.toFixed(0)}</td>
                   <td className="p-2 sm:p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
@@ -503,10 +502,10 @@ function TransparencyView({ archive }: { archive: any }) {
                     ৳{s.billPaid.toFixed(0)}
                   </td>
                   <td className="p-2 sm:p-3 text-center">
-                    <span className={s.washroomCount > 0 ? "text-green-600" : "text-gray-400"}>{s.washroomCount}</span>
+                    <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-500"}>{s.washroomCount}</span>
                   </td>
                   <td className="p-2 sm:p-3 text-center">
-                    <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-gray-400"}>{s.bazarTripCount}</span>
+                    <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-500"}>{s.bazarTripCount}</span>
                   </td>
                 </tr>
               ))}
@@ -514,7 +513,7 @@ function TransparencyView({ archive }: { archive: any }) {
           </table>
         </div>
         {mealRate > 0 && (
-          <div className="mt-2 text-xs text-gray-500 px-2">
+          <div className="mt-2 text-xs text-slate-400 px-2">
             Meal rate: ৳{mealRate.toFixed(2)}/meal · Total bazar: ৳{totalBazar.toFixed(0)} · Total meals: {totalAllMeals}
           </div>
         )}
@@ -523,14 +522,14 @@ function TransparencyView({ archive }: { archive: any }) {
       {/* Bill Payment Status */}
       {Object.keys(memberBillMap).length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">💳 Bill Payment Status</h2>
+          <h2 className="text-lg font-semibold text-white mb-3">💳 Bill Payment Status</h2>
           <div className="space-y-3">
             {scorecard.map((s: any) => {
               const pct = s.billDue > 0 ? Math.min((s.billPaid / s.billDue) * 100, 100) : 0;
               return (
-                <div key={s.id} className="bg-gray-50 rounded-lg p-3">
+                <div key={s.id} className="bg-white/[0.02] rounded-lg p-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-sm text-gray-800">{s.name}</span>
+                    <span className="font-medium text-sm text-slate-100">{s.name}</span>
                     <span className={`text-xs font-bold ${s.billRemaining <= 0 ? "text-green-600" : "text-red-600"}`}>
                       {s.billRemaining <= 0 ? "✅ Paid" : `৳${s.billRemaining.toFixed(0)} remaining`}
                     </span>
@@ -541,7 +540,7 @@ function TransparencyView({ archive }: { archive: any }) {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-slate-400 mt-1">
                     <span>Paid: ৳{s.billPaid.toFixed(0)}</span>
                     <span>Due: ৳{s.billDue.toFixed(0)}</span>
                   </div>
@@ -555,13 +554,13 @@ function TransparencyView({ archive }: { archive: any }) {
       {/* Washroom Log */}
       {washroomDuties.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">🚿 Washroom Cleaning Log</h2>
+          <h2 className="text-lg font-semibold text-white mb-3">🚿 Washroom Cleaning Log</h2>
           <div className="space-y-1">
             {washroomDuties.map((d: any) => (
-              <div key={d.id} className="p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-gray-500 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
-                <span className="font-medium text-gray-800">{d.member?.name || "Unknown"}</span>
-                <span className="text-xs text-gray-400">WR-{d.washroomNumber}</span>
+              <div key={d.id} className="p-3 bg-white/[0.02] rounded-lg flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-slate-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
+                <span className="font-medium text-slate-100">{d.member?.name || "Unknown"}</span>
+                <span className="text-xs text-slate-500">WR-{d.washroomNumber}</span>
                 <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✅ Done</span>
               </div>
             ))}
@@ -572,16 +571,15 @@ function TransparencyView({ archive }: { archive: any }) {
       {/* Bazar Trips */}
       {bazarTrips.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">🛒 Bazar Trips</h2>
+          <h2 className="text-lg font-semibold text-white mb-3">🛒 Bazar Trips</h2>
           <div className="space-y-1">
             {bazarTrips.map((t: any, i: number) => (
-              <div key={t.id || i} className="p-3 bg-gray-50 rounded-lg flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-gray-500 text-xs w-20">{new Date(t.date).toLocaleDateString()}</span>
-                <span className="font-medium text-gray-800">{t.buyer?.name || "Unknown"}</span>
+              <div key={t.id || i} className="p-3 bg-white/[0.02] rounded-lg flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-slate-400 text-xs w-20">{new Date(t.date).toLocaleDateString()}</span>
+                <span className="font-medium text-slate-100">{t.buyer?.name || "Unknown"}</span>
                 <span className="font-bold text-orange-700">৳{t.totalCost}</span>
-                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                  t.approved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                }`}>
+                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${t.approved ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  }`}>
                   {t.approved ? "✅ Approved" : "⏳ Pending"}
                 </span>
               </div>
@@ -593,19 +591,17 @@ function TransparencyView({ archive }: { archive: any }) {
       {/* Duty Debts */}
       {dutyDebts.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">⚖️ Duty Debts</h2>
+          <h2 className="text-lg font-semibold text-white mb-3">⚖️ Duty Debts</h2>
           <div className="space-y-1">
             {dutyDebts.map((d: any) => (
-              <div key={d.id} className="p-3 bg-gray-50 rounded-lg text-sm flex flex-wrap items-center gap-2">
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                  d.dutyType === "WASHROOM" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-                }`}>{d.dutyType}</span>
+              <div key={d.id} className="p-3 bg-white/[0.02] rounded-lg text-sm flex flex-wrap items-center gap-2">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${d.dutyType === "WASHROOM" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                  }`}>{d.dutyType}</span>
                 <span className="text-red-600 font-medium">{d.owedBy?.name}</span>
-                <span className="text-gray-400">→</span>
+                <span className="text-slate-500">→</span>
                 <span className="text-green-600 font-medium">{d.owedTo?.name}</span>
-                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                  d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                }`}>{d.status}</span>
+                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${d.status === "SETTLED" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  }`}>{d.status}</span>
               </div>
             ))}
           </div>
@@ -614,10 +610,10 @@ function TransparencyView({ archive }: { archive: any }) {
 
       {/* Meal Summary */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">🍛 Meal Counts</h2>
+        <h2 className="text-lg font-semibold text-white mb-3">🍛 Meal Counts</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/[0.02]">
               <tr>
                 <th className="text-left p-2 sm:p-3">Member</th>
                 <th className="text-center p-2 sm:p-3">Total Meals</th>
@@ -626,13 +622,13 @@ function TransparencyView({ archive }: { archive: any }) {
             </thead>
             <tbody>
               {scorecard.map((s: any) => (
-                <tr key={s.id} className="border-t hover:bg-gray-50">
-                  <td className="p-2 sm:p-3 font-medium text-gray-800">{s.name}</td>
+                <tr key={s.id} className="border-t hover:bg-white/[0.02]">
+                  <td className="p-2 sm:p-3 font-medium text-slate-100">{s.name}</td>
                   <td className="p-2 sm:p-3 text-center font-bold text-indigo-600">{s.totalMealsCount}</td>
                   <td className="p-2 sm:p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
                 </tr>
               ))}
-              <tr className="border-t bg-gray-50 font-bold">
+              <tr className="border-t bg-white/[0.02] font-bold">
                 <td className="p-2 sm:p-3">Total</td>
                 <td className="p-2 sm:p-3 text-center text-indigo-700">{scorecard.reduce((sum: number, s: any) => sum + s.totalMealsCount, 0)}</td>
                 <td className="p-2 sm:p-3 text-right text-green-700">৳{scorecard.reduce((sum: number, s: any) => sum + s.totalDeposit, 0).toFixed(0)}</td>
@@ -676,18 +672,18 @@ function CalendarView({ archive }: { archive: any }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold text-gray-900">📅 {monthName}</h2>
+      <h2 className="text-lg font-semibold text-white">📅 {monthName}</h2>
 
       {/* Calendar Grid */}
       <div className="rounded-xl border overflow-hidden">
-        <div className="grid grid-cols-7 bg-gray-50">
+        <div className="grid grid-cols-7 bg-white/[0.02]">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-gray-500 border-b">{d}</div>
+            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-slate-400 border-b">{d}</div>
           ))}
         </div>
         <div className="grid grid-cols-7">
           {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`e-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-gray-50" />
+            <div key={`e-${i}`} className="p-1 sm:p-3 border-b border-r min-h-[52px] sm:min-h-[80px] bg-white/[0.02]" />
           ))}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1;
@@ -701,11 +697,10 @@ function CalendarView({ archive }: { archive: any }) {
               <div
                 key={day}
                 onClick={() => setSelectedDate(day)}
-                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${
-                  isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
-                }`}
+                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
+                  }`}
               >
-                <div className="text-xs sm:text-sm font-medium text-gray-700">{day}</div>
+                <div className="text-xs sm:text-sm font-medium text-slate-300">{day}</div>
                 {totalMeals > 0 && (
                   <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-full inline-block">🍛{totalMeals}</div>
                 )}
@@ -726,57 +721,57 @@ function CalendarView({ archive }: { archive: any }) {
 
       {/* Selected Date Detail */}
       {selectedDate && (
-        <div className="bg-gray-50 rounded-xl border p-5 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">
+        <div className="bg-white/[0.02] rounded-xl border p-5 space-y-4">
+          <h3 className="text-lg font-semibold text-slate-100">
             📋 {monthName.split(" ")[0]} {selectedDate}, {year}
           </h3>
 
           {/* Menu */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">📋 Menu</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">📋 Menu</h4>
             {selPlan && (selPlan.breakfast || selPlan.lunch || selPlan.dinner) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {selPlan.breakfast && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-xs font-semibold text-amber-600 mb-1">🌅 Breakfast</p>
-                    <p className="text-sm text-gray-800">{selPlan.breakfast}</p>
+                    <p className="text-sm text-slate-100">{selPlan.breakfast}</p>
                   </div>
                 )}
                 {selPlan.lunch && (
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                     <p className="text-xs font-semibold text-orange-600 mb-1">☀️ Lunch</p>
-                    <p className="text-sm text-gray-800">{selPlan.lunch}</p>
+                    <p className="text-sm text-slate-100">{selPlan.lunch}</p>
                   </div>
                 )}
                 {selPlan.dinner && (
                   <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
                     <p className="text-xs font-semibold text-indigo-600 mb-1">🌙 Dinner</p>
-                    <p className="text-sm text-gray-800">{selPlan.dinner}</p>
+                    <p className="text-sm text-slate-100">{selPlan.dinner}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">No menu set for this day</p>
+              <p className="text-sm text-slate-500">No menu set for this day</p>
             )}
           </div>
 
           {/* Meals */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🍛 Meals</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🍛 Meals</h4>
             {selMeals.length === 0 ? (
-              <p className="text-sm text-gray-400">No meals recorded</p>
+              <p className="text-sm text-slate-500">No meals recorded</p>
             ) : (
               <>
                 {/* Mobile cards */}
                 <div className="md:hidden space-y-2">
                   {selMeals.map((m: any) => (
-                    <div key={m.id} className="bg-white rounded-lg p-3 border">
-                      <p className="font-medium text-gray-900 text-sm mb-1">{m.member?.name || "Unknown"}</p>
+                    <div key={m.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-lg p-3 border">
+                      <p className="font-medium text-white text-sm mb-1">{m.member?.name || "Unknown"}</p>
                       <div className="grid grid-cols-4 gap-2 text-xs text-center">
-                        <div><p className="text-gray-400">B</p><p className="font-bold">{m.breakfast}</p></div>
-                        <div><p className="text-gray-400">L</p><p className="font-bold">{m.lunch}</p></div>
-                        <div><p className="text-gray-400">D</p><p className="font-bold">{m.dinner}</p></div>
-                        <div><p className="text-gray-400">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
+                        <div><p className="text-slate-500">B</p><p className="font-bold">{m.breakfast}</p></div>
+                        <div><p className="text-slate-500">L</p><p className="font-bold">{m.lunch}</p></div>
+                        <div><p className="text-slate-500">D</p><p className="font-bold">{m.dinner}</p></div>
+                        <div><p className="text-slate-500">Total</p><p className="font-bold text-indigo-600">{m.total}</p></div>
                       </div>
                     </div>
                   ))}
@@ -784,7 +779,7 @@ function CalendarView({ archive }: { archive: any }) {
                 {/* Desktop table */}
                 <div className="hidden md:block">
                   <table className="w-full text-sm">
-                    <thead className="bg-white">
+                    <thead className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08]">
                       <tr>
                         <th className="text-left p-2">Member</th>
                         <th className="text-center p-2">Breakfast</th>
@@ -812,9 +807,9 @@ function CalendarView({ archive }: { archive: any }) {
 
           {/* Bazar */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🛒 Bazar / Market Purchases</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🛒 Bazar / Market Purchases</h4>
             {selBazar.length === 0 ? (
-              <p className="text-sm text-gray-400">No market purchases</p>
+              <p className="text-sm text-slate-500">No market purchases</p>
             ) : (
               selBazar.map((trip: any) => (
                 <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -855,15 +850,15 @@ function CalendarView({ archive }: { archive: any }) {
 
           {/* Washroom */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">🚿 Washroom Cleaning</h4>
+            <h4 className="text-sm font-semibold text-slate-400 mb-2">🚿 Washroom Cleaning</h4>
             {selWashroom.length === 0 ? (
-              <p className="text-sm text-gray-400">No washroom cleaning</p>
+              <p className="text-sm text-slate-500">No washroom cleaning</p>
             ) : (
               <div className="space-y-1">
                 {selWashroom.map((w: any) => (
                   <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-lg p-2 border border-teal-200">
                     <span className="text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
-                    <span className="text-gray-700">{w.member?.name || "Unknown"}</span>
+                    <span className="text-slate-300">{w.member?.name || "Unknown"}</span>
                     <span className="ml-auto text-xs text-green-600 font-bold">✅ Done</span>
                   </div>
                 ))}
@@ -874,7 +869,7 @@ function CalendarView({ archive }: { archive: any }) {
       )}
 
       {!selectedDate && (
-        <p className="text-center text-gray-400 text-sm py-4">👆 Click on a date to see details</p>
+        <p className="text-center text-slate-500 text-sm py-4">👆 Click on a date to see details</p>
       )}
     </div>
   );
@@ -883,24 +878,24 @@ function CalendarView({ archive }: { archive: any }) {
 function BillingView({ billing }: { billing: any }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">💰 Billing Summary</h2>
+      <h2 className="text-lg font-semibold text-white">💰 Billing Summary</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-500">Total Expense</p>
+        <div className="bg-white/[0.02] p-3 sm:p-4 rounded-lg text-center">
+          <p className="text-sm text-slate-400">Total Expense</p>
           <p className="text-xl sm:text-2xl font-bold text-red-600">৳{billing.totalExpense}</p>
         </div>
-        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-500">Total Meals</p>
+        <div className="bg-white/[0.02] p-3 sm:p-4 rounded-lg text-center">
+          <p className="text-sm text-slate-400">Total Meals</p>
           <p className="text-xl sm:text-2xl font-bold text-indigo-600">{billing.totalMeals}</p>
         </div>
-        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
-          <p className="text-sm text-gray-500">Meal Rate</p>
+        <div className="bg-white/[0.02] p-3 sm:p-4 rounded-lg text-center">
+          <p className="text-sm text-slate-400">Meal Rate</p>
           <p className="text-xl sm:text-2xl font-bold text-indigo-600">৳{billing.mealRate}</p>
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm min-w-[480px]">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/[0.02]">
             <tr>
               <th className="text-left p-2 sm:p-3">Member</th>
               <th className="text-center p-2 sm:p-3">Meals</th>
@@ -921,9 +916,8 @@ function BillingView({ billing }: { billing: any }) {
                   {m.netDue > 0 ? `৳${m.netDue}` : `-৳${Math.abs(m.netDue)}`}
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    m.netDue > 0 ? "bg-red-100 text-red-700" : m.netDue < 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0 ? "bg-red-100 text-red-700" : m.netDue < 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-slate-400"
+                    }`}>
                     {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
                   </span>
                 </td>
@@ -947,38 +941,38 @@ function MealsView({ mealEntries }: { mealEntries: any[] }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🍽️ Meal Entries ({mealEntries?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">🍽️ Meal Entries ({mealEntries?.length || 0})</h2>
       {Object.entries(byDate).map(([date, entries]) => (
         <div key={date} className="border rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-2 font-medium text-gray-700 text-sm">{date}</div>
+          <div className="bg-white/[0.02] px-4 py-2 font-medium text-slate-300 text-sm">{date}</div>
           <div className="overflow-x-auto">
-          <table className="w-full text-xs sm:text-sm min-w-[360px]">
-            <thead>
-              <tr className="text-gray-500 text-xs">
-                <th className="text-left p-2 pl-4">Member</th>
-                <th className="text-center p-2">🌅 B</th>
-                <th className="text-center p-2">☀️ L</th>
-                <th className="text-center p-2">🌙 D</th>
-                <th className="text-center p-2">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e: any) => (
-                <tr key={e.id} className="border-t">
-                  <td className="p-2 pl-4">{e.member?.name || e.memberId}</td>
-                  <td className="p-2 text-center">{e.breakfast}</td>
-                  <td className="p-2 text-center">{e.lunch}</td>
-                  <td className="p-2 text-center">{e.dinner}</td>
-                  <td className="p-2 text-center font-medium">{e.total}</td>
+            <table className="w-full text-xs sm:text-sm min-w-[360px]">
+              <thead>
+                <tr className="text-slate-400 text-xs">
+                  <th className="text-left p-2 pl-4">Member</th>
+                  <th className="text-center p-2">🌅 B</th>
+                  <th className="text-center p-2">☀️ L</th>
+                  <th className="text-center p-2">🌙 D</th>
+                  <th className="text-center p-2">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {entries.map((e: any) => (
+                  <tr key={e.id} className="border-t">
+                    <td className="p-2 pl-4">{e.member?.name || e.memberId}</td>
+                    <td className="p-2 text-center">{e.breakfast}</td>
+                    <td className="p-2 text-center">{e.lunch}</td>
+                    <td className="p-2 text-center">{e.dinner}</td>
+                    <td className="p-2 text-center font-medium">{e.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       ))}
       {(!mealEntries || mealEntries.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No meal entries in this archive</p>
+        <p className="text-slate-500 text-center py-6">No meal entries in this archive</p>
       )}
     </div>
   );
@@ -987,10 +981,10 @@ function MealsView({ mealEntries }: { mealEntries: any[] }) {
 function DepositsView({ deposits }: { deposits: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">💵 Deposits ({deposits?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">💵 Deposits ({deposits?.length || 0})</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm min-w-[360px]">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/[0.02]">
             <tr>
               <th className="text-left p-2 sm:p-3">Date</th>
               <th className="text-left p-2 sm:p-3">Member</th>
@@ -1004,14 +998,14 @@ function DepositsView({ deposits }: { deposits: any[] }) {
                 <td className="p-2 sm:p-3">{new Date(d.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</td>
                 <td className="p-2 sm:p-3">{d.member?.name || d.memberId}</td>
                 <td className="p-2 sm:p-3 text-right font-medium text-green-600">৳{d.amount}</td>
-                <td className="p-2 sm:p-3 text-gray-500">{d.note || "—"}</td>
+                <td className="p-2 sm:p-3 text-slate-400">{d.note || "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       {(!deposits || deposits.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No deposits in this archive</p>
+        <p className="text-slate-500 text-center py-6">No deposits in this archive</p>
       )}
     </div>
   );
@@ -1020,22 +1014,22 @@ function DepositsView({ deposits }: { deposits: any[] }) {
 function BazarView({ bazarTrips }: { bazarTrips: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🛒 Bazar Trips ({bazarTrips?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">🛒 Bazar Trips ({bazarTrips?.length || 0})</h2>
       {(bazarTrips || []).map((trip: any) => (
         <div key={trip.id} className="border rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3 flex justify-between items-center">
+          <div className="bg-white/[0.02] px-4 py-3 flex justify-between items-center">
             <div>
-              <span className="font-medium text-gray-800">
+              <span className="font-medium text-slate-100">
                 {new Date(trip.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
               </span>
-              <span className="text-gray-500 text-sm ml-2">by {trip.buyer?.name || trip.buyerId}</span>
+              <span className="text-slate-400 text-sm ml-2">by {trip.buyer?.name || trip.buyerId}</span>
             </div>
             <span className="font-bold text-indigo-600">৳{trip.totalCost}</span>
           </div>
           {trip.items && trip.items.length > 0 && (
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-xs">
+                <tr className="text-slate-400 text-xs">
                   <th className="text-left p-2 pl-4">SL</th>
                   <th className="text-left p-2">Item</th>
                   <th className="text-center p-2">Qty</th>
@@ -1059,7 +1053,7 @@ function BazarView({ bazarTrips }: { bazarTrips: any[] }) {
         </div>
       ))}
       {(!bazarTrips || bazarTrips.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No bazar trips in this archive</p>
+        <p className="text-slate-500 text-center py-6">No bazar trips in this archive</p>
       )}
     </div>
   );
@@ -1071,11 +1065,11 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🔍 Audit Log ({filtered.length})</h2>
+      <h2 className="text-lg font-semibold text-white">🔍 Audit Log ({filtered.length})</h2>
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setFilter("all")}
-          className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === "all" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === "all" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-400 hover:bg-gray-200"}`}
         >
           All
         </button>
@@ -1083,7 +1077,7 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
           <button
             key={t}
             onClick={() => setFilter(t)}
-            className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === t ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === t ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-400 hover:bg-gray-200"}`}
           >
             {t}
           </button>
@@ -1091,28 +1085,27 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
       </div>
       <div className="space-y-2 max-h-[60vh] overflow-y-auto">
         {filtered.map((log: any) => (
-          <div key={log.id} className="p-3 bg-gray-50 rounded-lg border">
+          <div key={log.id} className="p-3 bg-white/[0.02] rounded-lg border">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                  log.action === "CREATE" ? "bg-green-100 text-green-700"
+                <span className={`px-2 py-0.5 rounded text-xs font-bold ${log.action === "CREATE" ? "bg-green-100 text-green-700"
                     : log.action === "UPDATE" ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
-                }`}>
+                      : "bg-red-100 text-red-700"
+                  }`}>
                   {log.action}
                 </span>
-                <span className="text-xs text-gray-500">by {log.editedBy?.name}</span>
+                <span className="text-xs text-slate-400">by {log.editedBy?.name}</span>
               </div>
-              <span className="text-xs text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
+              <span className="text-xs text-slate-500">{new Date(log.createdAt).toLocaleString()}</span>
             </div>
             <div className="mt-1.5 text-sm">
-              <span className="font-medium text-gray-800">{log.fieldName}</span>
-              <span className="text-gray-400 text-xs ml-1">({log.tableName})</span>
+              <span className="font-medium text-slate-100">{log.fieldName}</span>
+              <span className="text-slate-500 text-xs ml-1">({log.tableName})</span>
             </div>
             {log.action === "UPDATE" && (
               <div className="mt-1 text-sm">
                 <span className="text-red-500 line-through">{log.oldValue}</span>
-                <span className="text-gray-400"> → </span>
+                <span className="text-slate-500"> → </span>
                 <span className="text-green-600 font-medium">{log.newValue}</span>
               </div>
             )}
@@ -1123,7 +1116,7 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
         ))}
       </div>
       {filtered.length === 0 && (
-        <p className="text-gray-400 text-center py-6">No audit logs in this archive</p>
+        <p className="text-slate-500 text-center py-6">No audit logs in this archive</p>
       )}
     </div>
   );
@@ -1132,10 +1125,10 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
 function WashroomView({ duties }: { duties: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🚿 Washroom Duties ({duties?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">🚿 Washroom Duties ({duties?.length || 0})</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm min-w-[360px]">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/[0.02]">
             <tr>
               <th className="text-left p-2 sm:p-3">Date</th>
               <th className="text-left p-2 sm:p-3">WR #</th>
@@ -1150,11 +1143,10 @@ function WashroomView({ duties }: { duties: any[] }) {
                 <td className="p-2 sm:p-3">WR-{d.washroomNumber}</td>
                 <td className="p-2 sm:p-3">{d.member?.name || d.memberId}</td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    d.status === "DONE" ? "bg-green-100 text-green-700"
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${d.status === "DONE" ? "bg-green-100 text-green-700"
                       : d.status === "SKIPPED" ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}>
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}>
                     {d.status}
                   </span>
                 </td>
@@ -1164,7 +1156,7 @@ function WashroomView({ duties }: { duties: any[] }) {
         </table>
       </div>
       {(!duties || duties.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No washroom duties in this archive</p>
+        <p className="text-slate-500 text-center py-6">No washroom duties in this archive</p>
       )}
     </div>
   );
@@ -1173,29 +1165,29 @@ function WashroomView({ duties }: { duties: any[] }) {
 function MealPlanView({ plans }: { plans: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🍳 Meal Plan / Menu ({plans?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">🍳 Meal Plan / Menu ({plans?.length || 0})</h2>
       <div className="space-y-2">
         {(plans || [])
           .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
           .map((p: any) => {
             const d = new Date(p.date);
             return (
-              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-gray-50 rounded-lg border">
-                <div className="sm:w-32 font-medium text-gray-800">
+              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-white/[0.02] rounded-lg border">
+                <div className="sm:w-32 font-medium text-slate-100">
                   {d.getDate()} {d.toLocaleDateString("en", { weekday: "short", month: "short" })}
                 </div>
                 <div className="flex-1 flex flex-wrap gap-3 text-sm">
                   {p.breakfast && <span>🌅 {p.breakfast}</span>}
                   {p.lunch && <span>☀️ {p.lunch}</span>}
                   {p.dinner && <span>🌙 {p.dinner}</span>}
-                  {!p.breakfast && !p.lunch && !p.dinner && <span className="text-gray-400 italic">No menu</span>}
+                  {!p.breakfast && !p.lunch && !p.dinner && <span className="text-slate-500 italic">No menu</span>}
                 </div>
               </div>
             );
           })}
       </div>
       {(!plans || plans.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No meal plans in this archive</p>
+        <p className="text-slate-500 text-center py-6">No meal plans in this archive</p>
       )}
     </div>
   );
@@ -1204,22 +1196,22 @@ function MealPlanView({ plans }: { plans: any[] }) {
 function RatingsView({ ratings }: { ratings: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">⭐ Meal Ratings ({ratings?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">⭐ Meal Ratings ({ratings?.length || 0})</h2>
       <div className="space-y-2">
         {(ratings || []).map((r: any) => (
-          <div key={r.id} className="p-3 bg-gray-50 rounded-lg border flex items-center gap-3">
+          <div key={r.id} className="p-3 bg-white/[0.02] rounded-lg border flex items-center gap-3">
             <div className="text-2xl">{"⭐".repeat(r.rating)}</div>
             <div>
-              <p className="text-sm font-medium text-gray-800">
+              <p className="text-sm font-medium text-slate-100">
                 {new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} — {r.meal}
               </p>
-              <p className="text-xs text-gray-500">by {r.member?.name}{r.comment ? ` — "${r.comment}"` : ""}</p>
+              <p className="text-xs text-slate-400">by {r.member?.name}{r.comment ? ` — "${r.comment}"` : ""}</p>
             </div>
           </div>
         ))}
       </div>
       {(!ratings || ratings.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No ratings in this archive</p>
+        <p className="text-slate-500 text-center py-6">No ratings in this archive</p>
       )}
     </div>
   );
@@ -1228,23 +1220,23 @@ function RatingsView({ ratings }: { ratings: any[] }) {
 function AnnouncementsView({ announcements }: { announcements: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">📢 Announcements ({announcements?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">📢 Announcements ({announcements?.length || 0})</h2>
       <div className="space-y-3">
         {(announcements || []).map((a: any) => (
-          <div key={a.id} className={`p-4 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-gray-50"}`}>
+          <div key={a.id} className={`p-4 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-white/[0.02]"}`}>
             <div className="flex items-center gap-2">
               {a.pinned && <span>📌</span>}
-              <h3 className="font-medium text-gray-800">{a.title}</h3>
+              <h3 className="font-medium text-slate-100">{a.title}</h3>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{a.body}</p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-sm text-slate-400 mt-1">{a.body}</p>
+            <p className="text-xs text-slate-500 mt-2">
               — {a.author?.name} · {new Date(a.createdAt).toLocaleDateString()}
             </p>
           </div>
         ))}
       </div>
       {(!announcements || announcements.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No announcements in this archive</p>
+        <p className="text-slate-500 text-center py-6">No announcements in this archive</p>
       )}
     </div>
   );
@@ -1253,7 +1245,7 @@ function AnnouncementsView({ announcements }: { announcements: any[] }) {
 function VotesView({ topics }: { topics: any[] }) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">🗳️ Meal Votes ({topics?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">🗳️ Meal Votes ({topics?.length || 0})</h2>
       <div className="space-y-3">
         {(topics || []).map((t: any) => {
           const voteCounts: Record<string, number> = {};
@@ -1264,10 +1256,10 @@ function VotesView({ topics }: { topics: any[] }) {
           const totalVotes = t.votes?.length || 0;
 
           return (
-            <div key={t.id} className="p-4 bg-gray-50 rounded-lg border">
-              <h3 className="font-medium text-gray-800">{t.title}</h3>
+            <div key={t.id} className="p-4 bg-white/[0.02] rounded-lg border">
+              <h3 className="font-medium text-slate-100">{t.title}</h3>
               {t.targetDate && (
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   For {new Date(t.targetDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                   {t.targetMeal ? ` (${t.targetMeal})` : ""}
                 </p>
@@ -1278,8 +1270,8 @@ function VotesView({ topics }: { topics: any[] }) {
                   return (
                     <div key={option}>
                       <div className="flex justify-between text-sm mb-0.5">
-                        <span className="text-gray-700">{option}</span>
-                        <span className="text-gray-500">{count as number} ({pct}%)</span>
+                        <span className="text-slate-300">{option}</span>
+                        <span className="text-slate-400">{count as number} ({pct}%)</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
@@ -1288,13 +1280,13 @@ function VotesView({ topics }: { topics: any[] }) {
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-400 mt-2">{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-slate-500 mt-2">{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</p>
             </div>
           );
         })}
       </div>
       {(!topics || topics.length === 0) && (
-        <p className="text-gray-400 text-center py-6">No vote topics in this archive</p>
+        <p className="text-slate-500 text-center py-6">No vote topics in this archive</p>
       )}
     </div>
   );
@@ -1306,23 +1298,23 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-gray-900">💳 Bill Payments ({payments?.length || 0})</h2>
+      <h2 className="text-lg font-semibold text-white">💳 Bill Payments ({payments?.length || 0})</h2>
 
       {setting && (
-        <div className="bg-gray-50 rounded-lg border p-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Bill Settings</h3>
+        <div className="bg-white/[0.02] rounded-lg border p-4">
+          <h3 className="text-sm font-medium text-slate-300 mb-2">Bill Settings</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            {setting.wifi > 0 && <div><span className="text-gray-500">WiFi:</span> <span className="font-medium">৳{setting.wifi}</span></div>}
-            {setting.electricity > 0 && <div><span className="text-gray-500">Electric:</span> <span className="font-medium">৳{setting.electricity}</span></div>}
-            {setting.gas > 0 && <div><span className="text-gray-500">Gas:</span> <span className="font-medium">৳{setting.gas}</span></div>}
-            {setting.cookSalary > 0 && <div><span className="text-gray-500">Cook:</span> <span className="font-medium">৳{setting.cookSalary}</span></div>}
+            {setting.wifi > 0 && <div><span className="text-slate-400">WiFi:</span> <span className="font-medium">৳{setting.wifi}</span></div>}
+            {setting.electricity > 0 && <div><span className="text-slate-400">Electric:</span> <span className="font-medium">৳{setting.electricity}</span></div>}
+            {setting.gas > 0 && <div><span className="text-slate-400">Gas:</span> <span className="font-medium">৳{setting.gas}</span></div>}
+            {setting.cookSalary > 0 && <div><span className="text-slate-400">Cook:</span> <span className="font-medium">৳{setting.cookSalary}</span></div>}
           </div>
         </div>
       )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm min-w-[420px]">
-          <thead className="bg-gray-50">
+          <thead className="bg-white/[0.02]">
             <tr>
               <th className="text-left p-2 sm:p-3">Member</th>
               <th className="text-right p-2 sm:p-3">Rent</th>
@@ -1339,7 +1331,7 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
                 <tr key={m.id} className="border-t">
                   <td className="p-2 sm:p-3 font-medium">{m.name}</td>
                   <td className="p-2 sm:p-3 text-right">৳{rent}</td>
-                  <td className="p-2 sm:p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-gray-400">—</span>}</td>
+                  <td className="p-2 sm:p-3 text-right">{payment ? <span className="text-green-600 font-medium">৳{payment.amount}</span> : <span className="text-slate-500">—</span>}</td>
                   <td className="p-2 sm:p-3 text-center">
                     {payment ? (
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${payment.confirmed ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
@@ -1347,7 +1339,7 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
                       </span>
                     ) : <span className="text-red-500 text-xs font-medium">Unpaid</span>}
                   </td>
-                  <td className="p-2 sm:p-3 text-gray-500 text-xs">{payment ? new Date(payment.createdAt).toLocaleDateString() : "—"}</td>
+                  <td className="p-2 sm:p-3 text-slate-400 text-xs">{payment ? new Date(payment.createdAt).toLocaleDateString() : "—"}</td>
                 </tr>
               );
             })}
@@ -1356,7 +1348,7 @@ function BillPaymentsView({ payments, settings, members }: { payments: any[]; se
       </div>
 
       {(!payments || payments.length === 0) && (!setting) && (
-        <p className="text-gray-400 text-center py-6">No bill data in this archive</p>
+        <p className="text-slate-500 text-center py-6">No bill data in this archive</p>
       )}
     </div>
   );

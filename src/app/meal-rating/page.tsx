@@ -123,23 +123,21 @@ export default function MealRatingPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h1 className="text-2xl font-bold text-gray-900">⭐ Meal Ratings</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Rate today&apos;s or yesterday&apos;s meals (1-5 stars)</p>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
+        <h1 className="text-2xl font-bold text-white">⭐ Meal Ratings</h1>
+        <p className="text-sm text-slate-400 mt-0.5">Rate today&apos;s or yesterday&apos;s meals (1-5 stars)</p>
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => setSelectedDate(todayStr)}
-            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-              selectedDate === todayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === todayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+              }`}
           >
             Today
           </button>
           <button
             onClick={() => setSelectedDate(yesterdayStr)}
-            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-              selectedDate === yesterdayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === yesterdayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+              }`}
           >
             Yesterday
           </button>
@@ -155,21 +153,21 @@ export default function MealRatingPage() {
           const avgRating = allRatings.length > 0 ? allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length : 0;
 
           return (
-            <div key={meal} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
+            <div key={meal} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-5">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{MEAL_ICONS[meal]}</span>
-                  <h3 className="text-base font-semibold text-gray-900 capitalize">{meal}</h3>
+                  <h3 className="text-base font-semibold text-white capitalize">{meal}</h3>
                 </div>
                 {allRatings.length > 0 && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-slate-400">
                     Avg: {"⭐".repeat(Math.round(avgRating))} ({avgRating.toFixed(1)})
                   </span>
                 )}
               </div>
 
               {menuItem && (
-                <p className="text-sm text-gray-600 mb-3">🍽️ {menuItem}</p>
+                <p className="text-sm text-slate-400 mb-3">🍽️ {menuItem}</p>
               )}
 
               {/* Star Buttons */}
@@ -179,9 +177,8 @@ export default function MealRatingPage() {
                     key={star}
                     onClick={() => rate(meal, star)}
                     disabled={submitting === meal}
-                    className={`p-1.5 text-2xl transition-transform hover:scale-110 ${
-                      myRating && myRating.rating >= star ? "opacity-100" : "opacity-30"
-                    } ${submitting === meal ? "opacity-50" : ""}`}
+                    className={`p-1.5 text-2xl transition-transform hover:scale-110 ${myRating && myRating.rating >= star ? "opacity-100" : "opacity-30"
+                      } ${submitting === meal ? "opacity-50" : ""}`}
                     title={`${star} star${star > 1 ? "s" : ""}`}
                   >
                     ⭐
@@ -198,10 +195,10 @@ export default function MealRatingPage() {
               {allRatings.length > 0 && (
                 <div className="mt-2 space-y-1">
                   {allRatings.map((r) => (
-                    <div key={r.id} className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="font-medium text-gray-700">{r.member.name}</span>
+                    <div key={r.id} className="flex items-center gap-2 text-xs text-slate-400">
+                      <span className="font-medium text-slate-300">{r.member.name}</span>
                       <span>{"⭐".repeat(r.rating)}</span>
-                      {r.comment && <span className="text-gray-400">— {r.comment}</span>}
+                      {r.comment && <span className="text-slate-500">— {r.comment}</span>}
                     </div>
                   ))}
                 </div>
@@ -212,16 +209,16 @@ export default function MealRatingPage() {
       </div>
 
       {/* Monthly Average */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 Monthly Average</h2>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold text-white mb-3">📊 Monthly Average</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {MEALS.map((meal) => {
             const { avg, count } = mealAvgs[meal];
             return (
               <div key={meal} className="text-center">
-                <p className="text-sm text-gray-500 capitalize">{MEAL_ICONS[meal]} {meal}</p>
+                <p className="text-sm text-slate-400 capitalize">{MEAL_ICONS[meal]} {meal}</p>
                 <p className="text-xl font-bold text-indigo-600">{avg > 0 ? avg.toFixed(1) : "—"}</p>
-                <p className="text-xs text-gray-400">{count} rating{count !== 1 ? "s" : ""}</p>
+                <p className="text-xs text-slate-500">{count} rating{count !== 1 ? "s" : ""}</p>
                 {avg > 0 && (
                   <div className="flex justify-center gap-0.5 mt-1">
                     {STARS.map((s) => (

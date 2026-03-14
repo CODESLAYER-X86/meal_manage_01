@@ -11,7 +11,7 @@ export default function BazarRedirectPage() {
   }, [router]);
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <p className="text-gray-500">Redirecting to Bazar page...</p>
+      <p className="text-slate-400">Redirecting to Bazar page...</p>
     </div>
   );
 }

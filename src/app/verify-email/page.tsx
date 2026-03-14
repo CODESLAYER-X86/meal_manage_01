@@ -38,19 +38,19 @@ function VerifyEmailContent() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 max-w-md w-full text-center">
+            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-xl shadow-black/20 border border-gray-100 p-8 max-w-md w-full text-center">
                 {status === "loading" && (
                     <>
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4" />
-                        <p className="text-gray-600">Verifying your email…</p>
+                        <p className="text-slate-400">Verifying your email…</p>
                     </>
                 )}
                 {status === "success" && (
                     <>
                         <div className="text-5xl mb-4">✅</div>
-                        <h1 className="text-xl font-bold text-gray-900 mb-2">Email Verified!</h1>
-                        <p className="text-gray-500 text-sm mb-4">{message}</p>
-                        <p className="text-xs text-gray-400">Redirecting to login in 3 seconds…</p>
+                        <h1 className="text-xl font-bold text-white mb-2">Email Verified!</h1>
+                        <p className="text-slate-400 text-sm mb-4">{message}</p>
+                        <p className="text-xs text-slate-500">Redirecting to login in 3 seconds…</p>
                         <Link href="/login" className="inline-block mt-4 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors">
                             Go to Login
                         </Link>
@@ -59,8 +59,8 @@ function VerifyEmailContent() {
                 {status === "error" && (
                     <>
                         <div className="text-5xl mb-4">❌</div>
-                        <h1 className="text-xl font-bold text-gray-900 mb-2">Verification Failed</h1>
-                        <p className="text-gray-500 text-sm mb-6">{message}</p>
+                        <h1 className="text-xl font-bold text-white mb-2">Verification Failed</h1>
+                        <p className="text-slate-400 text-sm mb-6">{message}</p>
                         <ResendForm />
                     </>
                 )}
@@ -89,7 +89,7 @@ function ResendForm() {
 
     return (
         <div className="space-y-3">
-            <p className="text-xs text-gray-400 mb-2">Enter your email to get a new verification link:</p>
+            <p className="text-xs text-slate-500 mb-2">Enter your email to get a new verification link:</p>
             <input
                 type="email"
                 value={email}

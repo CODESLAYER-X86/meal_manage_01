@@ -196,11 +196,11 @@ export default function MealPlanPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">🍳 Meal Plan</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <h1 className="text-2xl font-bold text-white">🍳 Meal Plan</h1>
+            <p className="text-sm text-slate-400 mt-0.5">
               {isManager ? "Set what will be cooked each day" : "See what's being cooked each day"}
             </p>
           </div>
@@ -208,7 +208,7 @@ export default function MealPlanPage() {
             <button onClick={() => changeMonth(-1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
               ←
             </button>
-            <span className="text-base sm:text-lg font-semibold text-gray-700 min-w-[140px] text-center">
+            <span className="text-base sm:text-lg font-semibold text-slate-300 min-w-[140px] text-center">
               {MONTH_NAMES[month - 1]} {year}
             </span>
             <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
@@ -260,26 +260,24 @@ export default function MealPlanPage() {
         };
 
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">🍽️ Meal Status</h2>
-                <p className="text-sm text-gray-500">Who&apos;s eating today/tomorrow</p>
+                <h2 className="text-lg font-semibold text-white">🍽️ Meal Status</h2>
+                <p className="text-sm text-slate-400">Who&apos;s eating today/tomorrow</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setStatusDate("today")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    statusDate === "today" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "today" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+                    }`}
                 >
                   📅 Today
                 </button>
                 <button
                   onClick={() => setStatusDate("tomorrow")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+                    }`}
                 >
                   🔮 Tomorrow
                 </button>
@@ -290,10 +288,10 @@ export default function MealPlanPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 pr-3 text-gray-500 font-medium">Member</th>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-2 pr-3 text-slate-400 font-medium">Member</th>
                     {meals.map((meal) => (
-                      <th key={meal} className="text-center py-2 px-2 text-gray-500 font-medium">
+                      <th key={meal} className="text-center py-2 px-2 text-slate-400 font-medium">
                         <span className="hidden sm:inline">{mealIcons[meal]} </span>
                         <span className="capitalize">{meal}</span>
                       </th>
@@ -304,9 +302,9 @@ export default function MealPlanPage() {
                   {mealStatusData.members.map((member) => (
                     <tr key={member.id} className="border-b border-gray-100 last:border-0">
                       <td className="py-2.5 pr-3">
-                        <span className="font-medium text-gray-700 text-sm">{member.name}</span>
+                        <span className="font-medium text-slate-300 text-sm">{member.name}</span>
                         {member.id === session?.user?.id && (
-                          <span className="ml-1 text-xs text-gray-400">(you)</span>
+                          <span className="ml-1 text-xs text-slate-500">(you)</span>
                         )}
                       </td>
                       {meals.map((meal) => {
@@ -323,11 +321,10 @@ export default function MealPlanPage() {
                               <button
                                 onClick={() => handleToggle(member.id, meal)}
                                 disabled={isToggling}
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${
-                                  isOff
+                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${isOff
                                     ? "bg-red-100 text-red-600 hover:bg-red-200"
                                     : "bg-green-100 text-green-600 hover:bg-green-200"
-                                } ${isToggling ? "opacity-50" : ""}`}
+                                  } ${isToggling ? "opacity-50" : ""}`}
                                 title={isOff ? "Click to turn ON" : "Click to turn OFF"}
                               >
                                 {isOff ? "✕" : "✓"}
@@ -337,9 +334,8 @@ export default function MealPlanPage() {
                                 🔒
                               </span>
                             ) : (
-                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${
-                                isOff ? "bg-red-50 text-red-400" : "bg-green-50 text-green-400"
-                              }`}>
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${isOff ? "bg-red-50 text-red-400" : "bg-green-50 text-green-400"
+                                }`}>
                                 {isOff ? "✕" : "✓"}
                               </span>
                             )}
@@ -367,7 +363,7 @@ export default function MealPlanPage() {
 
             {/* Pending Meal Status Requests - Manager Only */}
             {isManager && mealStatusData.pendingRequests?.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t border-white/10">
                 <h3 className="text-sm font-semibold text-amber-800 mb-2">⏳ Pending Meal Change Requests</h3>
                 <div className="space-y-2">
                   {mealStatusData.pendingRequests.map((req) => {
@@ -375,10 +371,10 @@ export default function MealPlanPage() {
                     return (
                       <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <div>
-                          <p className="text-sm font-medium text-gray-800">
+                          <p className="text-sm font-medium text-slate-100">
                             {memberName} wants to turn <strong className="capitalize">{req.meal}</strong> {req.wantOff ? "OFF" : "ON"}
                           </p>
-                          {req.reason && <p className="text-xs text-gray-500 mt-0.5">{req.reason}</p>}
+                          {req.reason && <p className="text-xs text-slate-400 mt-0.5">{req.reason}</p>}
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -428,22 +424,20 @@ export default function MealPlanPage() {
           return (
             <div
               key={day}
-              className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-colors ${
-                isToday ? "border-indigo-300 ring-1 ring-indigo-200" : "border-gray-200"
-              } ${isPast ? "opacity-70" : ""}`}
+              className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden transition-colors ${isToday ? "border-indigo-300 ring-1 ring-indigo-200" : "border-white/10"
+                } ${isPast ? "opacity-70" : ""}`}
             >
               {/* Day Header */}
               <div
-                className={`flex items-center justify-between px-4 py-3 ${
-                  isToday ? "bg-indigo-50" : "bg-gray-50"
-                } ${isManager && !isEditing ? "cursor-pointer hover:bg-gray-100" : ""}`}
+                className={`flex items-center justify-between px-4 py-3 ${isToday ? "bg-indigo-50" : "bg-gray-50"
+                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-gray-100" : ""}`}
                 onClick={() => !isEditing && startEdit(day)}
               >
                 <div className="flex items-center gap-2">
-                  <span className={`text-lg font-bold ${isToday ? "text-indigo-700" : "text-gray-800"}`}>
+                  <span className={`text-lg font-bold ${isToday ? "text-indigo-700" : "text-slate-100"}`}>
                     {day}
                   </span>
-                  <span className="text-sm text-gray-500">{dayName}</span>
+                  <span className="text-sm text-slate-400">{dayName}</span>
                   {isToday && (
                     <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
                       Today
@@ -452,7 +446,7 @@ export default function MealPlanPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {isManager && !isEditing && (
-                    <span className="text-xs text-gray-400 hidden sm:inline">tap to edit</span>
+                    <span className="text-xs text-slate-500 hidden sm:inline">tap to edit</span>
                   )}
                 </div>
               </div>
@@ -462,7 +456,7 @@ export default function MealPlanPage() {
                 <div className="p-4 space-y-3 bg-indigo-50/30">
                   {mealTypesList.map((meal) => (
                     <div key={meal} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                      <label className="text-sm font-medium text-gray-600 capitalize w-20 shrink-0">
+                      <label className="text-sm font-medium text-slate-400 capitalize w-20 shrink-0">
                         {DEFAULT_MEAL_ICONS[meal] || "🍽️"} {meal}
                       </label>
                       <input
@@ -484,7 +478,7 @@ export default function MealPlanPage() {
                     </button>
                     <button
                       onClick={() => setEditingDay(null)}
-                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
@@ -508,8 +502,8 @@ export default function MealPlanPage() {
                           <div key={mt} className="flex items-start gap-2">
                             <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
                             <div>
-                              <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
-                              <p className="text-sm text-gray-800">{val}</p>
+                              <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                              <p className="text-sm text-slate-100">{val}</p>
                             </div>
                           </div>
                         );
@@ -519,7 +513,7 @@ export default function MealPlanPage() {
                 </div>
               ) : (
                 <div className="px-4 py-3">
-                  <p className="text-sm text-gray-300 italic">No menu planned</p>
+                  <p className="text-sm text-slate-500 italic">No menu planned</p>
                 </div>
               )}
             </div>

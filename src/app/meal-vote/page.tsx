@@ -138,16 +138,16 @@ export default function MealVotePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">🗳️ Meal Voting</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Vote on what to cook next!</p>
+            <h1 className="text-2xl font-bold text-white">🗳️ Meal Voting</h1>
+            <p className="text-sm text-slate-400 mt-0.5">Vote on what to cook next!</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowClosed(!showClosed)}
-              className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+              className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
             >
               {showClosed ? "Show Active" : "Show Closed"}
             </button>
@@ -165,10 +165,10 @@ export default function MealVotePage() {
 
       {/* Create Form */}
       {showForm && isManager && (
-        <div className="bg-purple-50 rounded-xl shadow-sm border border-purple-200 p-4 sm:p-6 space-y-4">
+        <div className="bg-purple-50 rounded-xl shadow-md shadow-black/10 border border-purple-200 p-4 sm:p-6 space-y-4">
           <h2 className="text-lg font-semibold text-purple-900">🗳️ Create New Vote</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Question</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Question</label>
             <input
               type="text"
               value={title}
@@ -178,13 +178,13 @@ export default function MealVotePage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-300 mb-1">
               Options (minimum 2)
             </label>
             <div className="space-y-2">
               {options.map((opt, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-400 w-5 text-right shrink-0">{idx + 1}.</span>
+                  <span className="text-xs font-medium text-slate-500 w-5 text-right shrink-0">{idx + 1}.</span>
                   <input
                     type="text"
                     value={opt}
@@ -200,7 +200,7 @@ export default function MealVotePage() {
                     <button
                       type="button"
                       onClick={() => setOptions(options.filter((_, i) => i !== idx))}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove option"
                     >
                       ✕
@@ -219,7 +219,7 @@ export default function MealVotePage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">For Date (optional)</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">For Date (optional)</label>
               <input
                 type="date"
                 value={targetDate}
@@ -228,7 +228,7 @@ export default function MealVotePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">For Meal (optional)</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">For Meal (optional)</label>
               <select
                 value={targetMeal}
                 onChange={(e) => setTargetMeal(e.target.value)}
@@ -254,13 +254,13 @@ export default function MealVotePage() {
 
       {/* Topics */}
       {topics.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-10 text-center">
           <div className="text-5xl mb-4">🗳️</div>
-          <p className="text-gray-500 text-lg">
+          <p className="text-slate-400 text-lg">
             {showClosed ? "No closed votes" : "No active votes right now"}
           </p>
           {isManager && !showClosed && (
-            <p className="text-sm text-gray-400 mt-1">Create one above to let members vote!</p>
+            <p className="text-sm text-slate-500 mt-1">Create one above to let members vote!</p>
           )}
         </div>
       ) : (
@@ -277,12 +277,12 @@ export default function MealVotePage() {
             const maxVotes = Math.max(...Object.values(voteCounts), 1);
 
             return (
-              <div key={topic.id} className={`bg-white rounded-xl shadow-sm border overflow-hidden ${topic.active ? "border-gray-200" : "border-gray-100 opacity-80"}`}>
+              <div key={topic.id} className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden ${topic.active ? "border-gray-200" : "border-gray-100 opacity-80"}`}>
                 {/* Topic header */}
                 <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-base font-semibold text-gray-900">{topic.title}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5 flex flex-wrap gap-1.5">
+                    <h3 className="text-base font-semibold text-white">{topic.title}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap gap-1.5">
                       {topic.targetDate && (
                         <span>📅 {new Date(topic.targetDate).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
                       )}
@@ -295,11 +295,11 @@ export default function MealVotePage() {
                   {isManager && (
                     <div className="flex gap-1 shrink-0">
                       {topic.active && (
-                        <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-orange-600 rounded-lg hover:bg-gray-50" title="Close voting">
+                        <button onClick={() => closeTopic(topic.id)} className="p-2 text-xs text-slate-500 hover:text-orange-600 rounded-lg hover:bg-white/[0.02]" title="Close voting">
                           🔒
                         </button>
                       )}
-                      <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-50" title="Delete">
+                      <button onClick={() => deleteTopic(topic.id)} className="p-2 text-xs text-slate-500 hover:text-red-600 rounded-lg hover:bg-white/[0.02]" title="Delete">
                         🗑️
                       </button>
                     </div>
@@ -319,37 +319,33 @@ export default function MealVotePage() {
                       <div
                         key={opt}
                         onClick={() => topic.active && !voting && castVote(topic.id, opt)}
-                        className={`relative px-4 py-3 transition-colors ${
-                          topic.active && !voting ? "cursor-pointer" : "cursor-default"
-                        } ${
-                          isMyChoice
+                        className={`relative px-4 py-3 transition-colors ${topic.active && !voting ? "cursor-pointer" : "cursor-default"
+                          } ${isMyChoice
                             ? "bg-indigo-50"
                             : isWinner
-                            ? "bg-green-50"
-                            : topic.active
-                            ? "hover:bg-gray-50"
-                            : ""
-                        }`}
+                              ? "bg-green-50"
+                              : topic.active
+                                ? "hover:bg-white/[0.02]"
+                                : ""
+                          }`}
                       >
                         {/* Progress bar fill */}
                         {totalVotes > 0 && (
                           <div
-                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${
-                              isMyChoice ? "bg-indigo-100" : isWinner ? "bg-green-100" : "bg-gray-100"
-                            }`}
+                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${isMyChoice ? "bg-indigo-100" : isWinner ? "bg-green-100" : "bg-gray-100"
+                              }`}
                             style={{ width: `${pct}%`, opacity: 0.6 }}
                           />
                         )}
 
                         <div className="relative flex items-center gap-3">
                           {/* Radio circle indicator */}
-                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                            isMyChoice
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${isMyChoice
                               ? "border-indigo-500 bg-indigo-500"
                               : isWinner
-                              ? "border-green-500 bg-green-500"
-                              : "border-gray-300"
-                          }`}>
+                                ? "border-green-500 bg-green-500"
+                                : "border-gray-300"
+                            }`}>
                             {(isMyChoice || isWinner) && (
                               <div className="w-1.5 h-1.5 rounded-full bg-white" />
                             )}
@@ -358,9 +354,8 @@ export default function MealVotePage() {
                           {/* Option text */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`text-sm font-medium ${
-                                isMyChoice ? "text-indigo-800" : isWinner ? "text-green-800" : "text-gray-800"
-                              }`}>
+                              <span className={`text-sm font-medium ${isMyChoice ? "text-indigo-800" : isWinner ? "text-green-800" : "text-slate-100"
+                                }`}>
                                 {isWinner && "🏆 "}{opt}
                               </span>
                               {isMyChoice && (
@@ -368,18 +363,17 @@ export default function MealVotePage() {
                               )}
                             </div>
                             {voters.length > 0 && (
-                              <p className="text-xs text-gray-400 mt-0.5 truncate">{voters.join(", ")}</p>
+                              <p className="text-xs text-slate-500 mt-0.5 truncate">{voters.join(", ")}</p>
                             )}
                           </div>
 
                           {/* Count + percentage */}
                           <div className="text-right flex-shrink-0">
-                            <span className={`text-sm font-bold ${
-                              isMyChoice ? "text-indigo-700" : isWinner ? "text-green-700" : "text-gray-700"
-                            }`}>
+                            <span className={`text-sm font-bold ${isMyChoice ? "text-indigo-700" : isWinner ? "text-green-700" : "text-slate-300"
+                              }`}>
                               {count}
                             </span>
-                            <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
+                            <span className="text-xs text-slate-500 ml-1">({pct}%)</span>
                           </div>
                         </div>
 
@@ -387,9 +381,8 @@ export default function MealVotePage() {
                         {totalVotes > 0 && (
                           <div className="relative mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                isMyChoice ? "bg-indigo-400" : isWinner ? "bg-green-400" : "bg-gray-300"
-                              }`}
+                              className={`h-full rounded-full transition-all duration-500 ${isMyChoice ? "bg-indigo-400" : isWinner ? "bg-green-400" : "bg-gray-300"
+                                }`}
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -402,7 +395,7 @@ export default function MealVotePage() {
                 {/* Loading indicator */}
                 {voting === topic.id && (
                   <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-                    <p className="text-xs text-gray-400 text-center">Casting vote...</p>
+                    <p className="text-xs text-slate-500 text-center">Casting vote...</p>
                   </div>
                 )}
               </div>

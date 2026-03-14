@@ -57,10 +57,10 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">📊 Monthly Bill</h1>
+      <h1 className="text-2xl font-bold text-slate-100">📊 Monthly Bill</h1>
 
       {/* Month Selector */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={month}
@@ -103,25 +103,25 @@ export default function BillingPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
-          <p className="text-sm text-gray-500">Total Expense</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-md shadow-black/10 border text-center">
+          <p className="text-sm text-slate-400">Total Expense</p>
           <p className="text-xl sm:text-2xl font-bold text-red-600">৳{bill?.totalExpense || 0}</p>
         </div>
-        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
-          <p className="text-sm text-gray-500">Total Meals</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-md shadow-black/10 border text-center">
+          <p className="text-sm text-slate-400">Total Meals</p>
           <p className="text-xl sm:text-2xl font-bold text-indigo-600">{bill?.totalMeals || 0}</p>
         </div>
-        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border text-center">
-          <p className="text-sm text-gray-500">Meal Rate</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-md shadow-black/10 border text-center">
+          <p className="text-sm text-slate-400">Meal Rate</p>
           <p className="text-xl sm:text-2xl font-bold text-indigo-600">৳{bill?.mealRate || 0}</p>
-          <p className="text-xs text-gray-400">per meal</p>
+          <p className="text-xs text-slate-500">per meal</p>
         </div>
       </div>
 
       {/* Expense Chart — Visual Bar Comparison */}
       {bill && bill.members.length > 0 && (
-        <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">📊 Member Expense Comparison</h2>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 sm:p-5 rounded-xl shadow-md shadow-black/10 border">
+          <h2 className="text-lg font-semibold text-slate-100 mb-4">📊 Member Expense Comparison</h2>
           <div className="space-y-3">
             {bill.members.map((m) => {
               const maxCost = Math.max(...bill.members.map((x) => x.mealCost), 1);
@@ -131,38 +131,38 @@ export default function BillingPage() {
               return (
                 <div key={m.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-700 truncate">{m.name}</span>
+                    <span className="text-sm font-medium text-slate-300 truncate">{m.name}</span>
                     <span className={`text-xs font-medium ${m.netDue > 0 ? "text-red-600" : "text-green-600"}`}>
                       {m.netDue > 0 ? `৳${m.netDue} owed` : `৳${Math.abs(m.netDue)} refund`}
                     </span>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-12">Cost</span>
+                      <span className="text-xs text-slate-500 w-12">Cost</span>
                       <div className="flex-1 bg-gray-100 rounded-full h-3">
                         <div
                           className="bg-red-400 h-3 rounded-full transition-all"
                           style={{ width: `${costPct}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-14 text-right">৳{m.mealCost}</span>
+                      <span className="text-xs text-slate-400 w-14 text-right">৳{m.mealCost}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-12">Deposit</span>
+                      <span className="text-xs text-slate-500 w-12">Deposit</span>
                       <div className="flex-1 bg-gray-100 rounded-full h-3">
                         <div
                           className="bg-green-400 h-3 rounded-full transition-all"
                           style={{ width: `${depositPct}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500 w-14 text-right">৳{m.totalDeposit}</span>
+                      <span className="text-xs text-slate-400 w-14 text-right">৳{m.totalDeposit}</span>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="flex gap-4 mt-4 text-xs text-gray-400">
+          <div className="flex gap-4 mt-4 text-xs text-slate-500">
             <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-400 rounded-full" /> Meal Cost</div>
             <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-400 rounded-full" /> Deposited</div>
           </div>
@@ -170,13 +170,13 @@ export default function BillingPage() {
       )}
 
       {/* Bill Breakdown Table */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <h2 className="p-4 text-lg font-semibold text-gray-800 border-b">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden">
+        <h2 className="p-4 text-lg font-semibold text-slate-100 border-b">
           📋 {monthName} — Per Member Breakdown
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm min-w-[500px]">
-            <thead className="bg-gray-50">
+            <thead className="bg-white/[0.02]">
               <tr>
                 <th className="text-left p-2 sm:p-4">Member</th>
                 <th className="text-center p-2 sm:p-4">Total Meals</th>
@@ -188,7 +188,7 @@ export default function BillingPage() {
             </thead>
             <tbody>
               {bill?.members.map((m) => (
-                <tr key={m.id} className="border-t hover:bg-gray-50">
+                <tr key={m.id} className="border-t hover:bg-white/[0.02]">
                   <td className="p-2 sm:p-4 font-medium">{m.name}</td>
                   <td className="p-2 sm:p-4 text-center">{m.totalMeals}</td>
                   <td className="p-2 sm:p-4 text-right">৳{m.mealCost}</td>
@@ -197,20 +197,19 @@ export default function BillingPage() {
                     {m.netDue > 0 ? `৳${m.netDue}` : `-৳${Math.abs(m.netDue)}`}
                   </td>
                   <td className="p-2 sm:p-4 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      m.netDue > 0
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0
                         ? "bg-red-100 text-red-700"
                         : m.netDue < 0
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}>
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-slate-400"
+                      }`}>
                       {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
                     </span>
                   </td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-gray-50 font-bold">
+            <tfoot className="bg-white/[0.02] font-bold">
               <tr className="border-t">
                 <td className="p-2 sm:p-4">Total</td>
                 <td className="p-2 sm:p-4 text-center">{bill?.totalMeals}</td>

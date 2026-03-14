@@ -82,9 +82,9 @@ export default function DashboardPage() {
   const [requestingMeal, setRequestingMeal] = useState<string | null>(null);
   const [requestReason, setRequestReason] = useState("");
   const [requestSubmitting, setRequestSubmitting] = useState(false);
-const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
+  const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
 
-  
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -145,28 +145,28 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <span className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-slate-100">Dashboard</h1>
+        <span className="text-sm text-slate-400">
           {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </span>
       </div>
 
       {/* My Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">My Meals</p>
-          <p className="text-2xl font-bold text-gray-800">{myBill?.totalMeals || 0}</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
+          <p className="text-sm text-slate-400">My Meals</p>
+          <p className="text-2xl font-bold text-slate-100">{myBill?.totalMeals || 0}</p>
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">My Deposit</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
+          <p className="text-sm text-slate-400">My Deposit</p>
           <p className="text-2xl font-bold text-green-600">৳{myBill?.totalDeposit || 0}</p>
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">Meal Rate</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
+          <p className="text-sm text-slate-400">Meal Rate</p>
           <p className="text-2xl font-bold text-indigo-600">৳{bill?.mealRate || 0}</p>
         </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
-          <p className="text-sm text-gray-500">My Net Due</p>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
+          <p className="text-sm text-slate-400">My Net Due</p>
           <p className={`text-lg sm:text-2xl font-bold truncate ${(myBill?.netDue || 0) > 0 ? "text-red-600" : "text-green-600"}`}>
             {(myBill?.netDue || 0) > 0 ? `৳${myBill?.netDue} owed` : `৳${Math.abs(myBill?.netDue || 0)} refund`}
           </p>
@@ -176,10 +176,10 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
       {/* Today's & Tomorrow's Menu */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Today */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border border-white/[0.06]">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🍽️</span>
-            <h3 className="font-semibold text-gray-700">Today&apos;s Menu</h3>
+            <h3 className="font-semibold text-slate-300">Today&apos;s Menu</h3>
           </div>
           {todayMenu && (todayMenu.breakfast || todayMenu.lunch || todayMenu.dinner || todayMenu.meals) ? (
             <div className="space-y-2">
@@ -199,8 +199,8 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                     <div key={mt} className="flex items-start gap-2">
                       <span>{mealIcons[mt] || "🍽️"}</span>
                       <div>
-                        <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
-                        <p className="text-sm text-gray-800">{val}</p>
+                        <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                        <p className="text-sm text-slate-100">{val}</p>
                       </div>
                     </div>
                   );
@@ -208,14 +208,14 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
               })()}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 italic">No menu planned for today</p>
+            <p className="text-sm text-slate-500 italic">No menu planned for today</p>
           )}
         </div>
         {/* Tomorrow */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border border-white/[0.06]">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🔮</span>
-            <h3 className="font-semibold text-gray-700">Tomorrow&apos;s Menu</h3>
+            <h3 className="font-semibold text-slate-300">Tomorrow&apos;s Menu</h3>
           </div>
           {tomorrowMenu && (tomorrowMenu.breakfast || tomorrowMenu.lunch || tomorrowMenu.dinner || tomorrowMenu.meals) ? (
             <div className="space-y-2">
@@ -235,8 +235,8 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                     <div key={mt} className="flex items-start gap-2">
                       <span>{mealIcons[mt] || "🍽️"}</span>
                       <div>
-                        <p className="text-xs text-gray-400 font-medium capitalize">{mt}</p>
-                        <p className="text-sm text-gray-800">{val}</p>
+                        <p className="text-xs text-slate-500 font-medium capitalize">{mt}</p>
+                        <p className="text-sm text-slate-100">{val}</p>
                       </div>
                     </div>
                   );
@@ -244,7 +244,7 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
               })()}
             </div>
           ) : (
-            <p className="text-sm text-gray-400 italic">No menu planned for tomorrow</p>
+            <p className="text-sm text-slate-500 italic">No menu planned for tomorrow</p>
           )}
         </div>
       </div>
@@ -323,7 +323,7 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
 
           return (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-700">{label}</h3>
+              <h3 className="text-sm font-semibold text-slate-300">{label}</h3>
               {meals.map((meal) => {
                 const myStatus = data.statuses?.[userId]?.[meal];
                 const isOff = myStatus === true;
@@ -338,7 +338,7 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                   <div key={meal} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <span>{mealIcons[meal] || "🍽️"}</span>
-                      <span className="text-sm font-medium text-gray-700 capitalize">{meal}</span>
+                      <span className="text-sm font-medium text-slate-300 capitalize">{meal}</span>
                       {isOff ? (
                         <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">OFF</span>
                       ) : (
@@ -367,7 +367,7 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                             </button>
                             <button
                               onClick={() => { setRequestingMeal(null); setRequestReason(""); }}
-                              className="px-1.5 py-1 text-xs text-gray-500 hover:text-gray-700"
+                              className="px-1.5 py-1 text-xs text-slate-400 hover:text-slate-300"
                             >
                               ✕
                             </button>
@@ -385,13 +385,11 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                         <button
                           onClick={() => toggleMeal(dateStr, meal, isOff)}
                           disabled={isToggling}
-                          className={`relative w-11 h-6 rounded-full transition-colors ${
-                            isOff ? "bg-gray-300" : "bg-green-500"
-                          } ${isToggling ? "opacity-50" : ""}`}
+                          className={`relative w-11 h-6 rounded-full transition-colors ${isOff ? "bg-gray-300" : "bg-green-500"
+                            } ${isToggling ? "opacity-50" : ""}`}
                         >
-                          <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                            isOff ? "left-0.5" : "left-5.5"
-                          }`} />
+                          <div className={`absolute top-0.5 w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${isOff ? "left-0.5" : "left-5.5"
+                            }`} />
                         </button>
                       )}
                     </div>
@@ -401,8 +399,8 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
               {/* Cook Count */}
               <div className="flex flex-wrap gap-2 mt-1">
                 {meals.map((meal) => (
-                  <span key={meal} className="text-xs text-gray-400">
-                    {meal}: <strong className="text-gray-600">{data.mealCounts?.[meal] ?? 0}</strong> eating
+                  <span key={meal} className="text-xs text-slate-500">
+                    {meal}: <strong className="text-slate-400">{data.mealCounts?.[meal] ?? 0}</strong> eating
                   </span>
                 ))}
               </div>
@@ -411,9 +409,9 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
         };
 
         return (
-          <div className="bg-white p-5 rounded-xl shadow-sm border">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">🍽️ My Meal Status</h2>
+              <h2 className="text-lg font-semibold text-slate-100">🍽️ My Meal Status</h2>
               <Link href="/meal-plan" className="text-sm text-indigo-600 hover:underline">View all →</Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -466,9 +464,9 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
 
       {/* Bill Payment Status */}
       {billPayStatus && billPayStatus.members.length > 0 && (
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">💳 Bill Payment Status</h2>
+            <h2 className="text-lg font-semibold text-slate-100">💳 Bill Payment Status</h2>
             <Link href="/bills" className="text-sm text-indigo-600 hover:underline">Manage →</Link>
           </div>
           <div className="space-y-2">
@@ -482,13 +480,13 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
 
               return (
                 <div key={m.id} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700 w-20 truncate">{m.name}</span>
-                  <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden relative">
+                  <span className="text-sm font-medium text-slate-300 w-20 truncate">{m.name}</span>
+                  <div className="flex-1 bg-white/[0.05] rounded-full h-5 overflow-hidden relative">
                     <div
                       className={`h-full rounded-full transition-all ${isPaid ? "bg-green-500" : confirmed > 0 ? "bg-blue-500" : "bg-gray-300"}`}
                       style={{ width: `${pct}%` }}
                     />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-gray-700">
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-slate-300">
                       {totalBill > 0 ? `৳${confirmed}/${totalBill}` : "No bill"}
                     </span>
                   </div>
@@ -500,7 +498,7 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
                     ) : paid === 0 && totalBill > 0 ? (
                       <span className="text-red-600 font-medium">❌ Unpaid</span>
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-slate-500">—</span>
                     )}
                   </span>
                 </div>
@@ -528,20 +526,20 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
 
       {/* Latest Announcements */}
       {announcements.length > 0 && (
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">📢 Announcements</h2>
+            <h2 className="text-lg font-semibold text-slate-100">📢 Announcements</h2>
             <Link href="/announcements" className="text-sm text-indigo-600 hover:underline">View all</Link>
           </div>
           <div className="space-y-2">
             {announcements.slice(0, 3).map((a) => (
-              <div key={a.id} className={`p-3 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-gray-100"}`}>
+              <div key={a.id} className={`p-3 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-white/[0.06]"}`}>
                 <div className="flex items-center gap-2">
                   {a.pinned && <span className="text-xs">📌</span>}
-                  <p className="text-sm font-medium text-gray-800">{a.title}</p>
+                  <p className="text-sm font-medium text-slate-100">{a.title}</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{a.body}</p>
-                <p className="text-xs text-gray-400 mt-1">— {a.author.name}</p>
+                <p className="text-xs text-slate-400 mt-1 line-clamp-2">{a.body}</p>
+                <p className="text-xs text-slate-500 mt-1">— {a.author.name}</p>
               </div>
             ))}
           </div>
@@ -551,25 +549,25 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
       {/* Overview Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* All Members Summary */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">📊 This Month Summary</h2>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
+          <h2 className="text-lg font-semibold text-slate-100 mb-3">📊 This Month Summary</h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Total Expense</span>
+              <span className="text-slate-400">Total Expense</span>
               <span className="font-medium">৳{bill?.totalExpense || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Total Meals</span>
+              <span className="text-slate-400">Total Meals</span>
               <span className="font-medium">{bill?.totalMeals || 0}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Meal Rate</span>
+              <span className="text-slate-400">Meal Rate</span>
               <span className="font-medium text-indigo-600">৳{bill?.mealRate || 0}/meal</span>
             </div>
             <hr className="my-2" />
             {bill?.members.map((m) => (
               <div key={m.id} className="flex justify-between gap-2">
-                <span className="text-gray-600 truncate">{m.name}</span>
+                <span className="text-slate-400 truncate">{m.name}</span>
                 <span className="font-medium whitespace-nowrap text-xs sm:text-sm">{m.totalMeals} meals · ৳{m.mealCost}</span>
               </div>
             ))}
@@ -577,34 +575,34 @@ const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunc
         </div>
 
         {/* Recent Audit Log */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold text-gray-800">🔍 Recent Changes</h2>
+            <h2 className="text-lg font-semibold text-slate-100">🔍 Recent Changes</h2>
             <Link href="/audit-log" className="text-sm text-indigo-600 hover:underline">View all</Link>
           </div>
           <div className="space-y-2 text-sm max-h-64 overflow-y-auto">
             {auditLogs.length === 0 ? (
-              <p className="text-gray-400">No changes recorded yet</p>
+              <p className="text-slate-500">No changes recorded yet</p>
             ) : (
               auditLogs.map((log) => (
                 <div key={log.id} className="p-2 bg-gray-50 rounded-lg">
                   <div className="flex justify-between">
-                    <span className="font-medium text-gray-700">{log.fieldName}</span>
-                    <span className="text-xs text-gray-400">
+                    <span className="font-medium text-slate-300">{log.fieldName}</span>
+                    <span className="text-xs text-slate-500">
                       {new Date(log.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-slate-400">
                     {log.action === "UPDATE" ? (
                       <>
                         <span className="text-red-500 line-through">{log.oldValue}</span> →{" "}
                         <span className="text-green-600">{log.newValue}</span>
-                        <span className="text-gray-400 text-xs ml-1">(by {log.editedBy.name})</span>
+                        <span className="text-slate-500 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     ) : (
                       <>
                         {log.action}: {log.newValue}
-                        <span className="text-gray-400 text-xs ml-1">(by {log.editedBy.name})</span>
+                        <span className="text-slate-500 text-xs ml-1">(by {log.editedBy.name})</span>
                       </>
                     )}
                   </p>

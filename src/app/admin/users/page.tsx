@@ -74,7 +74,7 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-white">Users</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Manage platform users</p>
+        <p className="text-sm text-slate-400 mt-0.5">Manage platform users</p>
       </div>
 
       {/* Search Bar */}
@@ -91,7 +91,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={doSearch}
-          className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-violet-500 hover:to-indigo-500 transition-all shadow-lg shadow-violet-500/20"
+          className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-violet-500 hover:to-indigo-500 transition-all shadow-xl shadow-black/20 shadow-violet-500/20"
         >
           Search
         </button>
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <div className="bg-[#1a1a3e]/50 border border-white/5 rounded-2xl p-12 text-center">
           <p className="text-4xl mb-3">👤</p>
-          <p className="text-gray-400">No users found</p>
+          <p className="text-slate-500">No users found</p>
         </div>
       ) : (
         <>
@@ -114,12 +114,12 @@ export default function AdminUsersPage() {
               <div key={u.id} className="bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-gray-300"}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-slate-500"}`}>
                       {u.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-white">{u.name}</h3>
-                      <p className="text-[10px] text-gray-500">{u.email}</p>
+                      <p className="text-[10px] text-slate-400">{u.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -128,8 +128,8 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
                 <div className="flex gap-3 text-[11px]">
-                  <span className={`px-2 py-0.5 rounded-md ${u.role === "MANAGER" ? "bg-indigo-500/10 text-indigo-400" : "bg-white/5 text-gray-400"}`}>{u.role}</span>
-                  <span className="text-gray-500">{u.mess?.name || "No mess"}</span>
+                  <span className={`px-2 py-0.5 rounded-md ${u.role === "MANAGER" ? "bg-indigo-500/10 text-indigo-400" : "bg-white/5 text-slate-500"}`}>{u.role}</span>
+                  <span className="text-slate-400">{u.mess?.name || "No mess"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {u.isActive ? (
@@ -140,7 +140,7 @@ export default function AdminUsersPage() {
                   {!u.isAdmin ? (
                     <button onClick={() => doAction(u.id, "makeAdmin")} className="px-2.5 py-1 text-[10px] bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg hover:bg-violet-500/20">→Admin</button>
                   ) : (
-                    <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10">✕Admin</button>
+                    <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-slate-500 border border-white/10 rounded-lg hover:bg-white/10">✕Admin</button>
                   )}
                   {u.messId && (
                     <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20">Kick</button>
@@ -157,12 +157,12 @@ export default function AdminUsersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5">
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">User</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Role</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Mess</th>
-                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Joined</th>
-                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Mess</th>
+                    <th className="text-center px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
+                    <th className="text-right px-5 py-4 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
                     <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-gray-300"}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-slate-500"}`}>
                             {u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -178,23 +178,23 @@ export default function AdminUsersPage() {
                               <span className="font-medium text-white">{u.name}</span>
                               {u.isAdmin && <span className="px-1.5 py-0.5 text-[9px] bg-violet-500/20 text-violet-300 border border-violet-500/20 rounded-md font-medium">Admin</span>}
                             </div>
-                            <p className="text-[11px] text-gray-500">{u.email}</p>
+                            <p className="text-[11px] text-slate-400">{u.email}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${u.role === "MANAGER" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" : "bg-white/5 text-gray-400"}`}>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${u.role === "MANAGER" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" : "bg-white/5 text-slate-500"}`}>
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-gray-400 text-xs">{u.mess?.name || <span className="text-gray-600">—</span>}</td>
+                      <td className="px-5 py-4 text-slate-500 text-xs">{u.mess?.name || <span className="text-slate-400">—</span>}</td>
                       <td className="px-5 py-4 text-center">
                         <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${u.isActive ? "text-emerald-400" : "text-red-400"}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? "bg-emerald-400" : "bg-red-400"}`} />
                           {u.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-gray-500 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="px-5 py-4 text-slate-400 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap justify-end gap-1.5">
                           {u.isActive ? (
@@ -205,7 +205,7 @@ export default function AdminUsersPage() {
                           {!u.isAdmin ? (
                             <button onClick={() => doAction(u.id, "makeAdmin")} className="px-2.5 py-1 text-[10px] bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg hover:bg-violet-500/20 transition-colors">→Admin</button>
                           ) : (
-                            <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">✕Admin</button>
+                            <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-slate-500 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">✕Admin</button>
                           )}
                           {u.messId && (
                             <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">Kick</button>
@@ -225,11 +225,11 @@ export default function AdminUsersPage() {
       {/* Pagination */}
       {pages > 1 && (
         <div className="flex items-center justify-center gap-3">
-          <button onClick={() => fetchUsers(page - 1, search)} disabled={page <= 1} className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-gray-400 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+          <button onClick={() => fetchUsers(page - 1, search)} disabled={page <= 1} className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-500 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
             ← Prev
           </button>
-          <span className="text-xs text-gray-500">Page <span className="text-white font-medium">{page}</span> of {pages}</span>
-          <button onClick={() => fetchUsers(page + 1, search)} disabled={page >= pages} className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-gray-400 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+          <span className="text-xs text-slate-400">Page <span className="text-white font-medium">{page}</span> of {pages}</span>
+          <button onClick={() => fetchUsers(page + 1, search)} disabled={page >= pages} className="px-4 py-2 text-xs font-medium bg-white/5 border border-white/10 text-slate-500 rounded-xl hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
             Next →
           </button>
         </div>

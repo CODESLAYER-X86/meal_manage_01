@@ -59,7 +59,7 @@ export default function WashroomDutyPage() {
   useEffect(() => { if (session?.user?.messId) loadData(); }, [session, loadData]);
 
   if (!session?.user?.messId) {
-    return <div className="p-6 text-center text-gray-500">Join a mess first</div>;
+    return <div className="p-6 text-center text-slate-400">Join a mess first</div>;
   }
 
   const handleAutoRotate = async () => {
@@ -115,14 +115,14 @@ export default function WashroomDutyPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">🚿 Washroom Duty Schedule</h1>
-        <button onClick={() => router.back()} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
+        <h1 className="text-2xl font-bold text-white">🚿 Washroom Duty Schedule</h1>
+        <button onClick={() => router.back()} className="text-sm text-slate-400 hover:text-slate-300">← Back</button>
       </div>
 
       {/* Month navigation */}
-      <div className="flex items-center justify-center gap-4 bg-white p-3 rounded-xl border">
+      <div className="flex items-center justify-center gap-4 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-3 rounded-xl border">
         <button onClick={() => { if (month === 1) { setMonth(12); setYear(year - 1); } else setMonth(month - 1); }} className="p-2 hover:bg-gray-100 rounded-lg">◀</button>
-        <span className="font-semibold text-gray-800">
+        <span className="font-semibold text-slate-100">
           {new Date(year, month - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </span>
         <button onClick={() => { if (month === 12) { setMonth(1); setYear(year + 1); } else setMonth(month + 1); }} className="p-2 hover:bg-gray-100 rounded-lg">▶</button>
@@ -139,20 +139,20 @@ export default function WashroomDutyPage() {
 
       {/* Auto rotate form */}
       {showAutoRotate && isManager && (
-        <div className="bg-white p-4 rounded-xl border space-y-3">
-          <h3 className="font-semibold text-gray-700">Auto Rotate Schedule</h3>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl border space-y-3">
+          <h3 className="font-semibold text-slate-300">Auto Rotate Schedule</h3>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-xs text-gray-500">Start Date</label>
-              <input type="date" value={autoStart} onChange={(e) => setAutoStart(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
+              <label className="text-xs text-slate-400">Start Date</label>
+              <input type="date" value={autoStart} onChange={(e) => setAutoStart(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-slate-100" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">End Date</label>
-              <input type="date" value={autoEnd} onChange={(e) => setAutoEnd(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
+              <label className="text-xs text-slate-400">End Date</label>
+              <input type="date" value={autoEnd} onChange={(e) => setAutoEnd(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-slate-100" />
             </div>
             <div>
-              <label className="text-xs text-gray-500">Washrooms</label>
-              <input type="number" min={1} max={10} value={autoWashroomCount} onChange={(e) => setAutoWashroomCount(parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border rounded-lg text-gray-800" />
+              <label className="text-xs text-slate-400">Washrooms</label>
+              <input type="number" min={1} max={10} value={autoWashroomCount} onChange={(e) => setAutoWashroomCount(parseInt(e.target.value) || 1)} className="w-full px-3 py-2 border rounded-lg text-slate-100" />
             </div>
           </div>
           <button onClick={handleAutoRotate} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm disabled:opacity-50">
@@ -163,28 +163,28 @@ export default function WashroomDutyPage() {
 
       {/* Duty list grouped by washroom */}
       {loading ? (
-        <div className="text-center py-10 text-gray-400">Loading...</div>
+        <div className="text-center py-10 text-slate-500">Loading...</div>
       ) : duties.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-xl border">
-          <p className="text-gray-400">No washroom duties scheduled this month</p>
+        <div className="text-center py-10 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl border">
+          <p className="text-slate-500">No washroom duties scheduled this month</p>
         </div>
       ) : (
         washroomNumbers.map((wrNum) => (
           <div key={wrNum} className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-600 mt-4">🚿 Washroom #{wrNum}</h3>
+            <h3 className="text-sm font-semibold text-slate-400 mt-4">🚿 Washroom #{wrNum}</h3>
             {duties.filter((d) => d.washroomNumber === wrNum).map((d) => {
               const dateStr = d.date.split("T")[0];
               const isPast = dateStr < today;
               const isMyDuty = d.memberId === userId;
               return (
-                <div key={d.id} className={`bg-white p-4 rounded-xl border flex items-center justify-between ${isMyDuty ? "border-cyan-200 bg-cyan-50/30" : ""}`}>
+                <div key={d.id} className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl border flex items-center justify-between ${isMyDuty ? "border-cyan-200 bg-cyan-50/30" : ""}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${d.completed ? "bg-green-100" : isPast ? "bg-red-100" : "bg-gray-100"}`}>
                       {d.completed ? "✅" : isPast ? "⚠️" : "🚿"}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">{d.member.name} {isMyDuty && <span className="text-xs text-cyan-600">(You)</span>}</p>
-                      <p className="text-xs text-gray-500">{new Date(dateStr).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
+                      <p className="font-medium text-slate-100">{d.member.name} {isMyDuty && <span className="text-xs text-cyan-600">(You)</span>}</p>
+                      <p className="text-xs text-slate-400">{new Date(dateStr).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -225,12 +225,12 @@ export default function WashroomDutyPage() {
         <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
           <h3 className="font-semibold text-amber-800">🔄 Pending Swap Requests</h3>
           {swapRequests.map((sr) => (
-            <div key={sr.id} className="flex items-center justify-between bg-white p-3 rounded-lg border">
+            <div key={sr.id} className="flex items-center justify-between bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-3 rounded-lg border">
               <div className="text-sm">
                 <span className="font-medium">{sr.fromDuty?.member?.name}</span>
-                <span className="text-gray-400 mx-1">↔</span>
+                <span className="text-slate-500 mx-1">↔</span>
                 <span className="font-medium">{sr.toDuty?.member?.name}</span>
-                <span className="text-xs text-gray-500 ml-2">
+                <span className="text-xs text-slate-400 ml-2">
                   ({sr.fromDuty?.date?.split("T")[0]} ↔ {sr.toDuty?.date?.split("T")[0]})
                 </span>
               </div>

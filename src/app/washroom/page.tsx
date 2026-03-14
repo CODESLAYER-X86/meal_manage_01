@@ -136,16 +136,16 @@ export default function WashroomPage() {
   if (!loading && disabled) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-10 text-center">
           <div className="text-5xl mb-4">🚿</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Washroom Cleaning</h1>
-          <p className="text-gray-500 text-lg mb-4">Washroom cleaning is not enabled for this mess.</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Washroom Cleaning</h1>
+          <p className="text-slate-400 text-lg mb-4">Washroom cleaning is not enabled for this mess.</p>
           {isManager ? (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-slate-500">
               Go to <a href="/mess-info" className="text-indigo-600 hover:underline font-medium">Mess Info</a> → Washroom Settings to enable it.
             </p>
           ) : (
-            <p className="text-sm text-gray-400">Ask your manager to enable it from Mess Info settings.</p>
+            <p className="text-sm text-slate-500">Ask your manager to enable it from Mess Info settings.</p>
           )}
         </div>
       </div>
@@ -163,12 +163,12 @@ export default function WashroomPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">🚿 Washroom Cleaning</h1>
+          <h1 className="text-2xl font-bold text-white">🚿 Washroom Cleaning</h1>
           <div className="flex items-center gap-2">
             <button onClick={() => changeMonth(-1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">←</button>
-            <span className="text-base sm:text-lg font-semibold text-gray-700 min-w-[140px] text-center">{MONTH_NAMES[month - 1]} {year}</span>
+            <span className="text-base sm:text-lg font-semibold text-slate-300 min-w-[140px] text-center">{MONTH_NAMES[month - 1]} {year}</span>
             <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">→</button>
           </div>
         </div>
@@ -183,14 +183,14 @@ export default function WashroomPage() {
               <button
                 key={i}
                 onClick={() => { setMonth(m); setYear(y); setError(""); setSuccess(""); }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isActive ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${isActive ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-400 border-gray-200 hover:bg-white/[0.02]"}`}
               >
                 {MONTH_NAMES[d.getMonth()].slice(0, 3)} {y !== now.getFullYear() ? y : ""}
               </button>
             );
           })}
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-400">
           {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · Next cleaning due every {intervalDays} days · Manager logs who cleaned
         </p>
 
@@ -200,15 +200,15 @@ export default function WashroomPage() {
 
       {/* Next Due Dates */}
       {washroomCount > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">📅 Next Cleaning Due</h2>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-white mb-3">📅 Next Cleaning Due</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {wrColumns.map((wn) => {
               const dueDate = nextDueDates[wn];
               const overdue = isOverdue(dueDate);
               return (
-                <div key={wn} className={`rounded-lg p-4 border ${overdue ? "bg-red-50 border-red-200" : dueDate ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"}`}>
-                  <p className="text-sm font-semibold text-gray-700">WR-{wn}</p>
+                <div key={wn} className={`rounded-lg p-4 border ${overdue ? "bg-red-50 border-red-200" : dueDate ? "bg-blue-50 border-blue-200" : "bg-white/[0.02] border-gray-200"}`}>
+                  <p className="text-sm font-semibold text-slate-300">WR-{wn}</p>
                   {dueDate ? (
                     <>
                       <p className={`text-lg font-bold ${overdue ? "text-red-600" : "text-blue-600"}`}>
@@ -217,7 +217,7 @@ export default function WashroomPage() {
                       {overdue && <p className="text-xs text-red-500 font-medium">⚠️ Overdue!</p>}
                     </>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">Never cleaned</p>
+                    <p className="text-sm text-slate-500 italic">Never cleaned</p>
                   )}
                 </div>
               );
@@ -283,16 +283,16 @@ export default function WashroomPage() {
 
       {/* Yearly Stats */}
       {members.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">📊 {year} Cleaning Count</h2>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-white mb-3">📊 {year} Cleaning Count</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {members.map((m) => {
               const count = yearlyStats[m.id] || 0;
               return (
-                <div key={m.id} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-sm font-medium text-gray-900 truncate">{m.name}</p>
+                <div key={m.id} className="bg-white/[0.02] rounded-lg p-3 text-center">
+                  <p className="text-sm font-medium text-white truncate">{m.name}</p>
                   <p className="text-2xl font-bold text-indigo-600">{count}</p>
-                  <p className="text-xs text-gray-400">cleanings</p>
+                  <p className="text-xs text-slate-500">cleanings</p>
                 </div>
               );
             })}
@@ -302,22 +302,22 @@ export default function WashroomPage() {
 
       {/* Cleaning Log */}
       {loading ? (
-        <div className="text-center py-10 text-gray-500">Loading...</div>
+        <div className="text-center py-10 text-slate-400">Loading...</div>
       ) : cleanings.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-10 text-center">
           <div className="text-5xl mb-4">🚿</div>
-          <p className="text-gray-500 text-lg mb-2">No cleanings recorded for {MONTH_NAMES[month - 1]} {year}</p>
+          <p className="text-slate-400 text-lg mb-2">No cleanings recorded for {MONTH_NAMES[month - 1]} {year}</p>
           {isManager ? (
-            <p className="text-sm text-gray-400">Use the form above to log when someone cleans a washroom</p>
+            <p className="text-sm text-slate-500">Use the form above to log when someone cleans a washroom</p>
           ) : (
-            <p className="text-sm text-gray-400">Manager will log cleaning records</p>
+            <p className="text-sm text-slate-500">Manager will log cleaning records</p>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 overflow-hidden">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">🧹 Cleaning Log — {MONTH_NAMES[month - 1]} {year}</h2>
-            <p className="text-xs text-gray-400">{cleanings.length} record{cleanings.length !== 1 ? "s" : ""}</p>
+            <h2 className="text-lg font-semibold text-white">🧹 Cleaning Log — {MONTH_NAMES[month - 1]} {year}</h2>
+            <p className="text-xs text-slate-500">{cleanings.length} record{cleanings.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="divide-y">
             {cleanings.map((c) => {
@@ -326,12 +326,12 @@ export default function WashroomPage() {
 
               return (
                 <div key={c.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-gray-500 text-xs w-28">{dateStr}</span>
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">WR-{c.washroomNumber}</span>
-                  <span className={`font-medium ${isOwn ? "text-indigo-700" : "text-gray-800"}`}>
+                  <span className="text-slate-400 text-xs w-28">{dateStr}</span>
+                  <span className="text-xs font-medium text-slate-400 bg-gray-100 px-2 py-0.5 rounded">WR-{c.washroomNumber}</span>
+                  <span className={`font-medium ${isOwn ? "text-indigo-700" : "text-slate-100"}`}>
                     {c.member.name}{isOwn && " (you)"}
                   </span>
-                  {c.note && <span className="text-xs text-gray-400 italic">— {c.note}</span>}
+                  {c.note && <span className="text-xs text-slate-500 italic">— {c.note}</span>}
 
                   <div className="ml-auto flex items-center gap-2">
                     <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">

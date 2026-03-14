@@ -54,12 +54,12 @@ export default function AuditLogPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-        <h1 className="text-2xl font-bold text-gray-800">🔍 Audit Log</h1>
-        <p className="text-sm text-gray-500">Every change is permanently recorded</p>
+        <h1 className="text-2xl font-bold text-slate-100">🔍 Audit Log</h1>
+        <p className="text-sm text-slate-400">Every change is permanently recorded</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border space-y-3">
         {/* Table filter */}
         <div className="flex flex-wrap gap-2">
           {[
@@ -76,7 +76,7 @@ export default function AuditLogPage() {
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 filter === t.value
                   ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 text-slate-400 hover:bg-gray-200"
               }`}
             >
               {t.label}
@@ -85,19 +85,19 @@ export default function AuditLogPage() {
         </div>
         {/* Date range filter */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-gray-600">📅 Date range:</span>
+          <span className="text-sm font-medium text-slate-400">📅 Date range:</span>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="px-3 py-2.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2.5 border rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-indigo-500"
           />
-          <span className="text-gray-400 text-sm">to</span>
+          <span className="text-slate-500 text-sm">to</span>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="px-3 py-2.5 border rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2.5 border rounded-lg text-sm text-slate-300 focus:ring-2 focus:ring-indigo-500"
           />
           {(fromDate || toDate) && (
             <button
@@ -113,12 +113,12 @@ export default function AuditLogPage() {
       {/* Log Entries */}
       <div className="space-y-2">
         {logs.length === 0 ? (
-          <div className="bg-white p-8 rounded-xl shadow-sm border text-center text-gray-400">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-8 rounded-xl shadow-md shadow-black/10 border text-center text-slate-500">
             No audit logs yet
           </div>
         ) : (
           logs.map((log) => (
-            <div key={log.id} className="bg-white p-4 rounded-xl shadow-sm border">
+            <div key={log.id} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-0.5 rounded text-xs font-bold ${
@@ -130,20 +130,20 @@ export default function AuditLogPage() {
                   }`}>
                     {log.action}
                   </span>
-                  <span className="text-gray-500 text-xs">by {log.editedBy.name}</span>
+                  <span className="text-slate-400 text-xs">by {log.editedBy.name}</span>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-slate-500">
                   {new Date(log.createdAt).toLocaleString()}
                 </span>
               </div>
-              <div className="mt-2 text-sm text-gray-600">
-                <span className="font-medium text-gray-800">{log.fieldName}</span>
-                <span className="text-gray-400"> ({log.tableName})</span>
+              <div className="mt-2 text-sm text-slate-400">
+                <span className="font-medium text-slate-100">{log.fieldName}</span>
+                <span className="text-slate-500"> ({log.tableName})</span>
               </div>
               {log.action === "UPDATE" && (
                 <div className="mt-1 text-sm">
                   <span className="text-red-500 line-through">{log.oldValue}</span>
-                  <span className="text-gray-400"> → </span>
+                  <span className="text-slate-500"> → </span>
                   <span className="text-green-600 font-medium">{log.newValue}</span>
                 </div>
               )}

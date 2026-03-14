@@ -124,13 +124,13 @@ export default function DepositsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">💰 Record Deposits</h1>
+      <h1 className="text-2xl font-bold text-slate-100">💰 Record Deposits</h1>
 
       {/* Add Deposit Form */}
-      <form onSubmit={handleSubmit} className="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-5 rounded-xl shadow-md shadow-black/10 border space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Date</label>
             <input
               type="date"
               value={date}
@@ -139,7 +139,7 @@ export default function DepositsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Member</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Member</label>
             <select
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
@@ -151,7 +151,7 @@ export default function DepositsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (৳)</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Amount (৳)</label>
             <input
               type="number"
               value={amount}
@@ -162,7 +162,7 @@ export default function DepositsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+            <label className="block text-sm font-medium text-slate-300 mb-1">Note</label>
             <input
               type="text"
               value={note}
@@ -185,95 +185,95 @@ export default function DepositsPage() {
       </form>
 
       {/* Recent Deposits */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <h2 className="p-4 text-lg font-semibold text-gray-800 border-b">This Month&apos;s Deposits</h2>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden">
+        <h2 className="p-4 text-lg font-semibold text-slate-100 border-b">This Month&apos;s Deposits</h2>
         <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[500px]">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="text-left p-3">Date</th>
-              <th className="text-left p-3">Member</th>
-              <th className="text-right p-3">Amount</th>
-              <th className="text-left p-3">Note</th>
-              <th className="text-center p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {deposits.map((d) => (
-              <tr key={d.id} className="border-t hover:bg-gray-50">
-                {editingId === d.id ? (
-                  <>
-                    <td className="p-2">
-                      <input
-                        type="date"
-                        value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                      />
-                    </td>
-                    <td className="p-3 font-medium">{d.member.name}</td>
-                    <td className="p-2">
-                      <input
-                        type="number"
-                        value={editAmount}
-                        onChange={(e) => setEditAmount(e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm text-right"
-                      />
-                    </td>
-                    <td className="p-2">
-                      <input
-                        type="text"
-                        value={editNote}
-                        onChange={(e) => setEditNote(e.target.value)}
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        placeholder="Note"
-                      />
-                    </td>
-                    <td className="p-2 text-center">
-                      <button
-                        onClick={handleSaveEdit}
-                        disabled={saving}
-                        className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 mr-1"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingId(null)}
-                        className="px-2 py-1 text-xs bg-gray-400 text-white rounded hover:bg-gray-500"
-                      >
-                        Cancel
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="p-3">{new Date(d.date).toLocaleDateString()}</td>
-                    <td className="p-3 font-medium">{d.member.name}</td>
-                    <td className="p-3 text-right font-bold text-green-600">৳{d.amount}</td>
-                    <td className="p-3 text-gray-500">{d.note || "—"}</td>
-                    <td className="p-3 text-center">
-                      <button
-                        onClick={() => handleEdit(d)}
-                        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 mr-1"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(d.id, d.member.name, d.amount)}
-                        className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        🗑️
-                      </button>
-                    </td>
-                  </>
-                )}
+          <table className="w-full text-sm min-w-[500px]">
+            <thead className="bg-white/[0.02]">
+              <tr>
+                <th className="text-left p-3">Date</th>
+                <th className="text-left p-3">Member</th>
+                <th className="text-right p-3">Amount</th>
+                <th className="text-left p-3">Note</th>
+                <th className="text-center p-3">Actions</th>
               </tr>
-            ))}
-            {deposits.length === 0 && (
-              <tr><td colSpan={5} className="p-4 text-center text-gray-400">No deposits this month</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {deposits.map((d) => (
+                <tr key={d.id} className="border-t hover:bg-white/[0.02]">
+                  {editingId === d.id ? (
+                    <>
+                      <td className="p-2">
+                        <input
+                          type="date"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                        />
+                      </td>
+                      <td className="p-3 font-medium">{d.member.name}</td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          value={editAmount}
+                          onChange={(e) => setEditAmount(e.target.value)}
+                          className="w-full px-2 py-1 border rounded text-sm text-right"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="text"
+                          value={editNote}
+                          onChange={(e) => setEditNote(e.target.value)}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          placeholder="Note"
+                        />
+                      </td>
+                      <td className="p-2 text-center">
+                        <button
+                          onClick={handleSaveEdit}
+                          disabled={saving}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 mr-1"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="px-2 py-1 text-xs bg-gray-400 text-white rounded hover:bg-white/[0.05]"
+                        >
+                          Cancel
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="p-3">{new Date(d.date).toLocaleDateString()}</td>
+                      <td className="p-3 font-medium">{d.member.name}</td>
+                      <td className="p-3 text-right font-bold text-green-600">৳{d.amount}</td>
+                      <td className="p-3 text-slate-400">{d.note || "—"}</td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleEdit(d)}
+                          className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 mr-1"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(d.id, d.member.name, d.amount)}
+                          className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+              {deposits.length === 0 && (
+                <tr><td colSpan={5} className="p-4 text-center text-slate-500">No deposits this month</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -82,15 +82,15 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/20 p-8 text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
               <span className="text-4xl">🎉</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Mess Created!</h1>
-            <p className="text-gray-500 mb-6">Share this invite code with your roommates</p>
+            <h1 className="text-2xl font-bold text-white mb-2">Mess Created!</h1>
+            <p className="text-slate-400 mb-6">Share this invite code with your roommates</p>
 
             <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 mb-6">
-              <p className="text-sm text-gray-500 mb-2">Invite Code</p>
+              <p className="text-sm text-slate-400 mb-2">Invite Code</p>
               <p className="text-3xl font-mono font-bold text-blue-600 tracking-widest">
                 {createdCode}
               </p>
@@ -100,7 +100,7 @@ export default function OnboardingPage() {
               onClick={() => {
                 navigator.clipboard.writeText(createdCode);
               }}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 rounded-lg transition-colors mb-3"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-slate-300 font-medium py-2.5 rounded-lg transition-colors mb-3"
             >
               📋 Copy Code
             </button>
@@ -120,18 +120,18 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/20 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
               <span className="text-3xl">🏠</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-white">
               {step === "choose" && "Get Started"}
               {step === "create" && "Create a Mess"}
               {step === "join" && "Join a Mess"}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-slate-400 mt-1">
               {step === "choose" && "Create a new mess or join an existing one"}
               {step === "create" && "Set up your mess and invite your roommates"}
               {step === "join" && "Enter the invite code — manager will approve your request"}
@@ -149,30 +149,30 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <button
                 onClick={() => { setStep("create"); setError(""); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                className="w-full flex items-center gap-4 p-4 border-2 border-white/10 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all group"
               >
                 <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                   <span className="text-2xl">👑</span>
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-gray-900">I&apos;m a Manager</p>
-                  <p className="text-sm text-gray-500">Create a mess and invite members</p>
+                  <p className="font-semibold text-white">I&apos;m a Manager</p>
+                  <p className="text-sm text-slate-400">Create a mess and invite members</p>
                 </div>
-                <span className="ml-auto text-gray-400">→</span>
+                <span className="ml-auto text-slate-500">→</span>
               </button>
 
               <button
                 onClick={() => { setStep("join"); setError(""); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all group"
+                className="w-full flex items-center gap-4 p-4 border-2 border-white/10 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all group"
               >
                 <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
                   <span className="text-2xl">🤝</span>
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-gray-900">Join a Mess</p>
-                  <p className="text-sm text-gray-500">Enter an invite code to join</p>
+                  <p className="font-semibold text-white">Join a Mess</p>
+                  <p className="text-sm text-slate-400">Enter an invite code to join</p>
                 </div>
-                <span className="ml-auto text-gray-400">→</span>
+                <span className="ml-auto text-slate-500">→</span>
               </button>
             </div>
           )}
@@ -181,14 +181,14 @@ export default function OnboardingPage() {
           {step === "create" && (
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   🏠 Mess Name
                 </label>
                 <input
                   type="text"
                   value={messName}
                   onChange={(e) => setMessName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
                   placeholder="e.g. 42/A Mirpur Mess"
                   required
                 />
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() => { setStep("choose"); setError(""); }}
-                className="w-full text-gray-500 hover:text-gray-700 text-sm py-2"
+                className="w-full text-slate-400 hover:text-slate-300 text-sm py-2"
               >
                 ← Back
               </button>
@@ -216,14 +216,14 @@ export default function OnboardingPage() {
           {step === "join" && (
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   🔑 Invite Code
                 </label>
                 <input
                   type="text"
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 placeholder-gray-400 font-mono text-center text-lg tracking-widest"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-white placeholder-gray-400 font-mono text-center text-lg tracking-widest"
                   placeholder="MESS-XXXXXX"
                   required
                 />
@@ -240,7 +240,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() => { setStep("choose"); setError(""); }}
-                className="w-full text-gray-500 hover:text-gray-700 text-sm py-2"
+                className="w-full text-slate-400 hover:text-slate-300 text-sm py-2"
               >
                 ← Back
               </button>

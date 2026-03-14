@@ -140,14 +140,14 @@ export default function TransparencyPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-        <h1 className="text-2xl font-bold text-gray-900">👁️ Transparency Board</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{monthName} — Full accountability view for all members</p>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
+        <h1 className="text-2xl font-bold text-white">👁️ Transparency Board</h1>
+        <p className="text-sm text-slate-400 mt-0.5">{monthName} — Full accountability view for all members</p>
       </div>
 
       {/* Overall Scorecard */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-x-auto">
-        <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">📊 Member Scorecard</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-x-auto">
+        <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">📊 Member Scorecard</h2>
         <table className="w-full text-xs sm:text-sm min-w-[700px]">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -165,7 +165,7 @@ export default function TransparencyPage() {
           <tbody>
             {scorecard.map((s) => (
               <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
-                <td className="p-2 sm:p-3 font-medium text-gray-800 dark:text-gray-200">{s.name}</td>
+                <td className="p-2 sm:p-3 font-medium text-slate-100 dark:text-gray-200">{s.name}</td>
                 <td className="p-2 sm:p-3 text-center">{s.totalMealsCount}</td>
                 <td className="p-2 sm:p-3 text-right">৳{s.mealCost.toFixed(0)}</td>
                 <td className="p-2 sm:p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
@@ -177,12 +177,12 @@ export default function TransparencyPage() {
                   ৳{s.billPaid.toFixed(0)}
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.washroomCount > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
+                  <span className={s.washroomCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-500"}>
                     {s.washroomCount}
                   </span>
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-gray-600 dark:text-gray-400"}>
+                  <span className={s.bazarTripCount > 0 ? "text-green-600" : "text-slate-400 dark:text-slate-500"}>
                     {s.bazarTripCount}
                   </span>
                 </td>
@@ -191,7 +191,7 @@ export default function TransparencyPage() {
           </tbody>
         </table>
         {mealRate > 0 && (
-          <div className="p-3 border-t dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+          <div className="p-3 border-t dark:border-gray-700 text-xs text-slate-400 dark:text-slate-500">
             Meal rate: ৳{mealRate.toFixed(2)}/meal | Total bazar: ৳{totalBazar.toFixed(0)} | Total meals: {totalAllMeals}
           </div>
         )}
@@ -199,15 +199,15 @@ export default function TransparencyPage() {
 
       {/* Bill Payment Status */}
       {Object.keys(memberBills).length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">💳 Bill Payment Status</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-hidden">
+          <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">💳 Bill Payment Status</h2>
           <div className="divide-y dark:divide-gray-700">
             {scorecard.map((s) => {
               const pct = s.billDue > 0 ? Math.min((s.billPaid / s.billDue) * 100, 100) : 0;
               return (
                 <div key={s.id} className="p-3 sm:p-4">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-sm text-gray-800 dark:text-gray-200">{s.name}</span>
+                    <span className="font-medium text-sm text-slate-100 dark:text-gray-200">{s.name}</span>
                     <span className={`text-xs font-bold ${s.billRemaining <= 0 ? "text-green-600" : "text-red-600"}`}>
                       {s.billRemaining <= 0 ? "✅ Paid" : `৳${s.billRemaining.toFixed(0)} remaining`}
                     </span>
@@ -218,7 +218,7 @@ export default function TransparencyPage() {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-1">
                     <span>Paid: ৳{s.billPaid.toFixed(0)}</span>
                     <span>Due: ৳{s.billDue.toFixed(0)}</span>
                   </div>
@@ -231,14 +231,14 @@ export default function TransparencyPage() {
 
       {/* Washroom Cleaning Log */}
       {washroomDuties.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🚿 Washroom Cleaning Log</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-hidden">
+          <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">🚿 Washroom Cleaning Log</h2>
           <div className="divide-y dark:divide-gray-700">
             {washroomDuties.map((d) => (
               <div key={d.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-gray-400 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
-                <span className="font-medium text-gray-800 dark:text-gray-200">{d.member.name}</span>
-                <span className="text-xs text-gray-400">WR-{d.washroomNumber}</span>
+                <span className="text-slate-400 dark:text-slate-500 text-xs w-20">{new Date(d.date).toLocaleDateString()}</span>
+                <span className="font-medium text-slate-100 dark:text-gray-200">{d.member.name}</span>
+                <span className="text-xs text-slate-500">WR-{d.washroomNumber}</span>
                 <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
                   ✅ Done
                 </span>
@@ -250,28 +250,27 @@ export default function TransparencyPage() {
 
       {/* Bazar Trip Status */}
       {bazarTrips.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-          <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🛒 Bazar Trips</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-hidden">
+          <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">🛒 Bazar Trips</h2>
           <div className="divide-y dark:divide-gray-700">
             {bazarTrips.map((t, i) => {
               const companions = t.companionIds?.map((cid) => companionMap[cid]).filter(Boolean) || [];
               return (
-              <div key={i} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-gray-400 text-xs">{new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
-                <span className="font-medium text-gray-800 dark:text-gray-200">
-                  {t.buyer?.name || "Unknown"}
-                  {companions.length > 0 && (
-                    <span className="text-gray-500 dark:text-gray-400 font-normal"> + {companions.join(", ")}</span>
-                  )}
-                </span>
-                <span className="font-bold text-orange-700 dark:text-orange-400">৳{t.totalCost}</span>
-                <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${
-                  t.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                    : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
-                }`}>
-                  {t.approved ? "✅ Approved" : "⏳ Pending"}
-                </span>
-              </div>
+                <div key={i} className="p-3 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-slate-400 dark:text-slate-500 text-xs">{new Date(t.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                  <span className="font-medium text-slate-100 dark:text-gray-200">
+                    {t.buyer?.name || "Unknown"}
+                    {companions.length > 0 && (
+                      <span className="text-slate-400 dark:text-slate-500 font-normal"> + {companions.join(", ")}</span>
+                    )}
+                  </span>
+                  <span className="font-bold text-orange-700 dark:text-orange-400">৳{t.totalCost}</span>
+                  <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${t.approved ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                      : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                    }`}>
+                    {t.approved ? "✅ Approved" : "⏳ Pending"}
+                  </span>
+                </div>
               );
             })}
           </div>
@@ -279,8 +278,8 @@ export default function TransparencyPage() {
       )}
 
       {/* Meal Summary */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
-        <h2 className="p-4 text-lg font-semibold text-gray-800 dark:text-gray-100 border-b dark:border-gray-700">🍛 Meal Counts</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-hidden">
+        <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">🍛 Meal Counts</h2>
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
@@ -292,7 +291,7 @@ export default function TransparencyPage() {
           <tbody>
             {scorecard.map((s) => (
               <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
-                <td className="p-3 font-medium text-gray-800 dark:text-gray-200">{s.name}</td>
+                <td className="p-3 font-medium text-slate-100 dark:text-gray-200">{s.name}</td>
                 <td className="p-3 text-center font-bold text-indigo-600 dark:text-indigo-400">{s.totalMealsCount}</td>
                 <td className="p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
               </tr>

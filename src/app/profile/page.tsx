@@ -116,30 +116,30 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800">⚙️ My Profile</h1>
+      <h1 className="text-2xl font-bold text-slate-100">⚙️ My Profile</h1>
 
       {/* Profile Info Card */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Profile Info</h2>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-6 rounded-xl shadow-md shadow-black/10 border">
+        <h2 className="text-lg font-semibold text-slate-300 mb-4">Profile Info</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-gray-400">Name</p>
-            <p className="font-medium text-gray-800">{profile.name}</p>
+            <p className="text-slate-500">Name</p>
+            <p className="font-medium text-slate-100">{profile.name}</p>
           </div>
           <div>
-            <p className="text-gray-400">Email</p>
-            <p className="font-medium text-gray-800">{profile.email}</p>
+            <p className="text-slate-500">Email</p>
+            <p className="font-medium text-slate-100">{profile.email}</p>
           </div>
           <div>
-            <p className="text-gray-400">Phone</p>
-            <p className="font-medium text-gray-800">{profile.phone || "Not set"}</p>
+            <p className="text-slate-500">Phone</p>
+            <p className="font-medium text-slate-100">{profile.phone || "Not set"}</p>
           </div>
           <div>
-            <p className="text-gray-400">Role</p>
+            <p className="text-slate-500">Role</p>
             <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
               profile.role === "MANAGER"
                 ? "bg-indigo-100 text-indigo-700"
-                : "bg-gray-100 text-gray-600"
+                : "bg-gray-100 text-slate-400"
             }`}>
               {profile.role}
             </span>
@@ -148,26 +148,26 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Email */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">📧 Change Email</h2>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-6 rounded-xl shadow-md shadow-black/10 border">
+        <h2 className="text-lg font-semibold text-slate-300 mb-4">📧 Change Email</h2>
         <form onSubmit={handleEmailChange} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">New Email</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">New Email</label>
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Current Password (to confirm)</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Current Password (to confirm)</label>
             <input
               type="password"
               value={emailPassword}
               onChange={(e) => setEmailPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
               placeholder="Enter your current password"
             />
@@ -185,38 +185,38 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">🔒 Change Password</h2>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-6 rounded-xl shadow-md shadow-black/10 border">
+        <h2 className="text-lg font-semibold text-slate-300 mb-4">🔒 Change Password</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Current Password</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Current Password</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
               placeholder="Enter current password"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">New Password</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
               placeholder="Enter new password (min 4 chars)"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Confirm New Password</label>
+            <label className="block text-sm font-medium text-slate-400 mb-1">Confirm New Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
               placeholder="Re-enter new password"
             />

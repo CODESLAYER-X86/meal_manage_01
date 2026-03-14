@@ -72,7 +72,7 @@ export default function AdminDashboard() {
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl" />
         <div className="relative">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Admin Overview</h1>
-          <p className="text-gray-400 text-sm">Platform health & statistics at a glance</p>
+          <p className="text-slate-500 text-sm">Platform health & statistics at a glance</p>
         </div>
       </div>
 
@@ -81,14 +81,14 @@ export default function AdminDashboard() {
         {cards.map((c) => (
           <div
             key={c.label}
-            className={`group relative bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-4 sm:p-5 hover:border-white/10 transition-all duration-300 shadow-xl ${c.bgGlow}`}
+            className={`group relative bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-4 sm:p-5 hover:border-white/10 transition-all duration-300 shadow-2xl shadow-black/20 ${c.bgGlow}`}
           >
             <div className="flex items-start justify-between mb-3">
               <span className="text-2xl">{c.icon}</span>
               <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c.gradient} opacity-20 group-hover:opacity-30 transition-opacity`} />
             </div>
             <p className="text-2xl sm:text-3xl font-bold text-white mb-0.5">{c.value}</p>
-            <p className="text-[11px] sm:text-xs text-gray-500 font-medium">{c.label}</p>
+            <p className="text-[11px] sm:text-xs text-slate-400 font-medium">{c.label}</p>
           </div>
         ))}
       </div>
@@ -105,9 +105,9 @@ export default function AdminDashboard() {
               <span className="text-2xl">{link.icon}</span>
               <div>
                 <h3 className="text-sm font-semibold text-white group-hover:text-violet-300 transition-colors">{link.label}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{link.desc}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{link.desc}</p>
               </div>
-              <span className="ml-auto text-gray-600 group-hover:text-violet-400 transition-colors">→</span>
+              <span className="ml-auto text-slate-400 group-hover:text-violet-400 transition-colors">→</span>
             </div>
           </Link>
         ))}
@@ -120,11 +120,11 @@ export default function AdminDashboard() {
           <h2 className="text-sm font-semibold text-white">Admin Account</h2>
         </div>
         <div className="space-y-2 text-xs">
-          <p className="text-gray-400">
-            Login: <span className="text-gray-300 font-mono bg-white/5 px-2 py-0.5 rounded">admin@messmeal.app</span>
+          <p className="text-slate-500">
+            Login: <span className="text-slate-500 font-mono bg-white/5 px-2 py-0.5 rounded">admin@messmeal.app</span>
           </p>
-          <p className="text-gray-500">
-            Recovery: POST to <span className="font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded">/api/admin/recovery</span> with email + recoveryKey + newPassword
+          <p className="text-slate-400">
+            Recovery: POST to <span className="font-mono text-slate-500 bg-white/5 px-2 py-0.5 rounded">/api/admin/recovery</span> with email + recoveryKey + newPassword
           </p>
         </div>
       </div>

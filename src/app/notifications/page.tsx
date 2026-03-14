@@ -81,18 +81,18 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">🔔 Notifications</h1>
+            <h1 className="text-2xl font-bold text-white">🔔 Notifications</h1>
             {unreadCount > 0 && (
-              <p className="text-sm text-gray-500 mt-0.5">{unreadCount} unread</p>
+              <p className="text-sm text-slate-400 mt-0.5">{unreadCount} unread</p>
             )}
           </div>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
             >
               ✓ Mark all read
             </button>
@@ -101,9 +101,9 @@ export default function NotificationsPage() {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-10 text-center">
           <div className="text-5xl mb-4">🔔</div>
-          <p className="text-gray-500 text-lg">No notifications yet</p>
+          <p className="text-slate-400 text-lg">No notifications yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -113,23 +113,22 @@ export default function NotificationsPage() {
               <div
                 key={n.id}
                 onClick={() => !n.read && markRead(n.id)}
-                className={`bg-white rounded-xl shadow-sm border p-4 transition-colors cursor-pointer ${
-                  n.read ? "border-gray-100 opacity-70" : "border-indigo-200 bg-indigo-50/30"
-                }`}
+                className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 transition-colors cursor-pointer ${n.read ? "border-gray-100 opacity-70" : "border-indigo-200 bg-indigo-50/30"
+                  }`}
               >
                 <div className="flex items-start gap-3">
                   <span className="text-lg mt-0.5">{icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`text-sm font-medium ${n.read ? "text-gray-600" : "text-gray-900"}`}>
+                      <p className={`text-sm font-medium ${n.read ? "text-slate-400" : "text-white"}`}>
                         {n.title}
                       </p>
                       {!n.read && (
                         <span className="w-2 h-2 bg-indigo-500 rounded-full shrink-0"></span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-0.5">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-sm text-slate-400 mt-0.5">{n.message}</p>
+                    <p className="text-xs text-slate-500 mt-1">
                       {new Date(n.createdAt).toLocaleDateString("en-GB", {
                         day: "numeric",
                         month: "short",
