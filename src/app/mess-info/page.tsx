@@ -41,7 +41,9 @@ interface JoinRequestInfo {
 interface BlackoutInterval {
   meals: string[];
   startHour: number;
+  startMinute: number;
   endHour: number;
+  endMinute: number;
 }
 
 export default function MessInfoPage() {
@@ -530,40 +532,32 @@ export default function MessInfoPage() {
                     {/* Time range */}
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs text-gray-500">From:</span>
-                      <select
-                        value={bo.startHour}
+                      <input
+                        type="time"
+                        value={`${String(bo.startHour).padStart(2, '0')}:${String(bo.startMinute ?? 0).padStart(2, '0')}`}
                         onChange={(e) => {
+                          const [h, m] = e.target.value.split(':').map(Number);
                           const updated = [...blackoutsInput];
-                          updated[idx] = { ...updated[idx], startHour: Number(e.target.value) };
+                          updated[idx] = { ...updated[idx], startHour: h, startMinute: m };
                           setBlackoutsInput(updated);
                         }}
                         className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
-                      >
-                        {Array.from({ length: 24 }, (_, i) => (
-                          <option key={i} value={i}>
-                            {i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`}
-                          </option>
-                        ))}
-                      </select>
+                      />
                       <span className="text-xs text-gray-500">To:</span>
-                      <select
-                        value={bo.endHour}
+                      <input
+                        type="time"
+                        value={`${String(bo.endHour).padStart(2, '0')}:${String(bo.endMinute ?? 0).padStart(2, '0')}`}
                         onChange={(e) => {
+                          const [h, m] = e.target.value.split(':').map(Number);
                           const updated = [...blackoutsInput];
-                          updated[idx] = { ...updated[idx], endHour: Number(e.target.value) };
+                          updated[idx] = { ...updated[idx], endHour: h, endMinute: m };
                           setBlackoutsInput(updated);
                         }}
                         className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500"
-                      >
-                        {Array.from({ length: 24 }, (_, i) => i + 1).map((h) => (
-                          <option key={h} value={h}>
-                            {h === 24 ? "12 AM (next)" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h - 12} PM`}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
-                    {bo.startHour >= bo.endHour && (
-                      <p className="text-xs text-red-500 mt-1">⚠️ Start hour must be before end hour</p>
+                    {(bo.startHour * 60 + (bo.startMinute ?? 0)) >= (bo.endHour * 60 + (bo.endMinute ?? 0)) && (
+                      <p className="text-xs text-red-500 mt-1">⚠️ Start time must be before end time</p>
                     )}
                     {bo.meals.length === 0 && (
                       <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal</p>
@@ -577,7 +571,7 @@ export default function MessInfoPage() {
               onClick={() =>
                 setBlackoutsInput([
                   ...blackoutsInput,
-                  { meals: mealTypesInput.slice(0, 2), startHour: 6, endHour: 10 },
+                  { meals: mealTypesInput.slice(0, 2), startHour: 6, startMinute: 0, endHour: 10, endMinute: 0 },
                 ])
               }
               className="mt-3 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-300"
@@ -596,8 +590,8 @@ export default function MessInfoPage() {
                   setTimeout(() => setMealConfigMsg(""), 3000);
                   return;
                 }
-                if (bo.startHour >= bo.endHour) {
-                  setMealConfigMsg("Start hour must be before end hour in all restrictions");
+                if (bo.startHour * 60 + (bo.startMinute ?? 0) >= bo.endHour * 60 + (bo.endMinute ?? 0)) {
+                  setMealConfigMsg("Start time must be before end time in all restrictions");
                   setTimeout(() => setMealConfigMsg(""), 3000);
                   return;
                 }

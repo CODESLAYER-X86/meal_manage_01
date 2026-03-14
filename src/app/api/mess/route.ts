@@ -244,8 +244,18 @@ export async function PATCH(request: Request) {
       if (!Array.isArray(b.meals) || typeof b.startHour !== "number" || typeof b.endHour !== "number") {
         return NextResponse.json({ error: "Each blackout must have meals[], startHour, endHour" }, { status: 400 });
       }
-      if (b.startHour < 0 || b.startHour > 23 || b.endHour < 1 || b.endHour > 24 || b.startHour >= b.endHour) {
+      const startMin = b.startMinute ?? 0;
+      const endMin = b.endMinute ?? 0;
+      if (b.startHour < 0 || b.startHour > 23 || b.endHour < 0 || b.endHour > 23) {
         return NextResponse.json({ error: "Invalid blackout hours" }, { status: 400 });
+      }
+      if (startMin < 0 || startMin > 59 || endMin < 0 || endMin > 59) {
+        return NextResponse.json({ error: "Invalid blackout minutes" }, { status: 400 });
+      }
+      const startTotal = b.startHour * 60 + startMin;
+      const endTotal = b.endHour * 60 + endMin;
+      if (startTotal >= endTotal) {
+        return NextResponse.json({ error: "Blackout start time must be before end time" }, { status: 400 });
       }
     }
     updateData.mealBlackouts = JSON.stringify(mealBlackouts);

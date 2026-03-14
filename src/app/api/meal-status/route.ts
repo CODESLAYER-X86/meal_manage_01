@@ -10,13 +10,28 @@ function getBDTime() {
   return { hour: bd.getUTCHours(), minute: bd.getUTCMinutes(), now, bd };
 }
 
-// Helper: check if a meal is in a blackout window right now
-function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: number; endHour: number }[]): boolean {
-  const { hour } = getBDTime();
+// Helper: check if a meal is in a blackout window right now (supports minute precision)
+function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: number; startMinute?: number; endHour: number; endMinute?: number }[]): boolean {
+  const { hour, minute } = getBDTime();
+  const nowTotal = hour * 60 + minute;
   for (const b of blackouts) {
-    if (b.meals.includes(meal) && hour >= b.startHour && hour < b.endHour) {
-      return true;
-    }
+    if (!b.meals.includes(meal)) continue;
+    const startTotal = b.startHour * 60 + (b.startMinute ?? 0);
+    const endTotal = b.endHour * 60 + (b.endMinute ?? 0);
+    if (nowTotal >= startTotal && nowTotal < endTotal) return true;
+  }
+  return false;
+}
+
+// Helper: check if blackout has STARTED (past the start time, regardless of end)
+// Used for auto-fill: once blackout starts, we lock in meal entries
+function hasBlackoutStarted(meal: string, blackouts: { meals: string[]; startHour: number; startMinute?: number; endHour: number; endMinute?: number }[]): boolean {
+  const { hour, minute } = getBDTime();
+  const nowTotal = hour * 60 + minute;
+  for (const b of blackouts) {
+    if (!b.meals.includes(meal)) continue;
+    const startTotal = b.startHour * 60 + (b.startMinute ?? 0);
+    if (nowTotal >= startTotal) return true;
   }
   return false;
 }
@@ -158,6 +173,24 @@ export async function GET(request: NextRequest) {
       }, {} as Record<string, number>),
     };
   });
+
+  // ===== AUTO-FILL: When blackout has started for today's meals, create MealEntry from MealStatus =====
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayDate = new Date(todayStr + "T00:00:00.000Z");
+  for (const meal of mealsList) {
+    if (!hasBlackoutStarted(meal, blackouts)) continue;
+    // Check which members don't have a MealEntry for today yet
+    const existingEntries = await prisma.mealEntry.findMany({
+      where: { messId, date: todayDate },
+      select: { memberId: true },
+    });
+    const membersWithEntry = new Set(existingEntries.map(e => e.memberId));
+    const membersNeedingEntry = members.filter(m => !membersWithEntry.has(m.id));
+    // Auto-fill for members without entries
+    for (const m of membersNeedingEntry) {
+      await syncMealEntry(m.id, messId, todayDate, mealsList);
+    }
+  }
 
   // Get pending special requests for this user
   const pendingRequests = await prisma.mealStatusRequest.findMany({
