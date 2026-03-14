@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,130 +66,215 @@ export default function SignupPage() {
     }
   };
 
+  const requirements = [
+    { label: "8+ characters", ok: password.length >= 8 },
+    { label: "Uppercase", ok: /[A-Z]/.test(password) },
+    { label: "Lowercase", ok: /[a-z]/.test(password) },
+    { label: "Number", ok: /[0-9]/.test(password) },
+  ];
+
+  const allMet = requirements.every(r => r.ok);
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 py-8">
+      {/* Animated background */}
+      <div className="fixed inset-0 bg-[#0a0f1c]" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.15),_transparent_50%)]" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(59,130,246,0.12),_transparent_50%)]" />
+      <div className="fixed top-1/3 right-1/4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="fixed bottom-1/3 left-1/4 w-96 h-96 bg-indigo-500/8 rounded-full blur-3xl animate-pulse delay-1000" />
+
+      <div className="relative z-10 max-w-md w-full">
+        {/* Glass card */}
+        <div className="backdrop-blur-xl bg-white/[0.03] border border-white/[0.08] p-8 sm:p-10 rounded-3xl shadow-2xl shadow-black/20">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+          <div className="text-center mb-7">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-white/10 mb-5 shadow-lg shadow-blue-500/10">
               <span className="text-3xl">🍽️</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-500 mt-1">Join MessMate to manage your meals</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Create your account</h1>
+            <p className="text-slate-400 mt-1.5 text-sm">Join MessMate and start managing meals</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
+            <div className="backdrop-blur-sm bg-red-500/10 border border-red-400/30 text-red-300 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2 animate-shake">
               <span>⚠️</span> {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                👤 Full Name
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Full Name
               </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                placeholder="e.g. Omar Faruk"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">👤</span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
+                  placeholder="e.g. Omar Faruk"
+                  required
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                📧 Email
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Email
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                placeholder="you@example.com"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">✉</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                📱 Phone <span className="text-gray-400">(optional)</span>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Phone <span className="text-slate-600 text-xs">(optional)</span>
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                placeholder="01XXXXXXXXX"
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">📱</span>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
+                  placeholder="01XXXXXXXXX"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                🔒 Password
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                placeholder="At least 6 characters"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔑</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
+                  placeholder="Min 8 characters"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+                >
+                  {showPassword ? "🙈" : "👁"}
+                </button>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                🔒 Confirm Password
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">
+                Confirm Password
               </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                placeholder="Re-enter password"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔑</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full pl-10 pr-10 py-3 bg-white/5 border rounded-xl focus:ring-2 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm ${confirmPassword.length > 0
+                      ? passwordsMatch
+                        ? "border-emerald-500/40 focus:ring-emerald-400/50 focus:border-emerald-400/50"
+                        : "border-red-500/40 focus:ring-red-400/50 focus:border-red-400/50"
+                      : "border-white/10 focus:ring-blue-400/50 focus:border-blue-400/50"
+                    }`}
+                  placeholder="Re-enter password"
+                  required
+                />
+                {confirmPassword.length > 0 && (
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm">
+                    {passwordsMatch ? "✅" : "❌"}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Password requirements */}
             {password.length > 0 && (
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {[
-                  { label: "8+ characters", ok: password.length >= 8 },
-                  { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
-                  { label: "Lowercase letter", ok: /[a-z]/.test(password) },
-                  { label: "One number", ok: /[0-9]/.test(password) },
-                ].map(r => (
-                  <p key={r.label} className={`flex items-center gap-1 ${r.ok ? "text-green-600" : "text-gray-400"}`}>
-                    <span>{r.ok ? "✓" : "○"}</span> {r.label}
-                  </p>
+              <div className="flex flex-wrap gap-2">
+                {requirements.map(r => (
+                  <span
+                    key={r.label}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-300 ${r.ok
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                        : "bg-white/5 text-slate-500 border border-white/5"
+                      }`}
+                  >
+                    <span className="text-[10px]">{r.ok ? "✓" : "○"}</span>
+                    {r.label}
+                  </span>
                 ))}
               </div>
             )}
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              disabled={loading || !allMet || !passwordsMatch}
+              className="w-full relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] group mt-2"
             >
-              {loading ? "Creating Account..." : "🚀 Sign Up"}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-500 text-sm">
+          <div className="mt-7 text-center">
+            <div className="flex items-center gap-3 text-slate-600 text-xs mb-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span>or</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+            <p className="text-slate-400 text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                Log in
+              <Link href="/login" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">
+                Sign in →
               </Link>
             </p>
           </div>
         </div>
+
+        {/* Subtle bottom text */}
+        <p className="text-center text-slate-600 text-xs mt-6">
+          MessMate — Meal management made simple
+        </p>
       </div>
+
+      <style jsx global>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.3s ease-out; }
+        .delay-1000 { animation-delay: 1s; }
+      `}</style>
     </div>
   );
 }
