@@ -139,7 +139,7 @@ export default function BillingPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-400 w-12">Cost</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                      <div className="flex-1 bg-white/[0.06] rounded-full h-3">
                         <div
                           className="bg-red-400 h-3 rounded-full transition-all"
                           style={{ width: `${costPct}%` }}
@@ -149,7 +149,7 @@ export default function BillingPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-400 w-12">Deposit</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-3">
+                      <div className="flex-1 bg-white/[0.06] rounded-full h-3">
                         <div
                           className="bg-green-400 h-3 rounded-full transition-all"
                           style={{ width: `${depositPct}%` }}
@@ -201,7 +201,7 @@ export default function BillingPage() {
                       ? "bg-red-100 text-red-700"
                       : m.netDue < 0
                         ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-slate-400"
+                        : "bg-white/[0.06] text-slate-400"
                       }`}>
                       {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
                     </span>

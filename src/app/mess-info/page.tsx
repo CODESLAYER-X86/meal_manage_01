@@ -258,7 +258,7 @@ export default function MessInfoPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Mess Info Card */}
-      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
         <h1 className="text-2xl font-bold text-white mb-1">🏠 {mess.name}</h1>
         <p className="text-slate-400 text-sm">Created by {mess.createdBy} · {mess.memberCount} members</p>
 
@@ -271,7 +271,7 @@ export default function MessInfoPage() {
             </p>
             <button
               onClick={copyCode}
-              className="px-4 py-2.5 bg-white border border-white/10 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors w-full sm:w-auto text-center"
+              className="px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-sm font-medium hover:bg-white/[0.04] transition-colors w-full sm:w-auto text-center"
             >
               {copied ? "✅ Copied!" : "📋 Copy"}
             </button>
@@ -326,13 +326,13 @@ export default function MessInfoPage() {
       )}
 
       {/* Members List */}
-      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
         <h2 className="text-lg font-semibold text-white mb-4">👥 Members</h2>
         <div className="space-y-3">
           {mess.members.map((member) => (
             <div
               key={member.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-gray-50 rounded-lg"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/[0.04] rounded-lg"
             >
               <div className="min-w-0">
                 <p className="font-medium text-white">
@@ -369,7 +369,7 @@ export default function MessInfoPage() {
                         </button>
                         <button
                           onClick={() => setKickConfirm(null)}
-                          className="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+                          className="px-3 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-slate-300 text-xs font-medium rounded-lg transition-colors"
                         >
                           Cancel
                         </button>
@@ -393,7 +393,7 @@ export default function MessInfoPage() {
 
       {/* Meal Configuration - Manager Only */}
       {isManager && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
           <h2 className="text-lg font-semibold text-white mb-1">🍽️ Meal Configuration</h2>
           <p className="text-sm text-slate-400 mb-4">
             Set how many meals per day and configure blackout windows (time restrictions for toggling meals).
@@ -461,7 +461,7 @@ export default function MessInfoPage() {
                     setCustomMealName("");
                   }
                 }}
-                className="px-3 py-2 bg-white/[0.05] hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
+                className="px-3 py-2 bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
               >
                 + Add
               </button>
@@ -489,7 +489,7 @@ export default function MessInfoPage() {
               {blackoutsInput.map((bo, idx) => {
                 const availableMeals = mealTypesInput;
                 return (
-                  <div key={idx} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div key={idx} className="p-4 bg-white/[0.04] border border-white/10 rounded-lg">
                     <div className="flex items-start justify-between gap-2 mb-3">
                       <span className="text-sm font-medium text-slate-300">Restriction #{idx + 1}</span>
                       <button
@@ -574,7 +574,7 @@ export default function MessInfoPage() {
                   { meals: mealTypesInput.slice(0, 2), startHour: 6, startMinute: 0, endHour: 10, endMinute: 0 },
                 ])
               }
-              className="mt-3 px-4 py-2 bg-white/[0.05] hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
+              className="mt-3 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
             >
               + Add another restriction
             </button>
@@ -638,7 +638,7 @@ export default function MessInfoPage() {
 
       {/* Washroom Settings - Manager Only */}
       {isManager && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
           <h2 className="text-lg font-semibold text-white mb-1">🚿 Washroom Cleaning</h2>
           <p className="text-sm text-slate-400 mb-4">
             Configure washroom cleaning rotation. Set to 0 to disable.
@@ -674,7 +674,7 @@ export default function MessInfoPage() {
 
       {/* Deposit Reminder Threshold - Manager Only */}
       {isManager && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
           <h2 className="text-lg font-semibold text-white mb-1">💰 Deposit Reminder</h2>
           <p className="text-sm text-slate-400 mb-4">
             Set the net-due threshold (৳). Members with dues above this amount will see a reminder on their dashboard. Set to 0 to disable.
@@ -711,7 +711,7 @@ export default function MessInfoPage() {
 
       {/* Mess Features - Manager Only */}
       {isManager && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-6">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
           <h2 className="text-lg font-semibold text-white mb-1">⚙️ Mess Features</h2>
           <p className="text-sm text-slate-400 mb-4">Configure bazar rotation and utilities for your mess.</p>
           <div className="space-y-4">
@@ -731,7 +731,7 @@ export default function MessInfoPage() {
               <label className="text-sm text-slate-300 font-medium w-40">Has Gas Connection:</label>
               <button
                 onClick={() => setHasGasInput(!hasGasInput)}
-                className={`w-12 h-7 rounded-full transition-colors ${hasGasInput ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-12 h-7 rounded-full transition-colors ${hasGasInput ? 'bg-green-500' : 'bg-white/[0.12]'}`}
               >
                 <div className={`w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${hasGasInput ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -741,7 +741,7 @@ export default function MessInfoPage() {
               <label className="text-sm text-slate-300 font-medium w-40">Has Cook:</label>
               <button
                 onClick={() => setHasCookInput(!hasCookInput)}
-                className={`w-12 h-7 rounded-full transition-colors ${hasCookInput ? 'bg-green-500' : 'bg-gray-300'}`}
+                className={`w-12 h-7 rounded-full transition-colors ${hasCookInput ? 'bg-green-500' : 'bg-white/[0.12]'}`}
               >
                 <div className={`w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${hasCookInput ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
@@ -819,7 +819,7 @@ export default function MessInfoPage() {
                 </button>
                 <button
                   onClick={() => { setDeleteConfirm(false); setDeleteText(""); }}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                  className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-slate-300 text-sm font-medium rounded-lg transition-colors"
                 >
                   Cancel
                 </button>

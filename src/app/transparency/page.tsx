@@ -149,7 +149,7 @@ export default function TransparencyPage() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-x-auto">
         <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">📊 Member Scorecard</h2>
         <table className="w-full text-xs sm:text-sm min-w-[700px]">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+          <thead className="bg-white/[0.04] dark:bg-gray-700">
             <tr>
               <th className="text-left p-2 sm:p-3">Member</th>
               <th className="text-center p-2 sm:p-3">Meals</th>
@@ -164,7 +164,7 @@ export default function TransparencyPage() {
           </thead>
           <tbody>
             {scorecard.map((s) => (
-              <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
+              <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-white/[0.04] dark:hover:bg-gray-750">
                 <td className="p-2 sm:p-3 font-medium text-slate-100 dark:text-gray-200">{s.name}</td>
                 <td className="p-2 sm:p-3 text-center">{s.totalMealsCount}</td>
                 <td className="p-2 sm:p-3 text-right">৳{s.mealCost.toFixed(0)}</td>
@@ -212,7 +212,7 @@ export default function TransparencyPage() {
                       {s.billRemaining <= 0 ? "✅ Paid" : `৳${s.billRemaining.toFixed(0)} remaining`}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-white/[0.08] dark:bg-gray-700 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all ${s.billRemaining <= 0 ? "bg-green-500" : "bg-orange-500"}`}
                       style={{ width: `${pct}%` }}
@@ -281,7 +281,7 @@ export default function TransparencyPage() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md shadow-black/10 border dark:border-gray-700 overflow-hidden">
         <h2 className="p-4 text-lg font-semibold text-slate-100 dark:text-gray-100 border-b dark:border-gray-700">🍛 Meal Counts</h2>
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+          <thead className="bg-white/[0.04] dark:bg-gray-700">
             <tr>
               <th className="text-left p-3">Member</th>
               <th className="text-center p-3">Total Meals</th>
@@ -290,13 +290,13 @@ export default function TransparencyPage() {
           </thead>
           <tbody>
             {scorecard.map((s) => (
-              <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
+              <tr key={s.id} className="border-t dark:border-gray-700 hover:bg-white/[0.04] dark:hover:bg-gray-750">
                 <td className="p-3 font-medium text-slate-100 dark:text-gray-200">{s.name}</td>
                 <td className="p-3 text-center font-bold text-indigo-600 dark:text-indigo-400">{s.totalMealsCount}</td>
                 <td className="p-3 text-right text-green-600">৳{s.totalDeposit.toFixed(0)}</td>
               </tr>
             ))}
-            <tr className="border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-700 font-bold">
+            <tr className="border-t dark:border-gray-700 bg-white/[0.04] dark:bg-gray-700 font-bold">
               <td className="p-3">Total</td>
               <td className="p-3 text-center text-indigo-700 dark:text-indigo-400">
                 {scorecard.reduce((sum, s) => sum + s.totalMealsCount, 0)}

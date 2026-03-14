@@ -205,13 +205,13 @@ export default function MealPlanPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => changeMonth(-1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={() => changeMonth(-1)} className="px-3 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] rounded-lg text-sm font-medium transition-colors">
               ←
             </button>
             <span className="text-base sm:text-lg font-semibold text-slate-300 min-w-[140px] text-center">
               {MONTH_NAMES[month - 1]} {year}
             </span>
-            <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+            <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] rounded-lg text-sm font-medium transition-colors">
               →
             </button>
           </div>
@@ -269,14 +269,14 @@ export default function MealPlanPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setStatusDate("today")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "today" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "today" ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
                     }`}
                 >
                   📅 Today
                 </button>
                 <button
                   onClick={() => setStatusDate("tomorrow")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
                     }`}
                 >
                   🔮 Tomorrow
@@ -429,8 +429,8 @@ export default function MealPlanPage() {
             >
               {/* Day Header */}
               <div
-                className={`flex items-center justify-between px-4 py-3 ${isToday ? "bg-indigo-50" : "bg-gray-50"
-                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-gray-100" : ""}`}
+                className={`flex items-center justify-between px-4 py-3 ${isToday ? "bg-indigo-50" : "bg-white/[0.04]"
+                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-white/[0.06]" : ""}`}
                 onClick={() => !isEditing && startEdit(day)}
               >
                 <div className="flex items-center gap-2">
@@ -478,7 +478,7 @@ export default function MealPlanPage() {
                     </button>
                     <button
                       onClick={() => setEditingDay(null)}
-                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                      className="px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors"
                     >
                       Cancel
                     </button>

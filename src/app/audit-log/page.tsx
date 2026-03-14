@@ -75,7 +75,7 @@ export default function AuditLogPage() {
               onClick={() => setFilter(t.value)}
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition ${filter === t.value
                   ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-slate-400 hover:bg-gray-200"
+                  : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.08]"
                 }`}
             >
               {t.label}

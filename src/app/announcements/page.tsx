@@ -150,7 +150,7 @@ export default function AnnouncementsPage() {
               type="checkbox"
               checked={pinned}
               onChange={(e) => setPinned(e.target.checked)}
-              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              className="w-4 h-4 text-indigo-600 border-white/10 rounded focus:ring-indigo-500"
             />
             <span className="text-sm text-slate-300">📌 Pin to top</span>
           </label>
@@ -201,14 +201,14 @@ export default function AnnouncementsPage() {
                     <div className="flex gap-1 shrink-0">
                       <button
                         onClick={() => togglePin(a.id, a.pinned)}
-                        className="p-2 text-sm text-slate-400 hover:text-amber-600 rounded-lg hover:bg-gray-50"
+                        className="p-2 text-sm text-slate-400 hover:text-amber-600 rounded-lg hover:bg-white/[0.04]"
                         title={a.pinned ? "Unpin" : "Pin"}
                       >
                         📌
                       </button>
                       <button
                         onClick={() => deleteAnnouncement(a.id)}
-                        className="p-2 text-sm text-slate-400 hover:text-red-600 rounded-lg hover:bg-gray-50"
+                        className="p-2 text-sm text-slate-400 hover:text-red-600 rounded-lg hover:bg-white/[0.04]"
                         title="Delete"
                       >
                         🗑️

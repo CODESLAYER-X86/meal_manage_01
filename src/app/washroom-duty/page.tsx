@@ -121,11 +121,11 @@ export default function WashroomDutyPage() {
 
       {/* Month navigation */}
       <div className="flex items-center justify-center gap-4 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-3 rounded-xl border">
-        <button onClick={() => { if (month === 1) { setMonth(12); setYear(year - 1); } else setMonth(month - 1); }} className="p-2 hover:bg-gray-100 rounded-lg">◀</button>
+        <button onClick={() => { if (month === 1) { setMonth(12); setYear(year - 1); } else setMonth(month - 1); }} className="p-2 hover:bg-white/[0.06] rounded-lg">◀</button>
         <span className="font-semibold text-slate-100">
           {new Date(year, month - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </span>
-        <button onClick={() => { if (month === 12) { setMonth(1); setYear(year + 1); } else setMonth(month + 1); }} className="p-2 hover:bg-gray-100 rounded-lg">▶</button>
+        <button onClick={() => { if (month === 12) { setMonth(1); setYear(year + 1); } else setMonth(month + 1); }} className="p-2 hover:bg-white/[0.06] rounded-lg">▶</button>
       </div>
 
       {/* Manager actions */}
@@ -179,7 +179,7 @@ export default function WashroomDutyPage() {
               return (
                 <div key={d.id} className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl border flex items-center justify-between ${isMyDuty ? "border-cyan-200 bg-cyan-50/30" : ""}`}>
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${d.completed ? "bg-green-100" : isPast ? "bg-red-100" : "bg-gray-100"}`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${d.completed ? "bg-green-100" : isPast ? "bg-red-100" : "bg-white/[0.06]"}`}>
                       {d.completed ? "✅" : isPast ? "⚠️" : "🚿"}
                     </div>
                     <div>

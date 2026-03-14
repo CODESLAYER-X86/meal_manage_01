@@ -153,11 +153,11 @@ export default function CalendarPage() {
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-4 rounded-xl shadow-md shadow-black/10 border">
-        <button onClick={prevMonth} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+        <button onClick={prevMonth} className="px-4 py-2 bg-white/[0.06] rounded-lg hover:bg-white/[0.08] transition">
           ← Prev
         </button>
         <h2 className="text-lg font-semibold text-slate-100">{monthName}</h2>
-        <button onClick={nextMonth} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+        <button onClick={nextMonth} className="px-4 py-2 bg-white/[0.06] rounded-lg hover:bg-white/[0.08] transition">
           Next →
         </button>
       </div>

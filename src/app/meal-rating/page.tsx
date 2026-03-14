@@ -129,14 +129,14 @@ export default function MealRatingPage() {
         <div className="flex gap-2 mt-3">
           <button
             onClick={() => setSelectedDate(todayStr)}
-            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === todayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === todayStr ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
               }`}
           >
             Today
           </button>
           <button
             onClick={() => setSelectedDate(yesterdayStr)}
-            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === yesterdayStr ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-300 hover:bg-gray-200"
+            className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${selectedDate === yesterdayStr ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
               }`}
           >
             Yesterday

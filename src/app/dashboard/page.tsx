@@ -335,7 +335,7 @@ export default function DashboardPage() {
                 );
 
                 return (
-                  <div key={meal} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={meal} className="flex items-center justify-between p-3 bg-white/[0.04] rounded-lg">
                     <div className="flex items-center gap-2">
                       <span>{mealIcons[meal] || "🍽️"}</span>
                       <span className="text-sm font-medium text-slate-300 capitalize">{meal}</span>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
                         <button
                           onClick={() => toggleMeal(dateStr, meal, isOff)}
                           disabled={isToggling}
-                          className={`relative w-11 h-6 rounded-full transition-colors ${isOff ? "bg-gray-300" : "bg-green-500"
+                          className={`relative w-11 h-6 rounded-full transition-colors ${isOff ? "bg-white/[0.12]" : "bg-green-500"
                             } ${isToggling ? "opacity-50" : ""}`}
                         >
                           <div className={`absolute top-0.5 w-5 h-5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-full shadow transition-transform ${isOff ? "left-0.5" : "left-5.5"
@@ -483,7 +483,7 @@ export default function DashboardPage() {
                   <span className="text-sm font-medium text-slate-300 w-20 truncate">{m.name}</span>
                   <div className="flex-1 bg-white/[0.05] rounded-full h-5 overflow-hidden relative">
                     <div
-                      className={`h-full rounded-full transition-all ${isPaid ? "bg-green-500" : confirmed > 0 ? "bg-blue-500" : "bg-gray-300"}`}
+                      className={`h-full rounded-full transition-all ${isPaid ? "bg-green-500" : confirmed > 0 ? "bg-blue-500" : "bg-white/[0.12]"}`}
                       style={{ width: `${pct}%` }}
                     />
                     <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-slate-300">
@@ -533,7 +533,7 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2">
             {announcements.slice(0, 3).map((a) => (
-              <div key={a.id} className={`p-3 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-white/[0.06]"}`}>
+              <div key={a.id} className={`p-3 rounded-lg border ${a.pinned ? "bg-amber-50 border-amber-200" : "bg-white/[0.04] border-white/[0.06]"}`}>
                 <div className="flex items-center gap-2">
                   {a.pinned && <span className="text-xs">📌</span>}
                   <p className="text-sm font-medium text-slate-100">{a.title}</p>
@@ -585,7 +585,7 @@ export default function DashboardPage() {
               <p className="text-slate-400">No changes recorded yet</p>
             ) : (
               auditLogs.map((log) => (
-                <div key={log.id} className="p-2 bg-gray-50 rounded-lg">
+                <div key={log.id} className="p-2 bg-white/[0.04] rounded-lg">
                   <div className="flex justify-between">
                     <span className="font-medium text-slate-300">{log.fieldName}</span>
                     <span className="text-xs text-slate-400">

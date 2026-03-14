@@ -92,7 +92,7 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+              className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors"
             >
               ✓ Mark all read
             </button>

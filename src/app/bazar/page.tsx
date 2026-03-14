@@ -285,7 +285,7 @@ export default function BazarEntryPage() {
       {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm">✅ {success}</div>}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex gap-1 bg-white/[0.06] rounded-lg p-1">
         <button onClick={() => setTab("entry")} className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${tab === "entry" ? "bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] shadow text-indigo-700" : "text-slate-400 hover:text-slate-100"}`}>
           📝 New Entry
         </button>
@@ -305,7 +305,7 @@ export default function BazarEntryPage() {
           <h2 className="text-base font-semibold text-slate-100 mb-3">📊 {viewYear} Trip Counts (Approved)</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {allMembers.map((m) => (
-              <div key={m.id} className="bg-gray-50 rounded-lg p-3 text-center">
+              <div key={m.id} className="bg-white/[0.04] rounded-lg p-3 text-center">
                 <p className="text-sm font-medium text-white truncate">{m.name}</p>
                 <p className="text-xl font-bold text-orange-600">{tripCounts[m.id] || 0}</p>
                 <p className="text-xs text-slate-400">trips</p>
@@ -366,7 +366,7 @@ export default function BazarEntryPage() {
                   onClick={handleAloneToggle}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${alone
                     ? "bg-orange-600 text-white border-orange-600"
-                    : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
+                    : "bg-white/[0.06] text-slate-400 border-white/10 hover:bg-white/[0.04]"
                     }`}
                 >
                   🙋 Alone
@@ -381,7 +381,7 @@ export default function BazarEntryPage() {
                     }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${companions.includes(m.id)
                       ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white text-slate-400 border-gray-300 hover:bg-gray-50"
+                      : "bg-white/[0.06] text-slate-400 border-white/10 hover:bg-white/[0.04]"
                       }`}
                   >
                     👤 {m.name}
@@ -447,7 +447,7 @@ export default function BazarEntryPage() {
             {/* Desktop table layout */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-white/[0.04]">
                   <tr>
                     <th className="text-center p-3 w-12">SL</th>
                     <th className="text-left p-3">Item Name</th>
@@ -491,7 +491,7 @@ export default function BazarEntryPage() {
             </div>
 
             <div className="p-3 border-t">
-              <button type="button" onClick={addItem} className="px-4 py-2 bg-gray-100 text-slate-300 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+              <button type="button" onClick={addItem} className="px-4 py-2 bg-white/[0.06] text-slate-300 rounded-lg hover:bg-white/[0.08] transition text-sm font-medium">
                 ➕ Add Another Item
               </button>
             </div>
@@ -552,7 +552,7 @@ export default function BazarEntryPage() {
                       <button onClick={() => startEdit(trip)} className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">✏️ Edit</button>
                     )}
                     {(isManager || (isOwnTrip && !trip.approved)) && (
-                      <button onClick={() => deleteTrip(trip.id)} className="text-xs bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500">🗑️</button>
+                      <button onClick={() => deleteTrip(trip.id)} className="text-xs bg-gray-400 text-white px-2 py-1 rounded hover:bg-white/[0.04]0">🗑️</button>
                     )}
                   </div>
 
@@ -588,7 +588,7 @@ export default function BazarEntryPage() {
                         <button onClick={() => saveEdit(trip.id)} disabled={editSaving} className="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50">
                           {editSaving ? "Saving..." : "💾 Save Changes"}
                         </button>
-                        <button onClick={cancelEdit} className="px-4 py-2 bg-gray-200 text-slate-300 text-xs font-medium rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button onClick={cancelEdit} className="px-4 py-2 bg-white/[0.08] text-slate-300 text-xs font-medium rounded-lg hover:bg-white/[0.12]">Cancel</button>
                         <span className="text-xs text-slate-400 self-center ml-auto">
                           Total: ৳{editItems.reduce((s, item) => s + (parseFloat(item.price) || 0), 0)}
                         </span>
@@ -602,7 +602,7 @@ export default function BazarEntryPage() {
                       {trip.items.length > 0 && (
                         <div className="border-t">
                           <table className="w-full text-xs">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-white/[0.04]">
                               <tr>
                                 <th className="text-left p-2 pl-4">Item</th>
                                 <th className="text-center p-2">Qty</th>

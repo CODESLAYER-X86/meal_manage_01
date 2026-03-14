@@ -127,7 +127,7 @@ export default function MealEntryPage() {
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+          className="px-4 py-2 border border-white/10 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
         />
       </div>
 

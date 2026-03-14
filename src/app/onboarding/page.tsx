@@ -89,7 +89,7 @@ export default function OnboardingPage() {
             <h1 className="text-2xl font-bold text-white mb-2">Mess Created!</h1>
             <p className="text-slate-400 mb-6">Share this invite code with your roommates</p>
 
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-6 mb-6">
+            <div className="bg-white/[0.04] border-2 border-dashed border-white/10 rounded-xl p-6 mb-6">
               <p className="text-sm text-slate-400 mb-2">Invite Code</p>
               <p className="text-3xl font-mono font-bold text-blue-600 tracking-widest">
                 {createdCode}
@@ -100,7 +100,7 @@ export default function OnboardingPage() {
               onClick={() => {
                 navigator.clipboard.writeText(createdCode);
               }}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-slate-300 font-medium py-2.5 rounded-lg transition-colors mb-3"
+              className="w-full bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 font-medium py-2.5 rounded-lg transition-colors mb-3"
             >
               📋 Copy Code
             </button>
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
                   type="text"
                   value={messName}
                   onChange={(e) => setMessName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
+                  className="w-full px-4 py-2.5 border border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
                   placeholder="e.g. 42/A Mirpur Mess"
                   required
                 />
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
                   type="text"
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-white placeholder-gray-400 font-mono text-center text-lg tracking-widest"
+                  className="w-full px-4 py-2.5 border border-white/10 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-white placeholder-gray-400 font-mono text-center text-lg tracking-widest"
                   placeholder="MESS-XXXXXX"
                   required
                 />

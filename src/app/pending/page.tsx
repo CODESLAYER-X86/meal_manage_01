@@ -85,7 +85,7 @@ export default function PendingPage() {
               onClick={() => {
                 router.push("/onboarding");
               }}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-slate-300 font-medium py-2.5 rounded-lg transition-colors"
+              className="w-full bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 font-medium py-2.5 rounded-lg transition-colors"
             >
               ← Try a Different Mess
             </button>

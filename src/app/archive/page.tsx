@@ -213,7 +213,7 @@ export default function ArchivePage() {
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-white mb-3">📤 Export Monthly Archive</h2>
         <p className="text-sm text-slate-400 mb-4">
-          Download your monthly data as a <code className="bg-gray-100 px-1 rounded">.messmate</code> archive (for this app) or as a <code className="bg-gray-100 px-1 rounded">.csv</code> spreadsheet file.
+          Download your monthly data as a <code className="bg-white/[0.06] px-1 rounded">.messmate</code> archive (for this app) or as a <code className="bg-white/[0.06] px-1 rounded">.csv</code> spreadsheet file.
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <select
@@ -257,7 +257,7 @@ export default function ArchivePage() {
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-white mb-3">📥 Import & Investigate Archive</h2>
         <p className="text-sm text-slate-400 mb-4">
-          Open a <code className="bg-gray-100 px-1 rounded">.messmate</code> file to analyze old data — audit logs, billing, meals, bazar, everything.
+          Open a <code className="bg-white/[0.06] px-1 rounded">.messmate</code> file to analyze old data — audit logs, billing, meals, bazar, everything.
           <strong className="text-slate-300"> The file stays on your device</strong> — nothing is uploaded to any server.
           It&apos;s verified locally for integrity (tamper detection).
         </p>
@@ -294,7 +294,7 @@ export default function ArchivePage() {
             {cleaningUp ? "Cleaning up..." : "🗑️ Run Cleanup Now"}
           </button>
           {cleanupResult && (
-            <div className="mt-4 p-3 bg-white border border-red-200 rounded-lg text-sm">
+            <div className="mt-4 p-3 bg-white/[0.04] border border-red-200 rounded-lg text-sm">
               <p className="font-medium text-slate-100">
                 ✅ Cleanup complete — {cleanupResult.totalDeleted} records deleted
               </p>
@@ -370,7 +370,7 @@ function ArchiveViewer({
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+            className="px-4 py-2.5 bg-white/[0.08] hover:bg-white/[0.12] text-slate-300 text-sm font-medium rounded-lg transition-colors"
           >
             ✕ Close Archive
           </button>
@@ -388,7 +388,7 @@ function ArchiveViewer({
             onClick={() => setViewTab(tab.id)}
             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${viewTab === tab.id
               ? "bg-indigo-600 text-white"
-              : "bg-gray-100 text-slate-400 hover:bg-gray-200"
+              : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.08]"
               }`}
           >
             {tab.emoji} {tab.label}
@@ -534,7 +534,7 @@ function TransparencyView({ archive }: { archive: any }) {
                       {s.billRemaining <= 0 ? "✅ Paid" : `৳${s.billRemaining.toFixed(0)} remaining`}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-white/[0.08] rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all ${s.billRemaining <= 0 ? "bg-green-500" : "bg-orange-500"}`}
                       style={{ width: `${pct}%` }}
@@ -916,7 +916,7 @@ function BillingView({ billing }: { billing: any }) {
                   {m.netDue > 0 ? `৳${m.netDue}` : `-৳${Math.abs(m.netDue)}`}
                 </td>
                 <td className="p-2 sm:p-3 text-center">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0 ? "bg-red-100 text-red-700" : m.netDue < 0 ? "bg-green-100 text-green-700" : "bg-gray-100 text-slate-400"
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0 ? "bg-red-100 text-red-700" : m.netDue < 0 ? "bg-green-100 text-green-700" : "bg-white/[0.06] text-slate-400"
                     }`}>
                     {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
                   </span>
@@ -1069,7 +1069,7 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setFilter("all")}
-          className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === "all" ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-400 hover:bg-gray-200"}`}
+          className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === "all" ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.08]"}`}
         >
           All
         </button>
@@ -1077,7 +1077,7 @@ function AuditView({ auditLogs, filter, setFilter }: { auditLogs: any[]; filter:
           <button
             key={t}
             onClick={() => setFilter(t)}
-            className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === t ? "bg-indigo-600 text-white" : "bg-gray-100 text-slate-400 hover:bg-gray-200"}`}
+            className={`px-3 py-2 text-sm rounded-lg font-medium ${filter === t ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-400 hover:bg-white/[0.08]"}`}
           >
             {t}
           </button>
@@ -1273,7 +1273,7 @@ function VotesView({ topics }: { topics: any[] }) {
                         <span className="text-slate-300">{option}</span>
                         <span className="text-slate-400">{count as number} ({pct}%)</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-white/[0.08] rounded-full h-2">
                         <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                     </div>

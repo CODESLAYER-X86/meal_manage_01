@@ -138,7 +138,7 @@ export default function MealVotePage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-4 sm:p-6">
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white">🗳️ Meal Voting</h1>
@@ -147,7 +147,7 @@ export default function MealVotePage() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setShowClosed(!showClosed)}
-              className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+              className="px-3 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors"
             >
               {showClosed ? "Show Active" : "Show Closed"}
             </button>
@@ -254,7 +254,7 @@ export default function MealVotePage() {
 
       {/* Topics */}
       {topics.length === 0 ? (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-gray-200 p-10 text-center">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-10 text-center">
           <div className="text-5xl mb-4">🗳️</div>
           <p className="text-slate-400 text-lg">
             {showClosed ? "No closed votes" : "No active votes right now"}
@@ -277,7 +277,7 @@ export default function MealVotePage() {
             const maxVotes = Math.max(...Object.values(voteCounts), 1);
 
             return (
-              <div key={topic.id} className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden ${topic.active ? "border-gray-200" : "border-gray-100 opacity-80"}`}>
+              <div key={topic.id} className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden ${topic.active ? "border-white/10" : "border-gray-100 opacity-80"}`}>
                 {/* Topic header */}
                 <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 flex items-start justify-between gap-2">
                   <div>
@@ -307,7 +307,7 @@ export default function MealVotePage() {
                 </div>
 
                 {/* Poll options box */}
-                <div className="mx-4 mb-4 sm:mx-5 sm:mb-5 rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100">
+                <div className="mx-4 mb-4 sm:mx-5 sm:mb-5 rounded-xl border border-white/10 overflow-hidden divide-y divide-gray-100">
                   {topic.options.map((opt, idx) => {
                     const count = voteCounts[opt] || 0;
                     const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
@@ -332,7 +332,7 @@ export default function MealVotePage() {
                         {/* Progress bar fill */}
                         {totalVotes > 0 && (
                           <div
-                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${isMyChoice ? "bg-indigo-100" : isWinner ? "bg-green-100" : "bg-gray-100"
+                            className={`absolute inset-y-0 left-0 transition-all duration-500 ${isMyChoice ? "bg-indigo-100" : isWinner ? "bg-green-100" : "bg-white/[0.06]"
                               }`}
                             style={{ width: `${pct}%`, opacity: 0.6 }}
                           />
@@ -344,7 +344,7 @@ export default function MealVotePage() {
                             ? "border-indigo-500 bg-indigo-500"
                             : isWinner
                               ? "border-green-500 bg-green-500"
-                              : "border-gray-300"
+                              : "border-white/10"
                             }`}>
                             {(isMyChoice || isWinner) && (
                               <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -379,9 +379,9 @@ export default function MealVotePage() {
 
                         {/* Progress bar below text */}
                         {totalVotes > 0 && (
-                          <div className="relative mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
+                          <div className="relative mt-2 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${isMyChoice ? "bg-indigo-400" : isWinner ? "bg-green-400" : "bg-gray-300"
+                              className={`h-full rounded-full transition-all duration-500 ${isMyChoice ? "bg-indigo-400" : isWinner ? "bg-green-400" : "bg-white/[0.12]"
                                 }`}
                               style={{ width: `${pct}%` }}
                             />

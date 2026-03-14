@@ -138,7 +138,7 @@ export default function ProfilePage() {
             <p className="text-slate-400">Role</p>
             <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${profile.role === "MANAGER"
                 ? "bg-indigo-100 text-indigo-700"
-                : "bg-gray-100 text-slate-400"
+                : "bg-white/[0.06] text-slate-400"
               }`}>
               {profile.role}
             </span>
