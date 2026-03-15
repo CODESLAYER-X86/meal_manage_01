@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessMate - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0f1c;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h3 {
+            font-size: 0.875rem;
+            color: #818cf8;
+            margin-bottom: 0.5rem;
+        }
+
+        .card ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .card ul li {
+            padding: 0.35rem 0;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .card ul li::before {
+            content: "✅ ";
+        }
+
+        .retry-btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>No internet connection detected. Don't worry — your cached data is still available.</p>
+
+        <div class="card">
+            <h3>📋 Available Offline</h3>
+            <ul>
+                <li>View meal entries & counts</li>
+                <li>View deposits & billing</li>
+                <li>View bazar trips</li>
+                <li>View mess info & members</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>⏳ Needs Internet</h3>
+            <ul style="color: #64748b;">
+                <li style="color: #64748b;">Toggle meals ON/OFF</li>
+                <li style="color: #64748b;">Add deposits or bazar</li>
+                <li style="color: #64748b;">Change settings</li>
+            </ul>
+        </div>
+
+        <button class="retry-btn" onclick="window.location.reload()">
+            🔄 Try Again
+        </button>
+
+        <p class="status" id="lastSync"></p>
+    </div>
+    <script>
+        // Show when data was last cached
+        if ('caches' in window) {
+            caches.open('messmate-api-v1').then(cache => {
+                cache.keys().then(keys => {
+                    if (keys.length > 0) {
+                        document.getElementById('lastSync').textContent =
+                            `${keys.length} cached resources available`;
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>

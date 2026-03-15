@@ -23,7 +23,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email: (credentials.email as string).toLowerCase().trim() },
         });
 
-        if (!user || !user.isActive) return null;
+        if (!user || !user.isActive) {
+          console.warn(`[SECURITY] Failed login: ${credentials.email} (user not found or inactive)`);
+          return null;
+        }
 
         // Block login if email not verified
         if (!user.emailVerified) {
@@ -35,7 +38,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.password
         );
 
-        if (!passwordMatch) return null;
+        if (!passwordMatch) {
+          console.warn(`[SECURITY] Failed login: ${credentials.email} (wrong password)`);
+          return null;
+        }
 
         return {
           id: user.id,
@@ -55,9 +61,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as { role: string }).role;
         token.isAdmin = (user as { isAdmin: boolean }).isAdmin;
         token.messId = (user as { messId: string | null }).messId;
+        token.lastRefresh = Date.now();
       }
-      // Always refresh role and messId from DB
-      if (token.id) {
+      // Refresh role/messId from DB every 5 minutes (not every request)
+      const REFRESH_INTERVAL = 5 * 60 * 1000;
+      const now = Date.now();
+      if (token.id && (!token.lastRefresh || now - (token.lastRefresh as number) >= REFRESH_INTERVAL)) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
@@ -68,6 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.isAdmin = dbUser.isAdmin;
             token.messId = dbUser.messId;
           }
+          token.lastRefresh = now;
         } catch {
           // If DB is unreachable, keep existing values
         }

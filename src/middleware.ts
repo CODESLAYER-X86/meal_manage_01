@@ -55,6 +55,7 @@ export function middleware(request: NextRequest) {
             const [limit, window] = sensitiveConfig;
             const key = `${ip}:${pathname}`;
             if (!rateLimit(key, limit, window)) {
+                console.warn(`[SECURITY] Rate limit hit: ${ip} on ${pathname} at ${new Date().toISOString()}`);
                 return NextResponse.json(
                     { error: "Too many requests. Please try again later." },
                     { status: 429 }
@@ -67,6 +68,7 @@ export function middleware(request: NextRequest) {
     if (pathname.startsWith("/api/")) {
         const key = `${ip}:api-general`;
         if (!rateLimit(key, GENERAL_API_LIMIT, GENERAL_API_WINDOW)) {
+            console.warn(`[SECURITY] General rate limit hit: ${ip} at ${new Date().toISOString()}`);
             return NextResponse.json(
                 { error: "Rate limit exceeded. Please slow down." },
                 { status: 429 }
@@ -83,6 +85,7 @@ export function middleware(request: NextRequest) {
         const origin = request.headers.get("origin");
         const host = request.headers.get("host");
         if (origin && host && !origin.includes(host)) {
+            console.warn(`[SECURITY] CSRF blocked: ${ip} origin=${origin} host=${host} path=${pathname}`);
             return NextResponse.json(
                 { error: "Forbidden: cross-origin request" },
                 { status: 403 }
