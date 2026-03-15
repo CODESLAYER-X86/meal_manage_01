@@ -184,20 +184,54 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  // ===== AUTO-FILL: When blackout has started for today's meals, create MealEntry from MealStatus =====
+  // ===== AUTO-FILL: Lock each meal independently when its blackout starts =====
   const { todayDate } = getTodayBD();
-  for (const meal of mealsList) {
-    if (!hasBlackoutStarted(meal, blackouts)) continue;
-    // Check which members don't have a MealEntry for today yet
-    const existingEntries = await prisma.mealEntry.findMany({
-      where: { messId, date: todayDate },
-      select: { memberId: true },
-    });
-    const membersWithEntry = new Set(existingEntries.map(e => e.memberId));
-    const membersNeedingEntry = members.filter(m => !membersWithEntry.has(m.id));
-    // Auto-fill for members without entries
-    for (const m of membersNeedingEntry) {
-      await syncMealEntry(m.id, messId, todayDate, mealsList);
+  const lockedMeals = mealsList.filter(meal => hasBlackoutStarted(meal, blackouts));
+
+  if (lockedMeals.length > 0) {
+    for (const m of members) {
+      // Get existing entry (if any)
+      const existing = await prisma.mealEntry.findUnique({
+        where: { date_memberId: { date: todayDate, memberId: m.id } },
+      });
+
+      // Parse existing meals JSON or start empty
+      const existingMealsObj: Record<string, number> = existing?.meals
+        ? JSON.parse(existing.meals as string)
+        : {};
+
+      // Check which locked meals haven't been synced into the entry yet
+      const mealsToSync = lockedMeals.filter(meal => !(meal in existingMealsObj));
+      if (mealsToSync.length === 0) continue; // all locked meals already in entry
+
+      // Get MealStatus for the meals that need syncing
+      const statuses = await prisma.mealStatus.findMany({
+        where: { memberId: m.id, messId, date: todayDate, meal: { in: mealsToSync } },
+        select: { meal: true, isOff: true },
+      });
+      const statusMap: Record<string, boolean> = {};
+      for (const s of statuses) statusMap[s.meal] = s.isOff;
+
+      // Add newly locked meals to the meals object (preserve existing)
+      for (const meal of mealsToSync) {
+        existingMealsObj[meal] = statusMap[meal] ? 0 : 1;
+      }
+
+      // Recalculate total from all meals present
+      let total = 0;
+      for (const meal of mealsList) {
+        total += existingMealsObj[meal] ?? 0;
+      }
+
+      const breakfast = existingMealsObj["breakfast"] ?? 0;
+      const lunch = existingMealsObj["lunch"] ?? 0;
+      const dinner = existingMealsObj["dinner"] ?? 0;
+
+      await prisma.mealEntry.upsert({
+        where: { date_memberId: { date: todayDate, memberId: m.id } },
+        update: { breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
+        create: { date: todayDate, memberId: m.id, messId, breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
+      });
     }
   }
 
