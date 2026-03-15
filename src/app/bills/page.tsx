@@ -295,22 +295,22 @@ export default function BillsPage() {
 
       {/* My Bill Summary */}
       {myBill > 0 && (
-        <div className={`rounded-xl p-4 border ${myRemaining > 0 ? "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800" : "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"}`}>
+        <div className={`rounded-xl p-4 border ${myRemaining > 0 ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
           <p className="text-sm font-medium text-slate-300 text-slate-400">Your bill this month</p>
           <p className="text-2xl font-bold mt-1 text-white text-white">৳{myBill.toFixed(0)}</p>
           {setting && (
-            <div className="mt-2 text-xs text-slate-400 text-slate-400 space-y-0.5">
-              <p>Rent: <span className="font-semibold text-slate-100 text-slate-200">৳{(setting.rents?.[userId || ""] || 0).toFixed(0)}</span></p>
-              <p>Shared utilities ({members.length} members): <span className="font-semibold text-slate-100 text-slate-200">৳{perPersonShared.toFixed(0)}</span></p>
+            <div className="mt-2 text-xs text-slate-400 space-y-0.5">
+              <p>Rent: <span className="font-semibold text-slate-200">৳{(setting.rents?.[userId || ""] || 0).toFixed(0)}</span></p>
+              <p>Shared utilities ({members.length} members): <span className="font-semibold text-slate-200">৳{perPersonShared.toFixed(0)}</span></p>
             </div>
           )}
           <p className="text-sm mt-2 text-slate-300 text-slate-400">
-            Paid: <span className="font-bold text-green-600 dark:text-green-400">৳{myPaid.toFixed(0)}</span>
-            {myRemaining > 0 && <span className="text-red-600 dark:text-red-400 ml-2 font-medium">Remaining: ৳{myRemaining.toFixed(0)}</span>}
-            {myRemaining <= 0 && <span className="text-green-600 dark:text-green-400 ml-2">✅ All paid!</span>}
+            Paid: <span className="font-bold text-green-600">৳{myPaid.toFixed(0)}</span>
+            {myRemaining > 0 && <span className="text-red-600 ml-2 font-medium">Remaining: ৳{myRemaining.toFixed(0)}</span>}
+            {myRemaining <= 0 && <span className="text-green-600 ml-2">✅ All paid!</span>}
           </p>
           {myUnsettledFines.length > 0 && (
-            <p className="text-sm mt-1 text-orange-700 dark:text-orange-400 font-medium">
+            <p className="text-sm mt-1 text-orange-700 font-medium">
               ⚠️ {myUnsettledFines.length} unsettled fine{myUnsettledFines.length > 1 ? "s" : ""} — total ৳{myUnsettledFines.reduce((s, f) => s + f.amount, 0).toFixed(0)}
             </p>
           )}
@@ -323,7 +323,7 @@ export default function BillsPage() {
           <h2 className="text-lg font-semibold text-slate-100 text-white">⚙️ Set Monthly Bills (Manager)</h2>
 
           <div>
-            <h3 className="text-sm font-medium text-slate-400 text-slate-400 mb-2">Per-Member Rent</h3>
+            <h3 className="text-sm font-medium text-slate-400 mb-2">Per-Member Rent</h3>
             <div className="space-y-2">
               {members.map(m => (
                 <div key={m.id} className="flex items-center gap-2">
@@ -341,36 +341,36 @@ export default function BillsPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-slate-400 text-slate-400 mb-1">
-              Shared Bills <span className="text-xs font-normal text-indigo-500 dark:text-indigo-400">(enter TOTAL — split equally among {members.length || "?"} members)</span>
+            <h3 className="text-sm font-medium text-slate-400 mb-1">
+              Shared Bills <span className="text-xs font-normal text-indigo-500">(enter TOTAL — split equally among {members.length || "?"} members)</span>
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">WiFi (Total)</label>
+                <label className="text-xs text-slate-400">WiFi (Total)</label>
                 <input type="number" value={wifi} onChange={e => setWifi(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
               </div>
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">Electricity (Total)</label>
+                <label className="text-xs text-slate-400">Electricity (Total)</label>
                 <input type="number" value={electricity} onChange={e => setElectricity(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
               </div>
               {messConfig?.hasGas && (
                 <div>
-                  <label className="text-xs text-slate-400 text-slate-400">Gas (Total)</label>
+                  <label className="text-xs text-slate-400">Gas (Total)</label>
                   <input type="number" value={gas} onChange={e => setGas(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
                 </div>
               )}
               {messConfig?.hasCook && (
                 <div>
-                  <label className="text-xs text-slate-400 text-slate-400">Cook Salary (Total)</label>
+                  <label className="text-xs text-slate-400">Cook Salary (Total)</label>
                   <input type="number" value={cookSalary} onChange={e => setCookSalary(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
                 </div>
               )}
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">Other (Total)</label>
+                <label className="text-xs text-slate-400">Other (Total)</label>
                 <input type="number" value={other} onChange={e => setOther(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
               </div>
               <div className="col-span-2">
-                <label className="text-xs text-slate-400 text-slate-400">Note for &quot;Other&quot; (visible to all)</label>
+                <label className="text-xs text-slate-400">Note for &quot;Other&quot; (visible to all)</label>
                 <input type="text" value={otherNote} onChange={e => setOtherNote(e.target.value)} placeholder="e.g. Building maintenance" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function BillsPage() {
 
           {/* Live breakdown preview */}
           {members.length > 0 && managerSharedPreview > 0 && (
-            <div className="bg-indigo-50 dark:bg-indigo-950 rounded-lg px-3 py-2.5 text-xs text-indigo-700 dark:text-indigo-300">
+            <div className="bg-indigo-50 rounded-lg px-3 py-2.5 text-xs text-indigo-700">
               Shared total: ৳{managerSharedPreview.toFixed(0)} ÷ {members.length} members = <strong>৳{managerPerPersonPreview.toFixed(0)} per person</strong>
             </div>
           )}
@@ -399,31 +399,31 @@ export default function BillsPage() {
               <span className="font-medium text-white text-white">৳{(setting.rents?.[userId || ""] || 0).toFixed(0)}</span>
             </div>
             {setting.wifi > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>WiFi (৳{setting.wifi} ÷ {members.length})</span>
                 <span>৳{(setting.wifi / members.length).toFixed(0)}</span>
               </div>
             )}
             {setting.electricity > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>Electricity (৳{setting.electricity} ÷ {members.length})</span>
                 <span>৳{(setting.electricity / members.length).toFixed(0)}</span>
               </div>
             )}
             {setting.gas > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>Gas (৳{setting.gas} ÷ {members.length})</span>
                 <span>৳{(setting.gas / members.length).toFixed(0)}</span>
               </div>
             )}
             {setting.cookSalary > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>Cook Salary (৳{setting.cookSalary} ÷ {members.length})</span>
                 <span>৳{(setting.cookSalary / members.length).toFixed(0)}</span>
               </div>
             )}
             {setting.other > 0 && (
-              <div className="flex justify-between text-xs text-slate-400 text-slate-400">
+              <div className="flex justify-between text-xs text-slate-400">
                 <span>Other{setting.otherNote ? ` — ${setting.otherNote}` : ""} (৳{setting.other} ÷ {members.length})</span>
                 <span>৳{(setting.other / members.length).toFixed(0)}</span>
               </div>
@@ -452,20 +452,20 @@ export default function BillsPage() {
       <div className="bg-white/[0.03] backdrop-blur-xl rounded-xl shadow-md shadow-black/10 border border-white/[0.08] overflow-hidden">
         <h2 className="p-4 text-lg font-semibold text-slate-100 text-white border-b border-white/[0.08]">�� Payment History</h2>
         {payments.length === 0 ? (
-          <p className="p-4 text-slate-400 text-slate-400 text-sm">No payments yet for this month.</p>
+          <p className="p-4 text-slate-400 text-sm">No payments yet for this month.</p>
         ) : (
           <div className="divide-y divide-white/[0.06]">
             {payments.map(p => (
               <div key={p.id} className="p-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium text-slate-100 text-slate-200">{p.member.name}</span>
-                <span className="font-bold text-indigo-600 dark:text-indigo-400">৳{p.amount}</span>
+                <span className="font-medium text-slate-200">{p.member.name}</span>
+                <span className="font-bold text-indigo-600">৳{p.amount}</span>
                 {p.note && <span className="text-slate-400 text-xs">({p.note})</span>}
                 <span className="text-xs text-slate-400">{new Date(p.createdAt).toLocaleDateString()}</span>
                 <div className="ml-auto flex items-center gap-2">
                   {p.confirmed ? (
-                    <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded-full">✅ Confirmed</span>
+                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✅ Confirmed</span>
                   ) : (
-                    <span className="text-xs font-bold text-yellow-600 bg-yellow-50 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-0.5 rounded-full">⏳ Pending</span>
+                    <span className="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">⏳ Pending</span>
                   )}
                   {isManager && !p.confirmed && (
                     <button onClick={() => confirmPayment(p.id, true)} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">
@@ -490,7 +490,7 @@ export default function BillsPage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-100 text-white">⚠️ Fines</h2>
             {allUnsettledFines.length > 0 && (
-              <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">
+              <p className="text-xs text-orange-600 mt-0.5">
                 {allUnsettledFines.length} unsettled fine{allUnsettledFines.length > 1 ? "s" : ""}
               </p>
             )}
@@ -498,7 +498,7 @@ export default function BillsPage() {
           {isManager && (
             <button
               onClick={() => { setShowFineForm(!showFineForm); setFineError(""); }}
-              className="text-sm bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-3 py-1.5 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-800 font-medium"
+              className="text-sm bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 font-medium"
             >
               {showFineForm ? "✕ Cancel" : "➕ Issue Fine"}
             </button>
@@ -507,11 +507,11 @@ export default function BillsPage() {
 
         {/* Issue Fine Form (Manager) */}
         {isManager && showFineForm && (
-          <div className="p-4 border-b border-white/[0.08] bg-orange-50 dark:bg-orange-950 space-y-3">
-            <h3 className="text-sm font-semibold text-orange-800 dark:text-orange-300">Issue a Fine</h3>
+          <div className="p-4 border-b border-white/[0.08] bg-orange-50 space-y-3">
+            <h3 className="text-sm font-semibold text-orange-800">Issue a Fine</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">Member</label>
+                <label className="text-xs text-slate-400">Member</label>
                 <select
                   value={fineMemberId}
                   onChange={e => setFineMemberId(e.target.value)}
@@ -522,7 +522,7 @@ export default function BillsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">Amount (৳)</label>
+                <label className="text-xs text-slate-400">Amount (৳)</label>
                 <input
                   type="number"
                   placeholder="e.g. 50"
@@ -532,7 +532,7 @@ export default function BillsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 text-slate-400">Reason</label>
+                <label className="text-xs text-slate-400">Reason</label>
                 <input
                   type="text"
                   placeholder="e.g. Late meal off"
@@ -542,7 +542,7 @@ export default function BillsPage() {
                 />
               </div>
             </div>
-            {fineError && <p className="text-xs text-red-600 dark:text-red-400">⚠️ {fineError}</p>}
+            {fineError && <p className="text-xs text-red-600">⚠️ {fineError}</p>}
             <button
               onClick={issueFine}
               disabled={fineSubmitting}
@@ -555,28 +555,28 @@ export default function BillsPage() {
 
         {/* Fines List */}
         {fineLoading ? (
-          <p className="p-4 text-sm text-slate-400 text-slate-400">Loading fines...</p>
+          <p className="p-4 text-sm text-slate-400">Loading fines...</p>
         ) : fines.length === 0 ? (
-          <p className="p-4 text-sm text-slate-400 text-slate-400">No fines issued.</p>
+          <p className="p-4 text-sm text-slate-400">No fines issued.</p>
         ) : (
           <div className="divide-y divide-white/[0.06]">
             {fines.map(f => (
               <div key={f.id} className={`p-3 flex flex-wrap items-start gap-2 text-sm ${f.settled ? "opacity-60" : ""}`}>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium text-slate-100 text-slate-200">{f.member.name}</span>
-                    <span className="font-bold text-orange-600 dark:text-orange-400">৳{f.amount}</span>
+                    <span className="font-medium text-slate-200">{f.member.name}</span>
+                    <span className="font-bold text-orange-600">৳{f.amount}</span>
                     {f.settled ? (
-                      <span className="text-xs font-medium text-green-600 bg-green-50 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 rounded-full">✅ Settled</span>
+                      <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✅ Settled</span>
                     ) : (
-                      <span className="text-xs font-medium text-red-600 bg-white/[0.03] backdrop-blur-xl dark:text-red-300 px-2 py-0.5 rounded-full">⚠️ Unsettled</span>
+                      <span className="text-xs font-medium text-red-600 bg-white/[0.03] backdrop-blur-xl px-2 py-0.5 rounded-full">⚠️ Unsettled</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 text-slate-400 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {f.reason} · Issued by {f.createdBy.name} · {new Date(f.createdAt).toLocaleDateString()}
                   </p>
                   {f.settled && f.settledAt && (
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">Settled on {new Date(f.settledAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-green-600 mt-0.5">Settled on {new Date(f.settledAt).toLocaleDateString()}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 ml-auto">

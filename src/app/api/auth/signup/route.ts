@@ -6,7 +6,8 @@ import crypto from "crypto";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, phone, password } = await request.json();
+    const { name, email: rawEmail, phone, password } = await request.json();
+    const email = rawEmail?.toLowerCase().trim();
 
     if (!name || !email || !password) {
       return NextResponse.json(

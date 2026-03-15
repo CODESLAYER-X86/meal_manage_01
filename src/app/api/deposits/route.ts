@@ -107,8 +107,18 @@ export async function PATCH(request: NextRequest) {
   }
 
   const updateData: { amount?: number; note?: string; date?: Date } = {};
-  if (amount !== undefined) updateData.amount = amount;
-  if (note !== undefined) updateData.note = note;
+  if (amount !== undefined) {
+    if (typeof amount !== "number" || amount <= 0) {
+      return NextResponse.json({ error: "Amount must be a positive number" }, { status: 400 });
+    }
+    updateData.amount = amount;
+  }
+  if (note !== undefined) {
+    if (typeof note === "string" && note.length > 500) {
+      return NextResponse.json({ error: "Note too long (max 500 chars)" }, { status: 400 });
+    }
+    updateData.note = note;
+  }
   if (date !== undefined) updateData.date = new Date(date);
 
   const updated = await prisma.deposit.update({
