@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { searchCatalog, type CatalogItem } from "@/lib/bazar-items";
 
 interface Member { id: string; name: string; }
 
@@ -46,6 +47,49 @@ export default function BazarEntryPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  // Autocomplete
+  const [activeAutoIdx, setActiveAutoIdx] = useState<number | null>(null);
+  const [suggestions, setSuggestions] = useState<CatalogItem[]>([]);
+  const autoRef = useRef<HTMLDivElement>(null);
+
+  const handleItemNameChange = useCallback((index: number, value: string, setter: (fn: (prev: BazarItemForm[]) => BazarItemForm[]) => void) => {
+    setter(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], itemName: value };
+      return updated;
+    });
+    if (value.trim().length >= 1) {
+      const results = searchCatalog(value, 5);
+      setSuggestions(results);
+      setActiveAutoIdx(index);
+    } else {
+      setSuggestions([]);
+      setActiveAutoIdx(null);
+    }
+  }, []);
+
+  const selectSuggestion = useCallback((index: number, item: CatalogItem, setter: (fn: (prev: BazarItemForm[]) => BazarItemForm[]) => void) => {
+    setter(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], itemName: item.name, unit: item.defaultUnit };
+      return updated;
+    });
+    setSuggestions([]);
+    setActiveAutoIdx(null);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (autoRef.current && !autoRef.current.contains(e.target as Node)) {
+        setSuggestions([]);
+        setActiveAutoIdx(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // View mode
   const now = new Date();
@@ -122,6 +166,10 @@ export default function BazarEntryPage() {
   };
 
   const updateItem = (index: number, field: keyof BazarItemForm, value: string) => {
+    if (field === "itemName") {
+      handleItemNameChange(index, value, (fn) => setItems(prev => fn(prev)));
+      return;
+    }
     const updated = [...items];
     updated[index] = { ...updated[index], [field]: value };
     setItems(updated);
@@ -417,7 +465,20 @@ export default function BazarEntryPage() {
                     <span className="text-sm font-semibold text-slate-400">Item #{i + 1}</span>
                     <button type="button" onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700 text-lg" title="Remove">✕</button>
                   </div>
-                  <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, Oil...)" required />
+                  <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
+                    <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { if (item.itemName.trim().length >= 1) { setSuggestions(searchCatalog(item.itemName, 5)); setActiveAutoIdx(i); } }} className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, পেঁয়াজ...)" required />
+                    {activeAutoIdx === i && suggestions.length > 0 && (
+                      <div className="absolute z-20 w-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                        {suggestions.map((s) => (
+                          <button key={s.key} type="button" onClick={() => selectSuggestion(i, s, (fn) => setItems(prev => fn(prev)))} className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-sm">
+                            <span className="text-slate-100">{s.name}</span>
+                            <span className="text-slate-500 text-xs">{s.bn}</span>
+                            <span className="ml-auto text-xs text-indigo-400/60">{s.category}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">Qty</label>
@@ -462,7 +523,20 @@ export default function BazarEntryPage() {
                     <tr key={i} className="border-t">
                       <td className="p-2 text-center text-slate-400">{i + 1}</td>
                       <td className="p-2">
-                        <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} className="w-full px-2 py-1.5 border rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, Oil..." required />
+                        <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
+                          <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { if (item.itemName.trim().length >= 1) { setSuggestions(searchCatalog(item.itemName, 5)); setActiveAutoIdx(i); } }} className="w-full px-2 py-1.5 border rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, পেঁয়াজ..." required />
+                          {activeAutoIdx === i && suggestions.length > 0 && (
+                            <div className="absolute z-20 w-64 mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                              {suggestions.map((s) => (
+                                <button key={s.key} type="button" onClick={() => selectSuggestion(i, s, (fn) => setItems(prev => fn(prev)))} className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-sm">
+                                  <span className="text-slate-100">{s.name}</span>
+                                  <span className="text-slate-500 text-xs">{s.bn}</span>
+                                  <span className="ml-auto text-xs text-indigo-400/60">{s.category}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="p-2">
                         <input type="number" step="0.1" value={item.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} className="w-full px-2 py-1.5 border rounded text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1" />

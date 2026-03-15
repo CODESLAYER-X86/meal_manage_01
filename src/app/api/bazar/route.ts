@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
+import { normalizeItemName } from "@/lib/bazar-items";
 
 // GET bazar trips
 export async function GET(request: NextRequest) {
@@ -42,9 +43,9 @@ export async function GET(request: NextRequest) {
   const allCompanionIds = [...new Set(trips.flatMap((t) => t.companionIds))];
   const companionUsers = allCompanionIds.length > 0
     ? await prisma.user.findMany({
-        where: { id: { in: allCompanionIds } },
-        select: { id: true, name: true },
-      })
+      where: { id: { in: allCompanionIds } },
+      select: { id: true, name: true },
+    })
     : [];
   const companionMap = Object.fromEntries(companionUsers.map((u) => [u.id, u.name]));
 
@@ -105,13 +106,18 @@ export async function POST(request: NextRequest) {
           (
             item: { itemName: string; quantity: number; unit: string; price: number },
             index: number
-          ) => ({
-            serialNo: index + 1,
-            itemName: item.itemName,
-            quantity: item.quantity,
-            unit: item.unit,
-            price: item.price || 0,
-          })
+          ) => {
+            const normalized = normalizeItemName(item.itemName);
+            return {
+              serialNo: index + 1,
+              itemName: item.itemName,
+              normalizedName: normalized?.normalizedName ?? null,
+              category: normalized?.category ?? null,
+              quantity: item.quantity,
+              unit: item.unit,
+              price: item.price || 0,
+            };
+          }
         ),
       },
     },
@@ -217,13 +223,18 @@ export async function PATCH(request: NextRequest) {
               (
                 item: { itemName: string; quantity: number; unit: string; price: number },
                 index: number
-              ) => ({
-                serialNo: index + 1,
-                itemName: item.itemName,
-                quantity: item.quantity,
-                unit: item.unit,
-                price: item.price || 0,
-              })
+              ) => {
+                const normalized = normalizeItemName(item.itemName);
+                return {
+                  serialNo: index + 1,
+                  itemName: item.itemName,
+                  normalizedName: normalized?.normalizedName ?? null,
+                  category: normalized?.category ?? null,
+                  quantity: item.quantity,
+                  unit: item.unit,
+                  price: item.price || 0,
+                };
+              }
             ),
           },
         },
