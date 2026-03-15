@@ -114,6 +114,8 @@ export default function SignupPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  name="name"
+                  autoComplete="name"
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
                   placeholder="e.g. Omar Faruk"
                   required
@@ -131,6 +133,8 @@ export default function SignupPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  autoComplete="email"
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
                   placeholder="you@example.com"
                   required
@@ -148,6 +152,8 @@ export default function SignupPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  name="phone"
+                  autoComplete="tel"
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
                   placeholder="01XXXXXXXXX"
                 />
@@ -164,6 +170,8 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  name="password"
+                  autoComplete="new-password"
                   className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm"
                   placeholder="Min 8 characters"
                   required
@@ -188,11 +196,13 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  name="confirmPassword"
+                  autoComplete="new-password"
                   className={`w-full pl-10 pr-10 py-3 bg-white/5 border rounded-xl focus:ring-2 text-white placeholder-slate-500 transition-all duration-200 backdrop-blur-sm ${confirmPassword.length > 0
-                      ? passwordsMatch
-                        ? "border-emerald-500/40 focus:ring-emerald-400/50 focus:border-emerald-400/50"
-                        : "border-red-500/40 focus:ring-red-400/50 focus:border-red-400/50"
-                      : "border-white/10 focus:ring-blue-400/50 focus:border-blue-400/50"
+                    ? passwordsMatch
+                      ? "border-emerald-500/40 focus:ring-emerald-400/50 focus:border-emerald-400/50"
+                      : "border-red-500/40 focus:ring-red-400/50 focus:border-red-400/50"
+                    : "border-white/10 focus:ring-blue-400/50 focus:border-blue-400/50"
                     }`}
                   placeholder="Re-enter password"
                   required
@@ -212,8 +222,8 @@ export default function SignupPage() {
                   <span
                     key={r.label}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-300 ${r.ok
-                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                        : "bg-white/5 text-slate-500 border border-white/5"
+                      ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                      : "bg-white/5 text-slate-500 border border-white/5"
                       }`}
                   >
                     <span className="text-[10px]">{r.ok ? "✓" : "○"}</span>
