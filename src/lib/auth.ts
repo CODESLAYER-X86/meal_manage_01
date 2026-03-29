@@ -154,7 +154,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         (session.user as { role: string }).role = token.role as string;
         (session.user as { isAdmin: boolean }).isAdmin = token.isAdmin as boolean;
-        (session.user as { isOfficer: boolean }).isOfficer = token.isOfficer as boolean;
+        (session.user as unknown as { isOfficer: boolean }).isOfficer = token.isOfficer as boolean;
         (session.user as { messId: string | null }).messId = token.messId as string | null;
       }
       return session;
