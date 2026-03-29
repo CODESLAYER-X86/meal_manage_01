@@ -124,10 +124,10 @@ export default function DashboardPage() {
         } catch { /* use default */ }
         setTomorrowMenu(tmrwPlan && tmrwPlan.id ? tmrwPlan : null);
         setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
-        if (messData?.mess?.dueThreshold) setDueThreshold(messData.mess.dueThreshold);
+        if (messData?.mess?.dueThreshold !== undefined) setDueThreshold(messData.mess.dueThreshold);
         if (billPayData?.members) setBillPayStatus(billPayData);
-        if (mealToday?.mealsPerDay) setMealStatusToday(mealToday);
-        if (mealTmrw?.mealsPerDay) setMealStatusTmrw(mealTmrw);
+        if (mealToday && mealToday.mealsPerDay !== undefined) setMealStatusToday(mealToday);
+        if (mealTmrw && mealTmrw.mealsPerDay !== undefined) setMealStatusTmrw(mealTmrw);
         setLoading(false);
       }).catch((err) => {
         console.error("Dashboard data load failed:", err);

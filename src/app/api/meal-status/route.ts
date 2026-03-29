@@ -28,7 +28,7 @@ function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: num
   const { hour, minute } = getBDTime();
   const nowTotal = hour * 60 + minute;
   for (const b of blackouts) {
-    if (!b.meals.includes(meal)) continue;
+    if (!b.meals?.includes(meal)) continue;
     const startTotal = b.startHour * 60 + (b.startMinute ?? 0);
     const endTotal = b.endHour * 60 + (b.endMinute ?? 0);
     if (nowTotal >= startTotal && nowTotal < endTotal) return true;
@@ -42,7 +42,7 @@ function hasBlackoutStarted(meal: string, blackouts: { meals: string[]; startHou
   const { hour, minute } = getBDTime();
   const nowTotal = hour * 60 + minute;
   for (const b of blackouts) {
-    if (!b.meals.includes(meal)) continue;
+    if (!b.meals?.includes(meal)) continue;
     const startTotal = b.startHour * 60 + (b.startMinute ?? 0);
     if (nowTotal >= startTotal) return true;
   }
