@@ -35,6 +35,20 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { nextManagerId, month, year } = body;
 
+  // Verify next manager is in the same mess
+  const nextUser = await prisma.user.findUnique({
+    where: { id: nextManagerId },
+    select: { messId: true, isActive: true }
+  });
+
+  if (!nextUser || nextUser.messId !== messId) {
+    return NextResponse.json({ error: "Target user is not in your mess" }, { status: 400 });
+  }
+
+  if (!nextUser.isActive) {
+    return NextResponse.json({ error: "Cannot make a deactivated user manager" }, { status: 400 });
+  }
+
   // Update current user to MEMBER
   await prisma.user.update({
     where: { id: session.user.id },

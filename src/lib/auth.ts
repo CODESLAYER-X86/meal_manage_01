@@ -70,7 +70,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email },
         });
 
-        if (!existingUser) {
+        if (existingUser) {
+          if (!existingUser.isActive) {
+            console.warn(`[SECURITY] Failed Google login: ${email} (inactive account)`);
+            return false;
+          }
+        } else {
           // Auto-provision Google user
           const randomPassword = await bcryptjs.hash(crypto.randomBytes(16).toString("hex"), 10);
           await prisma.user.create({
