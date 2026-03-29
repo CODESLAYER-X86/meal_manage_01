@@ -59,14 +59,9 @@ export default function BazarEntryPage() {
       updated[index] = { ...updated[index], itemName: value };
       return updated;
     });
-    if (value.trim().length >= 1) {
-      const results = searchCatalog(value, 5);
-      setSuggestions(results);
-      setActiveAutoIdx(index);
-    } else {
-      setSuggestions([]);
-      setActiveAutoIdx(null);
-    }
+    const results = searchCatalog(value, 8); // Show 8 items
+    setSuggestions(results);
+    setActiveAutoIdx(index);
   }, []);
 
   const selectSuggestion = useCallback((index: number, item: CatalogItem, setter: (fn: (prev: BazarItemForm[]) => BazarItemForm[]) => void) => {
@@ -466,7 +461,7 @@ export default function BazarEntryPage() {
                     <button type="button" onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700 text-lg" title="Remove">✕</button>
                   </div>
                   <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
-                    <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { if (item.itemName.trim().length >= 1) { setSuggestions(searchCatalog(item.itemName, 5)); setActiveAutoIdx(i); } }} className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, পেঁয়াজ...)" required />
+                    <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-3 py-2 border border-white/10 bg-transparent rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, পেঁয়াজ...)" required />
                     {activeAutoIdx === i && suggestions.length > 0 && (
                       <div className="absolute z-20 w-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                         {suggestions.map((s) => (
@@ -506,8 +501,8 @@ export default function BazarEntryPage() {
             </div>
 
             {/* Desktop table layout */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="hidden md:block overflow-x-auto min-h-[250px]">
+              <table className="w-full text-sm mt-2">
                 <thead className="bg-white/[0.04]">
                   <tr>
                     <th className="text-center p-3 w-12">SL</th>
@@ -524,7 +519,7 @@ export default function BazarEntryPage() {
                       <td className="p-2 text-center text-slate-400">{i + 1}</td>
                       <td className="p-2">
                         <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
-                          <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { if (item.itemName.trim().length >= 1) { setSuggestions(searchCatalog(item.itemName, 5)); setActiveAutoIdx(i); } }} className="w-full px-2 py-1.5 border rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, পেঁয়াজ..." required />
+                          <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-2 py-1.5 border border-white/10 bg-transparent rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, পেঁয়াজ..." required />
                           {activeAutoIdx === i && suggestions.length > 0 && (
                             <div className="absolute z-20 w-64 mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                               {suggestions.map((s) => (

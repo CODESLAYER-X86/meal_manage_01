@@ -154,10 +154,10 @@ export default function MealEntryPage() {
                   <select
                     value={entry.meals[field] ?? 0}
                     onChange={(e) => updateEntry(i, field, parseFloat(e.target.value))}
-                    className="w-full px-2 py-2 border rounded-lg text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-2 py-2 border border-white/10 bg-transparent rounded-lg text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   >
                     {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((v) => (
-                      <option key={v} value={v}>{v}</option>
+                      <option key={v} value={v} className="bg-slate-900 text-white">{v}</option>
                     ))}
                   </select>
                 </div>
@@ -189,10 +189,10 @@ export default function MealEntryPage() {
                     <select
                       value={entry.meals[field] ?? 0}
                       onChange={(e) => updateEntry(i, field, parseFloat(e.target.value))}
-                      className="px-3 py-1.5 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 outline-none"
+                      className="px-3 py-1.5 border border-white/10 bg-transparent text-slate-100 rounded-lg text-center focus:ring-2 focus:ring-indigo-500 outline-none"
                     >
                       {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((v) => (
-                        <option key={v} value={v}>{v}</option>
+                        <option key={v} value={v} className="bg-slate-900 text-white">{v}</option>
                       ))}
                     </select>
                   </td>

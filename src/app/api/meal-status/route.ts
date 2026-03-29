@@ -133,7 +133,11 @@ export async function GET(request: NextRequest) {
     select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true, autoMealEntry: true },
   });
   const mealsPerDay = mess?.mealsPerDay ?? 3;
-  const blackouts = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
+  let blackouts = [];
+  try {
+    const parsed = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
+    if (Array.isArray(parsed)) blackouts = parsed;
+  } catch { /* ignore */ }
   const mealsList = getMealsList(mess?.mealTypes, mealsPerDay);
 
   // Get members
@@ -346,7 +350,11 @@ export async function POST(request: NextRequest) {
     select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true },
   });
   const mealsPerDay = mess?.mealsPerDay ?? 3;
-  const blackouts = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
+  let blackouts = [];
+  try {
+    const parsed = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
+    if (Array.isArray(parsed)) blackouts = parsed;
+  } catch { /* ignore */ }
   const mealsList = getMealsList(mess?.mealTypes, mealsPerDay);
 
   if (!mealsList.includes(meal)) {

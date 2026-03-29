@@ -81,7 +81,7 @@ export const ITEM_CATALOG: CatalogItem[] = [
 
 // Search the catalog: fuzzy match on all aliases
 export function searchCatalog(query: string, limit = 5): CatalogItem[] {
-    if (!query || query.trim().length === 0) return [];
+    if (!query || query.trim().length === 0) return ITEM_CATALOG.slice(0, limit);
     const q = query.toLowerCase().trim();
 
     // Exact prefix matches first, then contains matches
