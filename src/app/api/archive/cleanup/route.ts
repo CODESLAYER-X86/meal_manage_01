@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-// POST — Auto-cleanup old data (older than 2 months)
-// Manager only, or called by Vercel Cron
+// POST — Auto-cleanup old data (configurable via platform admin settings)
+// Manager, admin, officer, or Vercel Cron
 export async function POST(request: Request) {
-  // Check for cron secret or manager auth
+  // Check for cron secret or auth
   const cronSecret = request.headers.get("authorization");
   const isCron = cronSecret === `Bearer ${process.env.CRON_SECRET}`;
 
@@ -13,15 +13,48 @@ export async function POST(request: Request) {
 
   if (!isCron) {
     const session = await auth();
-    if (!session || session.user.role !== "MANAGER" || !session.user.messId) {
+    const isAdminOrOfficer = (session?.user as any)?.isAdmin || (session?.user as any)?.isOfficer;
+    const isManager = session?.user?.role === "MANAGER" && session?.user?.messId;
+    
+    if (!session || (!isAdminOrOfficer && !isManager)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    messId = session.user.messId;
+    if (!isAdminOrOfficer) {
+      messId = session.user.messId!;
+    }
   }
 
-  // Calculate cutoff date: 2 months ago from the 1st of current month
+  // Read platform settings for cleanup configuration
+  let cleanupEnabled = true;
+  let cleanupMonths = 2;
+
+  try {
+    const settings = await prisma.adminSetting.findMany({
+      where: { key: { in: ["cleanup_enabled", "cleanup_months"] } },
+    });
+    for (const s of settings) {
+      if (s.key === "cleanup_enabled") cleanupEnabled = s.value === "true";
+      if (s.key === "cleanup_months") {
+        const m = Number(s.value);
+        if (!isNaN(m) && m >= 1 && m <= 24) cleanupMonths = m;
+      }
+    }
+  } catch {
+    // If AdminSetting table doesn't exist yet, use defaults
+  }
+
+  // If cleanup is disabled, skip entirely
+  if (!cleanupEnabled) {
+    return NextResponse.json({
+      success: true,
+      skipped: true,
+      message: "Data cleanup is disabled by Platform Admin.",
+    });
+  }
+
+  // Calculate cutoff date: N months ago from the 1st of current month
   const now = new Date();
-  const cutoffDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+  const cutoffDate = new Date(now.getFullYear(), now.getMonth() - cleanupMonths, 1);
   // End of cutoff month
   const cutoffEnd = new Date(cutoffDate.getFullYear(), cutoffDate.getMonth() + 1, 0, 23, 59, 59);
 
@@ -134,6 +167,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
+    cleanupMonths,
     cutoffDate: cutoffEnd.toISOString(),
     totalDeleted,
     details: results,

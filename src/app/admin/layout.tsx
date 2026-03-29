@@ -23,14 +23,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
+  const isOfficer = (session?.user as { isOfficer?: boolean })?.isOfficer;
+  const hasAccess = isAdmin || isOfficer;
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
-    } else if (status === "authenticated" && !isAdmin) {
+    } else if (status === "authenticated" && !hasAccess) {
       router.push("/dashboard");
     }
-  }, [status, isAdmin, router]);
+  }, [status, hasAccess, router]);
 
   if (status === "loading") {
     return (
@@ -43,7 +45,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isAdmin) return null;
+  if (!hasAccess) return null;
+
+  const roleLabel = isAdmin ? "Admin" : "Officer";
 
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
 
@@ -63,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <h1 className="text-sm font-bold text-white tracking-tight">MessMate</h1>
-              <p className="text-[10px] text-violet-400 font-medium uppercase tracking-widest">Admin Panel</p>
+              <p className="text-[10px] text-violet-400 font-medium uppercase tracking-widest">{roleLabel} Panel</p>
             </div>
           </Link>
         </div>
@@ -140,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <h2 className="text-sm font-semibold text-white capitalize">
                   {pathname === "/admin" ? "Overview" : pathname.split("/").pop()}
                 </h2>
-                <p className="text-[10px] text-gray-500">Super Admin Control Center</p>
+                <p className="text-[10px] text-gray-500">{roleLabel} Control Center</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

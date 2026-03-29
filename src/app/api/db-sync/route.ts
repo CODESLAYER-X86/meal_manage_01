@@ -5,12 +5,13 @@ import { auth } from "@/lib/auth";
 export async function GET() {
   const session = await auth();
   
-  // Secure this endpoint: Only allow existing admins or the designated platform admin
-  const allowedEmail = process.env.PLATFORM_ADMIN_EMAIL?.toLowerCase();
-  const userEmail = session?.user?.email?.toLowerCase();
+  // Secure this endpoint: Only allow admins, officers, or designated platform admin email
+  const allowedEmails = (process.env.PLATFORM_ADMIN_EMAIL || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+  const userEmail = session?.user?.email?.toLowerCase() || "";
   const isAdmin = (session?.user as any)?.isAdmin;
+  const isOfficer = (session?.user as any)?.isOfficer;
   
-  if (!session || (!isAdmin && userEmail !== allowedEmail)) {
+  if (!session || (!isAdmin && !isOfficer && !allowedEmails.includes(userEmail))) {
     return NextResponse.json({ error: "Unauthorized. Setup PLATFORM_ADMIN_EMAIL or login as admin." }, { status: 403 });
   }
 
@@ -64,6 +65,7 @@ export async function GET() {
     const existingUserCols = new Set(userColumns.map(c => c.col));
     const userAlters: Record<string, string> = {
       isAdmin: `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isAdmin" BOOLEAN NOT NULL DEFAULT false`,
+      isOfficer: `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isOfficer" BOOLEAN NOT NULL DEFAULT false`,
       isActive: `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`,
       emailVerified: `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "emailVerified" BOOLEAN NOT NULL DEFAULT false`,
       phone: `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "phone" TEXT`,

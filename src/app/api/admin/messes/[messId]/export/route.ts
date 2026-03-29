@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ messId: string }> }) {
   const session = await auth();
-  if (!session?.user || !(session.user as any).isAdmin) {
+  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

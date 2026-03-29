@@ -5,6 +5,14 @@ import bcryptjs from "bcryptjs";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
 
+// Helper: check if an email is in the PLATFORM_ADMIN_EMAIL list (comma-separated)
+export function isAllowedAdminEmail(email: string): boolean {
+  const envVal = process.env.PLATFORM_ADMIN_EMAIL;
+  if (!envVal) return false;
+  const allowed = envVal.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+  return allowed.includes(email.toLowerCase().trim());
+}
+
 // Custom error so NextAuth v5 surfaces it to the client as error.code
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email_not_verified";
@@ -55,6 +63,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           role: user.role,
           isAdmin: user.isAdmin,
+          isOfficer: user.isOfficer,
           messId: user.messId,
         };
       },
@@ -85,6 +94,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               password: randomPassword,
               role: "MEMBER",
               isAdmin: false,
+              isOfficer: false,
               isActive: true,
               emailVerified: true, // Auto verify since it came from Google
             },
@@ -105,6 +115,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = dbUser.id;
         token.role = (dbUser as { role: string }).role;
         token.isAdmin = (dbUser as { isAdmin: boolean }).isAdmin;
+        token.isOfficer = (dbUser as { isOfficer?: boolean }).isOfficer ?? false;
         token.messId = (dbUser as { messId: string | null }).messId;
         token.lastRefresh = Date.now();
       }
@@ -122,11 +133,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { role: true, isAdmin: true, messId: true },
+            select: { role: true, isAdmin: true, isOfficer: true, messId: true, email: true },
           });
           if (dbUser) {
             token.role = dbUser.role;
-            token.isAdmin = dbUser.isAdmin;
+            // Enforce: isAdmin can only be true if email is in PLATFORM_ADMIN_EMAIL
+            token.isAdmin = dbUser.isAdmin && isAllowedAdminEmail(dbUser.email);
+            token.isOfficer = dbUser.isOfficer;
             token.messId = dbUser.messId;
           }
           token.lastRefresh = now;
@@ -141,6 +154,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         (session.user as { role: string }).role = token.role as string;
         (session.user as { isAdmin: boolean }).isAdmin = token.isAdmin as boolean;
+        (session.user as { isOfficer: boolean }).isOfficer = token.isOfficer as boolean;
         (session.user as { messId: string | null }).messId = token.messId as string | null;
       }
       return session;

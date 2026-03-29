@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 // GET /api/admin/analytics — aggregated cross-mess analytics for charts
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) {
+  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

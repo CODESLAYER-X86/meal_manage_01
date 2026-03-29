@@ -36,6 +36,10 @@ export default function ArchivePage() {
   const [viewTab, setViewTab] = useState<ViewTab>("transparency");
   const [auditFilter, setAuditFilter] = useState("all");
 
+  // Cleanup policy from platform settings
+  const [cleanupEnabled, setCleanupEnabled] = useState(true);
+  const [cleanupMonthsSetting, setCleanupMonthsSetting] = useState(2);
+
   const isManager = session?.user?.role === "MANAGER";
 
   useEffect(() => {
@@ -48,6 +52,19 @@ export default function ArchivePage() {
     prev.setMonth(prev.getMonth() - 1);
     setExportMonth(prev.getMonth() + 1);
     setExportYear(prev.getFullYear());
+  }, []);
+
+  // Fetch cleanup settings
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          setCleanupEnabled(data.cleanup_enabled !== "false");
+          setCleanupMonthsSetting(Number(data.cleanup_months) || 2);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // ===== EXPORT =====
@@ -107,7 +124,7 @@ export default function ArchivePage() {
   // ===== CLEANUP =====
   const handleCleanup = async () => {
     const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - 2);
+    cutoff.setMonth(cutoff.getMonth() - cleanupMonthsSetting);
     const cutoffStr = `${MONTH_NAMES[cutoff.getMonth()]} ${cutoff.getFullYear()}`;
     if (!confirm(`⚠️ This will PERMANENTLY DELETE all data from ${cutoffStr} and older.\n\nMake sure you have exported those months first!\n\nContinue?`)) return;
     setCleaningUp(true);
@@ -203,10 +220,16 @@ export default function ArchivePage() {
         <p className="text-sm text-slate-400 mt-1">
           Export monthly data, import old archives for investigation, and manage auto-cleanup.
         </p>
-        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-          <strong>ℹ️ Auto-cleanup:</strong> Data older than 2 months is automatically deleted on the 1st of each month at 3 AM.
-          Always export before cleanup!
-        </div>
+        {cleanupEnabled ? (
+          <div className="mt-3 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-sm text-indigo-300">
+            <strong>ℹ️ Auto-cleanup:</strong> Data older than {cleanupMonthsSetting} month{cleanupMonthsSetting !== 1 ? "s" : ""} is automatically deleted on the 1st of each month.
+            Always export before cleanup!
+          </div>
+        ) : (
+          <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-300">
+            <strong>✅ Auto-cleanup disabled:</strong> Your data is being preserved. No automatic deletion is scheduled.
+          </div>
+        )}
       </div>
 
       {/* Export Section */}
@@ -282,8 +305,8 @@ export default function ArchivePage() {
       {isManager && (
         <div className="bg-red-50 rounded-xl shadow-md shadow-black/10 border border-red-200 p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-red-900 mb-3">🗑️ Manual Cleanup (Manager)</h2>
-          <p className="text-sm text-red-700 mb-4">
-            Delete all data older than 2 months. This runs automatically on the 1st of each month,
+          <p className="text-sm text-red-400 mb-4">
+            Delete all data older than {cleanupMonthsSetting} month{cleanupMonthsSetting !== 1 ? "s" : ""}. This runs automatically on the 1st of each month,
             but you can trigger it manually here.
           </p>
           <button

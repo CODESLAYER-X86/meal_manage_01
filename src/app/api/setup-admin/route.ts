@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { auth, isAllowedAdminEmail } from "@/lib/auth";
 
-// SECURITY: Only the PLATFORM_ADMIN_EMAIL can use this endpoint.
-// Set PLATFORM_ADMIN_EMAIL in your Vercel env vars to your Google email.
-// If no admin exists yet, the first logged-in user can claim it (one-time bootstrap).
+// SECURITY: Only emails listed in PLATFORM_ADMIN_EMAIL (comma-separated) can use this endpoint.
+// Set PLATFORM_ADMIN_EMAIL in your Vercel env vars to your Google email(s).
+// Example: PLATFORM_ADMIN_EMAIL=admin1@gmail.com,admin2@gmail.com
 
 export async function GET() {
   try {
@@ -19,34 +19,32 @@ export async function GET() {
 
     const allowedEmail = process.env.PLATFORM_ADMIN_EMAIL;
 
-    // Check if any admin already exists
-    const existingAdmin = await prisma.user.findFirst({
-      where: { isAdmin: true },
-      select: { email: true },
-    });
-
-    // If an admin already exists, only the allowed email can use this endpoint
-    if (existingAdmin) {
-      if (!allowedEmail) {
-        return NextResponse.json(
-          { error: "Admin already exists. Set PLATFORM_ADMIN_EMAIL env var to allow re-promotion." },
-          { status: 403 }
-        );
-      }
-      if (session.user.email.toLowerCase() !== allowedEmail.toLowerCase()) {
-        return NextResponse.json(
-          { error: "Access denied. You are not authorized to become admin." },
-          { status: 403 }
-        );
-      }
-    }
-
-    // If PLATFORM_ADMIN_EMAIL is set, enforce it even for first-time setup
-    if (allowedEmail && session.user.email.toLowerCase() !== allowedEmail.toLowerCase()) {
+    if (!allowedEmail) {
       return NextResponse.json(
-        { error: "Access denied. Your email is not authorized." },
+        { error: "PLATFORM_ADMIN_EMAIL environment variable is not set. Contact the system owner." },
         { status: 403 }
       );
+    }
+
+    if (!isAllowedAdminEmail(session.user.email)) {
+      return NextResponse.json(
+        { error: "Access denied. Your email is not authorized to become admin." },
+        { status: 403 }
+      );
+    }
+
+    // Check if user is already admin
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isAdmin: true },
+    });
+
+    if (user?.isAdmin) {
+      return NextResponse.json({
+        success: true,
+        message: `${session.user.email} is already a Platform Admin.`,
+        next: "Go to /admin to access the admin panel.",
+      });
     }
 
     // Promote the current user to admin

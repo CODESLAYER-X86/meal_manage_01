@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ messId: string }> }
 ) {
   const session = await auth();
-  if (!session?.user || !(session.user as { isAdmin?: boolean }).isAdmin) {
+  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

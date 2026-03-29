@@ -87,6 +87,7 @@ model User {
   password    String
   role        Role     @default(MEMBER)
   isAdmin     Boolean  @default(false)
+  isOfficer   Boolean  @default(false)
   isActive    Boolean  @default(true)
   emailVerified Boolean @default(false)
   messId      String?
