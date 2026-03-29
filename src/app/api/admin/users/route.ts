@@ -72,10 +72,19 @@ export async function PATCH(request: NextRequest) {
   if (!id || !action) return NextResponse.json({ error: "id and action required" }, { status: 400 });
 
   // Fetch target user to check their status
-  const target = await prisma.user.findUnique({
-    where: { id },
-    select: { isAdmin: true, isOfficer: true, email: true },
-  });
+  let target: { isAdmin: boolean; isOfficer: boolean; email: string } | null;
+  try {
+    target = await prisma.user.findUnique({
+      where: { id },
+      select: { isAdmin: true, isOfficer: true, email: true },
+    });
+  } catch {
+    const t = await prisma.user.findUnique({
+      where: { id },
+      select: { isAdmin: true, email: true },
+    });
+    target = t ? { ...t, isOfficer: false } : null;
+  }
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   // RULE: Admins are UNTOUCHABLE — no one can deactivate/kick/delete them
@@ -155,10 +164,19 @@ export async function DELETE(request: NextRequest) {
   }
 
   // Fetch target
-  const target = await prisma.user.findUnique({
-    where: { id },
-    select: { isAdmin: true, isOfficer: true },
-  });
+  let target: { isAdmin: boolean; isOfficer: boolean } | null;
+  try {
+    target = await prisma.user.findUnique({
+      where: { id },
+      select: { isAdmin: true, isOfficer: true },
+    });
+  } catch {
+    const t = await prisma.user.findUnique({
+      where: { id },
+      select: { isAdmin: true },
+    });
+    target = t ? { ...t, isOfficer: false } : null;
+  }
   if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   // Admins cannot be deleted
