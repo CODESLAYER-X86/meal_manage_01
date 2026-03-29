@@ -219,8 +219,39 @@ export async function GET() {
       }
     }
 
+    // --- Enforce PLATFORM_ADMIN_EMAIL: strip isAdmin from unauthorized users ---
+    if (allowedEmails.length > 0) {
+      try {
+        // Find users who have isAdmin=true but email NOT in env var
+        const revokedAdmins = await prisma.user.updateMany({
+          where: {
+            isAdmin: true,
+            email: { notIn: allowedEmails },
+          },
+          data: { isAdmin: false },
+        });
+        if (revokedAdmins.count > 0) {
+          results.push(`⚠️ Revoked admin from ${revokedAdmins.count} user(s) not in PLATFORM_ADMIN_EMAIL`);
+        }
+
+        // Promote users in env var who aren't admin yet
+        const promoted = await prisma.user.updateMany({
+          where: {
+            email: { in: allowedEmails },
+            isAdmin: false,
+          },
+          data: { isAdmin: true },
+        });
+        if (promoted.count > 0) {
+          results.push(`✅ Promoted ${promoted.count} user(s) from PLATFORM_ADMIN_EMAIL to admin`);
+        }
+      } catch (e: unknown) {
+        results.push(`❌ Admin sync: ${(e as Error).message}`);
+      }
+    }
+
     // Summary
-    const fixes = results.filter(r => r.startsWith("✅")).length;
+    const fixes = results.filter(r => r.startsWith("✅") || r.startsWith("⚠️")).length;
     const errors = results.filter(r => r.startsWith("❌")).length;
     results.push(`\n--- SUMMARY: ${fixes} fixes applied, ${errors} errors ---`);
 

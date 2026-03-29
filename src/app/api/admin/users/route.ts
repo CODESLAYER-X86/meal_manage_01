@@ -22,22 +22,41 @@ export async function GET(request: NextRequest) {
     ? { OR: [{ name: { contains: search, mode: "insensitive" as const } }, { email: { contains: search, mode: "insensitive" as const } }] }
     : {};
 
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      select: {
-        id: true, name: true, email: true, phone: true, role: true,
-        isAdmin: true, isOfficer: true, isActive: true, messId: true, createdAt: true,
-        mess: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.user.count({ where }),
-  ]);
-
-  return NextResponse.json({ users, total, page, pages: Math.ceil(total / limit) });
+  try {
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true, name: true, email: true, phone: true, role: true,
+          isAdmin: true, isOfficer: true, isActive: true, messId: true, createdAt: true,
+          mess: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
+    return NextResponse.json({ users, total, page, pages: Math.ceil(total / limit) });
+  } catch {
+    // Fallback: isOfficer column may not exist yet (run /api/db-sync)
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true, name: true, email: true, phone: true, role: true,
+          isAdmin: true, isActive: true, messId: true, createdAt: true,
+          mess: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
+    const usersWithOfficer = users.map((u: any) => ({ ...u, isOfficer: false }));
+    return NextResponse.json({ users: usersWithOfficer, total, page, pages: Math.ceil(total / limit) });
+  }
 }
 
 export async function PATCH(request: NextRequest) {
