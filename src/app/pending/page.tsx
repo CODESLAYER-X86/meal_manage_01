@@ -11,31 +11,31 @@ export default function PendingPage() {
   const [messName, setMessName] = useState("");
   const [status, setStatus] = useState<"loading" | "pending" | "approved" | "rejected" | "none">("loading");
 
-  const checkStatus = async () => {
-    try {
-      const res = await fetch("/api/join-requests?own=true");
-      const data = await res.json();
-
-      if (data.pendingRequest) {
-        setMessName(data.pendingRequest.mess.name);
-        setStatus("pending");
-      } else {
-        const messRes = await fetch("/api/mess");
-        const messData = await messRes.json();
-        if (messData.mess) {
-          setStatus("approved");
-        } else {
-          setStatus("none");
-        }
-      }
-    } catch {
-      setStatus("none");
-    }
-  };
-
   useEffect(() => {
-    checkStatus();
-    const interval = setInterval(checkStatus, 5000);
+    const doCheck = async () => {
+      try {
+        const res = await fetch("/api/join-requests?own=true");
+        const data = await res.json();
+
+        if (data.pendingRequest) {
+          setMessName(data.pendingRequest.mess.name);
+          setStatus("pending");
+        } else {
+          const messRes = await fetch("/api/mess");
+          const messData = await messRes.json();
+          if (messData.mess) {
+            setStatus("approved");
+          } else {
+            setStatus("none");
+          }
+        }
+      } catch {
+        setStatus("none");
+      }
+    };
+
+    doCheck();
+    const interval = setInterval(doCheck, 5000);
     return () => clearInterval(interval);
   }, []);
 
