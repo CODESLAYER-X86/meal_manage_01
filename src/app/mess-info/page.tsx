@@ -353,7 +353,7 @@ export default function MessInfoPage() {
             </div>
             {nameMsg && (
               <p className={`mt-1 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
-                {nameMsg.includes("updated") ? "<Check className="w-4 h-4 inline-block text-green-500" />" : "<AlertTriangle className="w-4 h-4 inline-block" />"} {nameMsg}
+                {nameMsg.includes("updated") ? <Check className="w-4 h-4 inline-block text-green-500" /> : <AlertTriangle className="w-4 h-4 inline-block text-red-500" />} {nameMsg}
               </p>
             )}
           </div>
@@ -373,7 +373,7 @@ export default function MessInfoPage() {
         )}
         {nameMsg && !editingName && (
           <p className={`mb-2 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
-            {nameMsg.includes("updated") ? "<Check className="w-4 h-4 inline-block text-green-500" />" : "<AlertTriangle className="w-4 h-4 inline-block" />"} {nameMsg}
+            {nameMsg.includes("updated") ? <Check className="w-4 h-4 inline-block text-green-500" /> : <AlertTriangle className="w-4 h-4 inline-block" />} {nameMsg}
           </p>
         )}
         <p className="text-slate-400 text-sm">Created by {mess.createdBy} · {mess.memberCount} members</p>
@@ -389,7 +389,7 @@ export default function MessInfoPage() {
               onClick={copyCode}
               className="px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-sm font-medium hover:bg-white/[0.04] transition-colors w-full sm:w-auto text-center"
             >
-              {copied ? "<Check className="w-4 h-4 inline-block" /> Copied!" : "<Clipboard className="w-4 h-4 inline-block" /> Copy"}
+              {copied ? <><Check className="w-4 h-4 inline-block" /> Copied!</> : <><Clipboard className="w-4 h-4 inline-block" /> Copy</>}
             </button>
           </div>
           <p className="text-xs text-slate-400 mt-2">Members who use this code will need your approval to join</p>
@@ -425,7 +425,7 @@ export default function MessInfoPage() {
                     disabled={actionLoading === req.id}
                     className="px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex-1 sm:flex-none"
                   >
-                    {actionLoading === req.id ? "..." : "<Check className="w-4 h-4 inline-block" /> Approve"}
+                    {actionLoading === req.id ? "..." : <><Check className="w-4 h-4 inline-block" /> Approve</>}
                   </button>
                   <button
                     onClick={() => handleRequest(req.id, "reject")}
@@ -741,7 +741,7 @@ export default function MessInfoPage() {
           </button>
           {mealConfigMsg && (
             <p className={`mt-2 text-sm ${mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "text-red-600" : "text-green-600"}`}>
-              {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "<AlertTriangle className="w-4 h-4 inline-block" />" : "<Check className="w-4 h-4 inline-block text-green-500" />"} {mealConfigMsg}
+              {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? <AlertTriangle className="w-4 h-4 inline-block" /> : <Check className="w-4 h-4 inline-block text-green-500" />} {mealConfigMsg}
             </p>
           )}
           <p className="mt-3 text-xs text-slate-400">
@@ -981,7 +981,7 @@ export default function MessInfoPage() {
                   disabled={deleting || deleteText !== mess.name}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {deleting ? "Deleting..." : "<Skull className="w-4 h-4 inline-block" /> Permanently Delete"}
+                  {deleting ? "Deleting..." : <><Skull className="w-4 h-4 inline-block" /> Permanently Delete</>}
                 </button>
                 <button
                   onClick={() => { setDeleteConfirm(false); setDeleteText(""); }}
