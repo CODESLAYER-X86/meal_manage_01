@@ -26,7 +26,6 @@ export default function WashroomDutyPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [duties, setDuties] = useState<Duty[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [swapRequests, setSwapRequests] = useState<SwapReq[]>([]);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -50,7 +49,6 @@ export default function WashroomDutyPage() {
       const dutyData = await dutyRes.json();
       const swapData = await swapRes.json();
       setDuties(dutyData.duties || []);
-      setMembers(dutyData.members || []);
       setSwapRequests((swapData.requests || []).filter((r: SwapReq) => r.dutyType === "WASHROOM"));
     } catch { /* ignore */ }
     setLoading(false);

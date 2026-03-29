@@ -308,7 +308,7 @@ export default function MealVotePage() {
 
                 {/* Poll options box */}
                 <div className="mx-4 mb-4 sm:mx-5 sm:mb-5 rounded-xl border border-white/10 overflow-hidden divide-y divide-gray-100">
-                  {topic.options.map((opt, idx) => {
+                  {topic.options.map((opt) => {
                     const count = voteCounts[opt] || 0;
                     const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                     const isMyChoice = myVote?.option === opt;

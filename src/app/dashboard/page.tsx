@@ -269,7 +269,7 @@ export default function DashboardPage() {
         tmrw.setDate(tmrw.getDate() + 1);
         const tmrwStr = `${tmrw.getFullYear()}-${String(tmrw.getMonth() + 1).padStart(2, "0")}-${String(tmrw.getDate()).padStart(2, "0")}`;
 
-        const toggleMeal = async (dateStr: string, meal: string, currentlyOff: boolean) => {
+        const toggleMeal = async (dateStr: string, meal: string) => {
           const key = `${dateStr}-${meal}`;
           setMealToggling(key);
           try {
@@ -383,7 +383,7 @@ export default function DashboardPage() {
                         )
                       ) : (
                         <button
-                          onClick={() => toggleMeal(dateStr, meal, isOff)}
+                          onClick={() => toggleMeal(dateStr, meal)}
                           disabled={isToggling}
                           className={`relative w-11 h-6 rounded-full transition-colors ${isOff ? "bg-white/[0.12]" : "bg-green-500"
                             } ${isToggling ? "opacity-50" : ""}`}

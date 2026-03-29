@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -23,7 +23,7 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 export default function NotificationsPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -33,7 +33,7 @@ export default function NotificationsPage() {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/notifications?limit=50");
@@ -45,11 +45,11 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated") fetchData();
-  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [status, fetchData]);
 
   const markRead = async (id: string) => {
     await fetch("/api/notifications", {

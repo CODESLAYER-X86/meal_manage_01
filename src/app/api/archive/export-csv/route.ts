@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   const startDate = new Date(year, month - 1, 1);
   const endDate = new Date(year, month, 0, 23, 59, 59);
 
-  const [mess, members, mealEntries, deposits, bazarTrips, washroomCleanings, billSettings, billPayments] =
+  const [mess, members, mealEntries, deposits, bazarTrips, washroomCleanings, , billPayments] =
     await Promise.all([
       prisma.mess.findUnique({ where: { id: messId }, select: { name: true } }),
       prisma.user.findMany({

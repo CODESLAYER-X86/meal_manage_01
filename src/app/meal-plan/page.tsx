@@ -37,10 +37,6 @@ export default function MealPlanPage() {
   const [editCancelled, setEditCancelled] = useState<string[]>([]);
   const [editWastage, setEditWastage] = useState<Record<string, string>>({});
 
-
-  // Approve/reject loading
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-
   // Meal status state
   const [mealStatusData, setMealStatusData] = useState<{
     mealsPerDay: number;
@@ -201,9 +197,6 @@ export default function MealPlanPage() {
       if (data?.mealsPerDay) setMealStatusData(data);
     } catch { /* ignore */ }
   }, [statusDate]);
-
-  // Meal-off request submission
-  const today = new Date().toISOString().split("T")[0];
 
   if (status === "loading" || loading) {
     return (
@@ -438,12 +431,6 @@ export default function MealPlanPage() {
           dateObj.setHours(0, 0, 0, 0);
           const isToday = dateObj.getTime() === todayDate.getTime();
           const isPast = dateObj < todayDate;
-          const hasPlan = plan && (() => {
-            try {
-              const m = JSON.parse(plan.meals || "{}");
-              return Object.values(m).some((v) => !!v);
-            } catch { return plan.breakfast || plan.lunch || plan.dinner; }
-          })();
           const isEditing = editingDay === day;
 
           return (
@@ -504,7 +491,7 @@ export default function MealPlanPage() {
                             }}
                             className="rounded border-white/10 text-red-500 focus:ring-red-500"
                           />
-                          <span className="text-xs text-red-400 font-medium">Cancel Meal (Wipe billing)</span>
+                          <span className="text-xs text-red-400 font-medium">Cancel Meal (zeroes entries — reversible)</span>
                         </label>
                         {isPast && (
                           <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">

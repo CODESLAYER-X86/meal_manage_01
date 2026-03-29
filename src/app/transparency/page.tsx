@@ -43,7 +43,7 @@ interface WashroomDuty {
 
 
 export default function TransparencyPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [meals, setMeals] = useState<MealEntry[]>([]);

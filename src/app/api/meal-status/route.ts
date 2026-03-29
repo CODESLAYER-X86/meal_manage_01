@@ -426,10 +426,6 @@ export async function POST(request: NextRequest) {
 
   // Audit log if manager changed someone else's status
   if (isManager && !isSelf) {
-    const targetMember = await prisma.user.findUnique({
-      where: { id: targetMemberId },
-      select: { name: true },
-    });
     await prisma.auditLog.create({
       data: {
         editedById: session.user.id,

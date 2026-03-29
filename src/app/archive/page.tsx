@@ -419,7 +419,7 @@ function ArchiveViewer({
 // ===== Sub-views for each data type =====
 
 function TransparencyView({ archive }: { archive: any }) {
-  const { billing, data, members: archiveMembers } = archive;
+  const { data, members: archiveMembers } = archive;
   const mealEntries = data?.mealEntries || [];
   const deposits = data?.deposits || [];
   const bazarTrips = data?.bazarTrips || [];

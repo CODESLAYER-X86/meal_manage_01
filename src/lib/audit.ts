@@ -8,7 +8,7 @@ interface AuditLogParams {
   fieldName: string;
   oldValue: string | null;
   newValue: string | null;
-  action: "CREATE" | "UPDATE" | "DELETE";
+  action: "CREATE" | "UPDATE" | "DELETE" | "CANCEL" | "RESTORE";
 }
 
 export async function createAuditLog(params: AuditLogParams) {

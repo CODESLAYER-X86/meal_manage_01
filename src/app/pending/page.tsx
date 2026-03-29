@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function PendingPage() {
-  const { data: session } = useSession();
+  useSession();
   const router = useRouter();
   const [messName, setMessName] = useState("");
   const [status, setStatus] = useState<"loading" | "pending" | "approved" | "rejected" | "none">("loading");
@@ -38,7 +38,6 @@ export default function PendingPage() {
     // Poll every 5 seconds to check if approved
     const interval = setInterval(checkStatus, 5000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

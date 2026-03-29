@@ -150,7 +150,7 @@ self.addEventListener("fetch", (event) => {
 
             // Return cached immediately, update in background
             if (cached && isFresh(cached, rule.maxAge)) {
-              fetchPromise; // fire-and-forget update
+              void fetchPromise; // fire-and-forget update
               return cached;
             }
             // No fresh cache: wait for network, fall back to stale cache
