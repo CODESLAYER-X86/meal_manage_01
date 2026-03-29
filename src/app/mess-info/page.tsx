@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Home, Pencil, Mailbox, Check, Clipboard, Hourglass, Smartphone, X, Users, Crown, Ban, Utensils, AlarmClock, Trash2, Droplets, Coins, Bot, Settings, AlertTriangle, Skull } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -273,7 +274,7 @@ export default function MessInfoPage() {
         {editingName ? (
           <div className="mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-xl">🏠</span>
+              <span className="text-xl"><Home className="w-5 h-5 inline-block" /></span>
               <input
                 type="text"
                 value={nameInput}
@@ -352,34 +353,34 @@ export default function MessInfoPage() {
             </div>
             {nameMsg && (
               <p className={`mt-1 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
-                {nameMsg.includes("updated") ? "✅" : "⚠️"} {nameMsg}
+                {nameMsg.includes("updated") ? "<Check className="w-4 h-4 inline-block text-green-500" />" : "<AlertTriangle className="w-4 h-4 inline-block" />"} {nameMsg}
               </p>
             )}
           </div>
         ) : (
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-white">🏠 {mess.name}</h1>
+            <h1 className="text-2xl font-bold text-white"><Home className="w-5 h-5 inline-block" /> {mess.name}</h1>
             {isManager && (
               <button
                 onClick={() => { setNameInput(mess.name); setEditingName(true); }}
                 className="px-2 py-1 text-slate-400 hover:text-indigo-400 hover:bg-white/[0.06] rounded-lg transition-colors text-sm"
                 title="Edit mess name"
               >
-                ✏️
+                <Pencil className="w-4 h-4 inline-block" />
               </button>
             )}
           </div>
         )}
         {nameMsg && !editingName && (
           <p className={`mb-2 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
-            {nameMsg.includes("updated") ? "✅" : "⚠️"} {nameMsg}
+            {nameMsg.includes("updated") ? "<Check className="w-4 h-4 inline-block text-green-500" />" : "<AlertTriangle className="w-4 h-4 inline-block" />"} {nameMsg}
           </p>
         )}
         <p className="text-slate-400 text-sm">Created by {mess.createdBy} · {mess.memberCount} members</p>
 
         {/* Invite Code */}
         <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
-          <p className="text-sm text-slate-400 mb-2 font-medium">📨 Invite Code — Share with new members</p>
+          <p className="text-sm text-slate-400 mb-2 font-medium"><Mailbox className="w-4 h-4 inline-block -mt-1" /> Invite Code — Share with new members</p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <p className="text-xl sm:text-2xl font-mono font-bold text-indigo-600 tracking-widest break-all flex-1">
               {mess.inviteCode}
@@ -388,7 +389,7 @@ export default function MessInfoPage() {
               onClick={copyCode}
               className="px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-sm font-medium hover:bg-white/[0.04] transition-colors w-full sm:w-auto text-center"
             >
-              {copied ? "✅ Copied!" : "📋 Copy"}
+              {copied ? "<Check className="w-4 h-4 inline-block" /> Copied!" : "<Clipboard className="w-4 h-4 inline-block" /> Copy"}
             </button>
           </div>
           <p className="text-xs text-slate-400 mt-2">Members who use this code will need your approval to join</p>
@@ -399,7 +400,7 @@ export default function MessInfoPage() {
       {isManager && pendingRequests.length > 0 && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border-2 border-yellow-300 p-6">
           <h2 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-            ⏳ Pending Join Requests
+            <Hourglass className="w-5 h-5 inline-block" /> Pending Join Requests
             <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
               {pendingRequests.length}
             </span>
@@ -415,7 +416,7 @@ export default function MessInfoPage() {
                   <p className="font-medium text-white">{req.user.name}</p>
                   <p className="text-sm text-slate-400 truncate">{req.user.email}</p>
                   {req.user.phone && (
-                    <p className="text-xs text-slate-400">📱 {req.user.phone}</p>
+                    <p className="text-xs text-slate-400"><Smartphone className="w-3 h-3 inline-block" /> {req.user.phone}</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -424,14 +425,14 @@ export default function MessInfoPage() {
                     disabled={actionLoading === req.id}
                     className="px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex-1 sm:flex-none"
                   >
-                    {actionLoading === req.id ? "..." : "✅ Approve"}
+                    {actionLoading === req.id ? "..." : "<Check className="w-4 h-4 inline-block" /> Approve"}
                   </button>
                   <button
                     onClick={() => handleRequest(req.id, "reject")}
                     disabled={actionLoading === req.id}
                     className="px-3 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex-1 sm:flex-none"
                   >
-                    ❌ Reject
+                    <X className="w-4 h-4 inline-block" /> Reject
                   </button>
                 </div>
               </div>
@@ -442,7 +443,7 @@ export default function MessInfoPage() {
 
       {/* Members List */}
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">👥 Members</h2>
+        <h2 className="text-lg font-semibold text-white mb-4"><Users className="w-5 h-5 inline-block" /> Members</h2>
         <div className="space-y-3">
           {mess.members.map((member) => (
             <div
@@ -454,7 +455,7 @@ export default function MessInfoPage() {
                   {member.name}
                   {member.role === "MANAGER" && (
                     <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
-                      👑 Manager
+                      <Crown className="w-3 h-3 inline-block -mt-0.5" /> Manager
                     </span>
                   )}
                   {member.id === session?.user?.id && (
@@ -463,12 +464,12 @@ export default function MessInfoPage() {
                 </p>
                 <p className="text-sm text-slate-400 truncate">{member.email}</p>
                 {member.phone && (
-                  <p className="text-xs text-slate-400 sm:hidden">📱 {member.phone}</p>
+                  <p className="text-xs text-slate-400 sm:hidden"><Smartphone className="w-3 h-3 inline-block" /> {member.phone}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {member.phone && (
-                  <span className="text-sm text-slate-400 hidden sm:inline">📱 {member.phone}</span>
+                  <span className="text-sm text-slate-400 hidden sm:inline"><Smartphone className="w-3 h-3 inline-block" /> {member.phone}</span>
                 )}
                 {/* Kick button - manager only, not for self, not for other managers */}
                 {isManager && member.role !== "MANAGER" && member.id !== session?.user?.id && (
@@ -495,7 +496,7 @@ export default function MessInfoPage() {
                         className="px-3 py-2 text-red-400 hover:text-red-600 hover:bg-red-50 text-xs font-medium rounded-lg transition-colors"
                         title={`Remove ${member.name} from mess`}
                       >
-                        🚫 Kick
+                        <Ban className="w-4 h-4 inline-block" /> Kick
                       </button>
                     )}
                   </>
@@ -509,7 +510,7 @@ export default function MessInfoPage() {
       {/* Meal Configuration - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">🍽️ Meal Configuration</h2>
+          <h2 className="text-lg font-semibold text-white mb-1"><Utensils className="w-5 h-5 inline-block" /> Meal Configuration</h2>
           <p className="text-sm text-slate-400 mb-4">
             Set how many meals per day and configure blackout windows (time restrictions for toggling meals).
           </p>
@@ -582,7 +583,7 @@ export default function MessInfoPage() {
               </button>
             </div>
             {mealTypesInput.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal type</p>
+              <p className="text-xs text-red-500 mt-1"><AlertTriangle className="w-4 h-4 inline-block" /> Select at least one meal type</p>
             )}
             <p className="mt-2 text-xs text-slate-400">Current: {mealTypesInput.length} meal{mealTypesInput.length !== 1 ? "s" : ""}/day — {mealTypesInput.join(", ")}</p>
           </div>
@@ -590,7 +591,7 @@ export default function MessInfoPage() {
           {/* Blackout Windows */}
           <div className="mb-5">
             <label className="text-sm text-slate-300 font-medium block mb-2">
-              ⏰ Blackout Windows (Restrictions)
+              <AlarmClock className="w-5 h-5 inline-block -mt-1" /> Blackout Windows (Restrictions)
             </label>
             <p className="text-xs text-slate-400 mb-3">
               Members cannot toggle meals ON/OFF during these times. They must send a special request instead.
@@ -616,7 +617,7 @@ export default function MessInfoPage() {
                         className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
                         title="Delete restriction"
                       >
-                        🗑️ Delete
+                        <Trash2 className="w-4 h-4 inline-block" /> Delete
                       </button>
                     </div>
 
@@ -672,10 +673,10 @@ export default function MessInfoPage() {
                       />
                     </div>
                     {(bo.startHour * 60 + (bo.startMinute ?? 0)) >= (bo.endHour * 60 + (bo.endMinute ?? 0)) && (
-                      <p className="text-xs text-red-500 mt-1">⚠️ Start time must be before end time</p>
+                      <p className="text-xs text-red-500 mt-1"><AlertTriangle className="w-4 h-4 inline-block" /> Start time must be before end time</p>
                     )}
                     {bo.meals.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">⚠️ Select at least one meal</p>
+                      <p className="text-xs text-red-500 mt-1"><AlertTriangle className="w-4 h-4 inline-block" /> Select at least one meal</p>
                     )}
                   </div>
                 );
@@ -740,7 +741,7 @@ export default function MessInfoPage() {
           </button>
           {mealConfigMsg && (
             <p className={`mt-2 text-sm ${mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "text-red-600" : "text-green-600"}`}>
-              {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "⚠️" : "✅"} {mealConfigMsg}
+              {mealConfigMsg.includes("Error") || mealConfigMsg.includes("must") ? "<AlertTriangle className="w-4 h-4 inline-block" />" : "<Check className="w-4 h-4 inline-block text-green-500" />"} {mealConfigMsg}
             </p>
           )}
           <p className="mt-3 text-xs text-slate-400">
@@ -754,7 +755,7 @@ export default function MessInfoPage() {
       {/* Washroom Settings - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">🚿 Washroom Cleaning</h2>
+          <h2 className="text-lg font-semibold text-white mb-1"><Droplets className="w-5 h-5 inline-block" /> Washroom Cleaning</h2>
           <p className="text-sm text-slate-400 mb-4">
             Configure washroom cleaning rotation. Set to 0 to disable.
           </p>
@@ -777,7 +778,7 @@ export default function MessInfoPage() {
             </button>
           </div>
           {washroomMsg && (
-            <p className="mt-2 text-sm text-green-600">✅ {washroomMsg}</p>
+            <p className="mt-2 text-sm text-green-600"><Check className="w-4 h-4 inline-block text-green-500" /> {washroomMsg}</p>
           )}
           <p className="mt-3 text-xs text-slate-400">
             {mess && mess.washroomCount > 0
@@ -790,7 +791,7 @@ export default function MessInfoPage() {
       {/* Deposit Reminder Threshold - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">💰 Deposit Reminder</h2>
+          <h2 className="text-lg font-semibold text-white mb-1"><Coins className="w-5 h-5 inline-block" /> Deposit Reminder</h2>
           <p className="text-sm text-slate-400 mb-4">
             Set the net-due threshold (৳). Members with dues above this amount will see a reminder on their dashboard. Set to 0 to disable.
           </p>
@@ -814,7 +815,7 @@ export default function MessInfoPage() {
             </button>
           </div>
           {thresholdMsg && (
-            <p className="mt-2 text-sm text-green-600">✅ {thresholdMsg}</p>
+            <p className="mt-2 text-sm text-green-600"><Check className="w-4 h-4 inline-block text-green-500" /> {thresholdMsg}</p>
           )}
           <p className="mt-3 text-xs text-slate-400">
             {mess && mess.dueThreshold > 0
@@ -827,7 +828,7 @@ export default function MessInfoPage() {
       {/* Auto Meal Entry - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">🤖 Auto Meal Entry</h2>
+          <h2 className="text-lg font-semibold text-white mb-1"><Bot className="w-5 h-5 inline-block" /> Auto Meal Entry</h2>
           <p className="text-sm text-slate-400 mb-4">
             If enabled, members&apos; Meal Statuses are automatically finalized into billing entries every day. Disable this if you want to manually verify and input meals.
           </p>
@@ -868,7 +869,7 @@ export default function MessInfoPage() {
             </button>
           </div>
           {autoMealMsg && (
-            <p className="mt-2 text-sm text-green-600">✅ {autoMealMsg}</p>
+            <p className="mt-2 text-sm text-green-600"><Check className="w-4 h-4 inline-block text-green-500" /> {autoMealMsg}</p>
           )}
         </div>
       )}
@@ -877,7 +878,7 @@ export default function MessInfoPage() {
       {/* Mess Features - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1">⚙️ Mess Features</h2>
+          <h2 className="text-lg font-semibold text-white mb-1"><Settings className="w-5 h-5 inline-block" /> Mess Features</h2>
           <p className="text-sm text-slate-400 mb-4">Configure bazar rotation and utilities for your mess.</p>
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
@@ -939,7 +940,7 @@ export default function MessInfoPage() {
             >
               {extraSaving ? "Saving..." : "Save Features"}
             </button>
-            {extraMsg && <p className="text-sm text-green-600">✅ {extraMsg}</p>}
+            {extraMsg && <p className="text-sm text-green-600"><Check className="w-4 h-4 inline-block text-green-500" /> {extraMsg}</p>}
           </div>
         </div>
       )}
@@ -947,7 +948,7 @@ export default function MessInfoPage() {
       {/* Danger Zone - Manager Only */}
       {isManager && (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border-2 border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-700 mb-1">⚠️ Danger Zone</h2>
+          <h2 className="text-lg font-semibold text-red-700 mb-1"><AlertTriangle className="w-4 h-4 inline-block" /> Danger Zone</h2>
           <p className="text-sm text-slate-400 mb-4">Permanently delete this mess and all its data. This cannot be undone.</p>
 
           {!deleteConfirm ? (
@@ -955,7 +956,7 @@ export default function MessInfoPage() {
               onClick={() => setDeleteConfirm(true)}
               className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors"
             >
-              🗑️ Delete Mess
+              <Trash2 className="w-4 h-4 inline-block" /> Delete Mess
             </button>
           ) : (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
@@ -980,7 +981,7 @@ export default function MessInfoPage() {
                   disabled={deleting || deleteText !== mess.name}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {deleting ? "Deleting..." : "💀 Permanently Delete"}
+                  {deleting ? "Deleting..." : "<Skull className="w-4 h-4 inline-block" /> Permanently Delete"}
                 </button>
                 <button
                   onClick={() => { setDeleteConfirm(false); setDeleteText(""); }}

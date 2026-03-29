@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { PartyPopper, Clipboard, Home, AlertTriangle, Crown, Users, Rocket, Key, MailPlus } from "lucide-react";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState<"choose" | "create" | "join">("choose");
@@ -83,8 +84,8 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/20 p-8 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-              <span className="text-4xl">🎉</span>
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6 text-green-600">
+              <PartyPopper className="w-10 h-10" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Mess Created!</h1>
             <p className="text-slate-400 mb-6">Share this invite code with your roommates</p>
@@ -100,16 +101,16 @@ export default function OnboardingPage() {
               onClick={() => {
                 navigator.clipboard.writeText(createdCode);
               }}
-              className="w-full bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 font-medium py-2.5 rounded-lg transition-colors mb-3"
+              className="w-full flex items-center justify-center gap-2 bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 font-medium py-2.5 rounded-lg transition-colors mb-3"
             >
-              📋 Copy Code
+              <Clipboard className="w-4 h-4" /> Copy Code
             </button>
 
             <button
               onClick={goToDashboard}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
             >
-              🏠 Go to Dashboard
+              <Home className="w-4 h-4" /> Go to Dashboard
             </button>
           </div>
         </div>
@@ -123,8 +124,8 @@ export default function OnboardingPage() {
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/20 p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <span className="text-3xl">🏠</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4 text-blue-600">
+              <Home className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-white">
               {step === "choose" && "Get Started"}
@@ -140,7 +141,7 @@ export default function OnboardingPage() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-              <span>⚠️</span> {error}
+              <AlertTriangle className="w-4 h-4" /> {error}
             </div>
           )}
 
@@ -151,8 +152,8 @@ export default function OnboardingPage() {
                 onClick={() => { setStep("create"); setError(""); }}
                 className="w-full flex items-center gap-4 p-4 border-2 border-white/10 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all group"
               >
-                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                  <span className="text-2xl">👑</span>
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors text-blue-600">
+                  <Crown className="w-6 h-6" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-white">I&apos;m a Manager</p>
@@ -165,8 +166,8 @@ export default function OnboardingPage() {
                 onClick={() => { setStep("join"); setError(""); }}
                 className="w-full flex items-center gap-4 p-4 border-2 border-white/10 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all group"
               >
-                <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                  <span className="text-2xl">🤝</span>
+                <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors text-green-600">
+                  <Users className="w-6 h-6" />
                 </div>
                 <div className="text-left">
                   <p className="font-semibold text-white">Join a Mess</p>
@@ -181,8 +182,8 @@ export default function OnboardingPage() {
           {step === "create" && (
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  🏠 Mess Name
+                <label className="block text-sm font-medium text-slate-300 mb-1 flex items-center gap-2">
+                  <Home className="w-4 h-4" /> Mess Name
                 </label>
                 <input
                   type="text"
@@ -197,9 +198,9 @@ export default function OnboardingPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50"
               >
-                {loading ? "Creating..." : "🚀 Create Mess"}
+                {loading ? "Creating..." : <><Rocket className="w-4 h-4" /> Create Mess</>}
               </button>
 
               <button
@@ -216,8 +217,8 @@ export default function OnboardingPage() {
           {step === "join" && (
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  🔑 Invite Code
+                <label className="block text-sm font-medium text-slate-300 mb-1 flex items-center gap-2">
+                  <Key className="w-4 h-4" /> Invite Code
                 </label>
                 <input
                   type="text"
@@ -232,9 +233,9 @@ export default function OnboardingPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50"
               >
-                {loading ? "Sending Request..." : "📩 Request to Join"}
+                {loading ? "Sending Request..." : <><MailPlus className="w-4 h-4" /> Request to Join</>}
               </button>
 
               <button

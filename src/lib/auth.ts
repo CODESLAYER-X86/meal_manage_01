@@ -1,6 +1,8 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcryptjs from "bcryptjs";
+import crypto from "crypto";
 import prisma from "@/lib/prisma";
 
 // Custom error so NextAuth v5 surfaces it to the client as error.code
@@ -10,6 +12,10 @@ class EmailNotVerifiedError extends CredentialsSignin {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -55,14 +61,55 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        if (!user.email) return false;
+        
+        const email = user.email.toLowerCase().trim();
+        const existingUser = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!existingUser) {
+          // Auto-provision Google user
+          const randomPassword = await bcryptjs.hash(crypto.randomBytes(16).toString("hex"), 10);
+          await prisma.user.create({
+            data: {
+              name: user.name || "Google User",
+              email,
+              password: randomPassword,
+              role: "MEMBER",
+              isAdmin: false,
+              isActive: true,
+              emailVerified: true, // Auto verify since it came from Google
+            },
+          });
+        }
+        return true;
+      }
+      return true; // allow credentials or other signIn to pass through
+    },
+    async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as { role: string }).role;
-        token.isAdmin = (user as { isAdmin: boolean }).isAdmin;
-        token.messId = (user as { messId: string | null }).messId;
+        // Find user again for Google login intercept to get correct role/id
+        let dbUser = user;
+        if (!dbUser.id || !dbUser.role) {
+           const fetched = await prisma.user.findUnique({ where: { email: user.email!.toLowerCase() } });
+           if (fetched) dbUser = fetched as any;
+        }
+        token.id = dbUser.id;
+        token.role = (dbUser as { role: string }).role;
+        token.isAdmin = (dbUser as { isAdmin: boolean }).isAdmin;
+        token.messId = (dbUser as { messId: string | null }).messId;
         token.lastRefresh = Date.now();
       }
+      
+      // Handle manual session update
+      if (trigger === "update" && session !== null) {
+        token.messId = session.user?.messId ?? token.messId;
+        token.role = session.user?.role ?? token.role;
+      }
+
       // Refresh role/messId from DB every 5 minutes (not every request)
       const REFRESH_INTERVAL = 5 * 60 * 1000;
       const now = Date.now();
