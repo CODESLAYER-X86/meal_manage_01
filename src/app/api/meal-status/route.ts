@@ -220,11 +220,11 @@ export async function GET(request: NextRequest) {
   const { todayDate } = getTodayBD();
   const lockedMeals = mealsList.filter(meal => hasBlackoutStarted(meal, blackouts));
 
-  if (mess?.autoMealEntry !== false && lockedMeals.length > 0) {
+    if (mess?.autoMealEntry !== false && lockedMeals.length > 0) {
     for (const m of members) {
       // Get existing entry (if any)
-      const existing = await prisma.mealEntry.findUnique({
-        where: { date_memberId: { date: todayDate, memberId: m.id } },
+      const existing = await prisma.mealEntry.findFirst({
+        where: { date: todayDate, memberId: m.id },
       });
 
       // Parse existing meals JSON or start empty
@@ -259,11 +259,20 @@ export async function GET(request: NextRequest) {
       const lunch = existingMealsObj["lunch"] ?? 0;
       const dinner = existingMealsObj["dinner"] ?? 0;
 
-      await prisma.mealEntry.upsert({
-        where: { date_memberId: { date: todayDate, memberId: m.id } },
-        update: { breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
-        create: { date: todayDate, memberId: m.id, messId, breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
+      const existingEntry = await prisma.mealEntry.findFirst({
+        where: { date: todayDate, memberId: m.id },
       });
+
+      if (existingEntry) {
+        await prisma.mealEntry.update({
+          where: { id: existingEntry.id },
+          data: { breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
+        });
+      } else {
+        await prisma.mealEntry.create({
+          data: { date: todayDate, memberId: m.id, messId, breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
+        });
+      }
     }
   }
 
@@ -400,28 +409,24 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Upsert the status
-  const status = await prisma.mealStatus.upsert({
-    where: {
-      date_meal_memberId: {
-        date: mealDate,
-        meal,
-        memberId: targetMemberId,
-      },
-    },
-    update: {
-      isOff,
-      changedBy: isManager && !isSelf ? session.user.id : null,
-    },
-    create: {
-      date: mealDate,
-      meal,
-      memberId: targetMemberId,
-      messId,
-      isOff,
-      changedBy: isManager && !isSelf ? session.user.id : null,
-    },
+  // Upsert the status bypassing Prisma index requirement
+  const existingStatus = await prisma.mealStatus.findFirst({
+    where: { date: mealDate, meal, memberId: targetMemberId },
   });
+
+  const changedByVal = isManager && !isSelf ? session.user.id : null;
+
+  let status;
+  if (existingStatus) {
+    status = await prisma.mealStatus.update({
+      where: { id: existingStatus.id },
+      data: { isOff, changedBy: changedByVal },
+    });
+  } else {
+    status = await prisma.mealStatus.create({
+      data: { date: mealDate, meal, memberId: targetMemberId, messId, isOff, changedBy: changedByVal },
+    });
+  }
 
   // Auto-sync MealEntry from meal status
   // For today's date, respect locked meals (those whose blackout has already started)

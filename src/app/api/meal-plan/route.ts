@@ -142,30 +142,40 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Upsert the plan with updated snapshot
-  const plan = await prisma.mealPlan.upsert({
-    where: { date_messId: { date: new Date(date), messId } },
-    update: {
-      breakfast: mealsObj.breakfast || breakfast || null,
-      lunch: mealsObj.lunch || lunch || null,
-      dinner: mealsObj.dinner || dinner || null,
-      meals: JSON.stringify(mealsObj),
-      cancelledMeals: JSON.stringify(newCancelled),
-      cancelledSnapshot: JSON.stringify(snapshot),
-      ...(wastage && { wastage: JSON.stringify(wastage) }),
-    },
-    create: {
-      date: new Date(date),
-      messId,
-      breakfast: mealsObj.breakfast || breakfast || null,
-      lunch: mealsObj.lunch || lunch || null,
-      dinner: mealsObj.dinner || dinner || null,
-      meals: JSON.stringify(mealsObj),
-      cancelledMeals: JSON.stringify(newCancelled),
-      cancelledSnapshot: JSON.stringify(snapshot),
-      wastage: wastage ? JSON.stringify(wastage) : "{}",
-    },
+  const dDate = new Date(date);
+  const existingPlan = await prisma.mealPlan.findFirst({
+    where: { date: dDate, messId },
   });
+
+  let plan;
+  if (existingPlan) {
+    plan = await prisma.mealPlan.update({
+      where: { id: existingPlan.id },
+      data: {
+        breakfast: mealsObj.breakfast || breakfast || null,
+        lunch: mealsObj.lunch || lunch || null,
+        dinner: mealsObj.dinner || dinner || null,
+        meals: JSON.stringify(mealsObj),
+        cancelledMeals: JSON.stringify(newCancelled),
+        cancelledSnapshot: JSON.stringify(snapshot),
+        ...(wastage && { wastage: JSON.stringify(wastage) }),
+      },
+    });
+  } else {
+    plan = await prisma.mealPlan.create({
+      data: {
+        date: dDate,
+        messId,
+        breakfast: mealsObj.breakfast || breakfast || null,
+        lunch: mealsObj.lunch || lunch || null,
+        dinner: mealsObj.dinner || dinner || null,
+        meals: JSON.stringify(mealsObj),
+        cancelledMeals: JSON.stringify(newCancelled),
+        cancelledSnapshot: JSON.stringify(snapshot),
+        wastage: wastage ? JSON.stringify(wastage) : "{}",
+      },
+    });
+  }
 
   // --- ZERO OUT: Wipe MealEntry records for newly-cancelled meals ---
   if (newlyCancelled.length > 0) {
@@ -209,11 +219,20 @@ export async function POST(request: NextRequest) {
         select: { id: true },
       });
       for (const m of members) {
-        await prisma.mealStatus.upsert({
-          where: { date_meal_memberId: { date: new Date(date), meal: cm, memberId: m.id } },
-          update: { isOff: true, changedBy: session.user.id },
-          create: { date: new Date(date), meal: cm, memberId: m.id, messId, isOff: true, changedBy: session.user.id },
+        const dDate = new Date(date);
+        const existingMS = await prisma.mealStatus.findFirst({
+          where: { date: dDate, meal: cm, memberId: m.id },
         });
+        if (existingMS) {
+          await prisma.mealStatus.update({
+            where: { id: existingMS.id },
+            data: { isOff: true, changedBy: session.user.id },
+          });
+        } else {
+          await prisma.mealStatus.create({
+            data: { date: dDate, meal: cm, memberId: m.id, messId, isOff: true, changedBy: session.user.id },
+          });
+        }
       }
     }
   }
