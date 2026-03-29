@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Users, Utensils, Wallet, ShoppingCart, Settings, Activity,
-  Loader2, Crown, User, Phone, Mail, Calendar, AlertTriangle,
+  Loader2, Crown, User, Phone, Mail, Calendar, AlertTriangle, Download, Database
 } from "lucide-react";
 
 interface MessDetail {
@@ -81,11 +81,27 @@ export default function MessDetailPage({ params }: { params: Promise<{ messId: s
 
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600/20 via-violet-600/10 to-purple-600/20 border border-indigo-500/10 p-6 sm:p-8">
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
-        <div className="relative">
-          <h1 className="text-2xl font-bold text-white">{mess.name}</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Created by {mess.createdBy.name} · Code: <span className="font-mono text-indigo-300">{mess.inviteCode}</span>
-          </p>
+        <div className="relative flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">{mess.name}</h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Created by {mess.createdBy.name} · Code: <span className="font-mono text-indigo-300">{mess.inviteCode}</span>
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => window.open(`/api/admin/messes/${mess.id}/export?format=csv`, "_blank")}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/5 text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" /> CSV Export
+            </button>
+            <button
+              onClick={() => window.open(`/api/admin/messes/${mess.id}/export?format=messmate`, "_blank")}
+              className="px-3 py-1.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 border border-violet-500/30 text-xs font-medium rounded-xl transition-colors flex items-center gap-1.5"
+            >
+              <Database className="w-3.5 h-3.5" /> .messmate Backup
+            </button>
+          </div>
         </div>
       </div>
 
