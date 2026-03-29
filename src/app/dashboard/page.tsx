@@ -100,18 +100,18 @@ export default function DashboardPage() {
       const tmrwStr = `${tmrw.getFullYear()}-${String(tmrw.getMonth() + 1).padStart(2, "0")}-${String(tmrw.getDate()).padStart(2, "0")}`;
 
       Promise.all([
-        fetch(`/api/billing?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.json()),
-        fetch("/api/audit-log?limit=10").then((r) => r.json()),
-        fetch(`/api/meal-plan?date=${todayStr}`).then((r) => r.json()),
-        fetch(`/api/meal-plan?date=${tmrwStr}`).then((r) => r.json()),
-        fetch("/api/announcements?limit=3").then((r) => r.json()),
-        fetch("/api/mess").then((r) => r.json()).catch(() => null),
-        fetch(`/api/bill-payments?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.json()).catch(() => null),
-        fetch(`/api/meal-status?date=${todayStr}`).then((r) => r.json()).catch(() => null),
-        fetch(`/api/meal-status?date=${tmrwStr}`).then((r) => r.json()).catch(() => null),
+        fetch(`/api/billing?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch("/api/audit-log?limit=10").then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/meal-plan?date=${todayStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/meal-plan?date=${tmrwStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch("/api/announcements?limit=3").then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch("/api/mess").then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/bill-payments?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/meal-status?date=${todayStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/meal-status?date=${tmrwStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
       ]).then(([billData, logs, todayPlan, tmrwPlan, announcementsData, messData, billPayData, mealToday, mealTmrw]) => {
         setBill(billData);
-        setAuditLogs(logs);
+        setAuditLogs(Array.isArray(logs) ? logs : []);
         setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
         try {
           const mt = JSON.parse(messData?.mess?.mealTypes || '["breakfast","lunch","dinner"]');
@@ -123,6 +123,9 @@ export default function DashboardPage() {
         if (billPayData?.members) setBillPayStatus(billPayData);
         if (mealToday?.mealsPerDay) setMealStatusToday(mealToday);
         if (mealTmrw?.mealsPerDay) setMealStatusTmrw(mealTmrw);
+        setLoading(false);
+      }).catch((err) => {
+        console.error("Dashboard data load failed:", err);
         setLoading(false);
       });
     }

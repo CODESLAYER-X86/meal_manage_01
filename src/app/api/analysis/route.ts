@@ -47,57 +47,28 @@ export async function GET() {
       .sort((a, b) => b.value - a.value)
       .slice(0, 8); // Top 8 items
 
-    // 2. Monthly Trends (Last 6 Months: Total Cost vs Total Meals)
-    const sixMonthsAgo = startOfMonth(subMonths(bdNow, 5));
+    // 2. Daily Trends (Current Month: Daily Cost)
+    const bazarTrips = await prisma.bazarTrip.findMany({
+      where: { messId, date: { gte: startOfCurrentMonth } },
+      select: { date: true, totalCost: true },
+    });
 
-    const [bazarTrips, mealEntries] = await Promise.all([
-      prisma.bazarTrip.findMany({
-        where: { messId, date: { gte: sixMonthsAgo } },
-        select: { date: true, totalCost: true },
-      }),
-      prisma.mealEntry.findMany({
-        where: { messId, date: { gte: sixMonthsAgo } },
-        select: { date: true, total: true },
-      }),
-    ]);
-
-    // Grouping Trends data by "MMM yyyy"
-    const trendsMap: Record<string, { month: string; sortOrder: Date; cost: number; meals: number }> = {};
-    
-    // Initialize last 6 months placeholder
-    for (let i = 5; i >= 0; i--) {
-      const d = startOfMonth(subMonths(bdNow, i));
-      const key = format(d, "MMM yyyy");
-      trendsMap[key] = { month: key, sortOrder: d, cost: 0, meals: 0 };
-    }
+    const daysInMonth = new Date(bdNow.getFullYear(), bdNow.getMonth() + 1, 0).getDate();
+    const dailyTrends = Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      cost: 0,
+    }));
 
     bazarTrips.forEach((trip) => {
-      const key = format(trip.date, "MMM yyyy");
-      if (trendsMap[key]) {
-        trendsMap[key].cost += trip.totalCost;
+      const tripDay = new Date(trip.date).getDate() - 1; // 0-indexed for array
+      if (tripDay >= 0 && tripDay < daysInMonth) {
+        dailyTrends[tripDay].cost += trip.totalCost;
       }
     });
-
-    mealEntries.forEach((entry) => {
-      const key = format(entry.date, "MMM yyyy");
-      if (trendsMap[key]) {
-        trendsMap[key].meals += entry.total;
-      }
-    });
-
-    const monthlyTrends = Object.values(trendsMap)
-      .sort((a, b) => a.sortOrder.getTime() - b.sortOrder.getTime())
-      .map(({ month, cost, meals }) => ({
-        month,
-        cost,
-        meals,
-        // Optional: calculate meal rate for tooltip
-        rate: meals > 0 ? parseFloat((cost / meals).toFixed(2)) : 0
-      }));
 
     return NextResponse.json({
       costBreakdown,
-      monthlyTrends,
+      dailyTrends,
     });
   } catch (error) {
     console.error("Analysis API Error:", error);
