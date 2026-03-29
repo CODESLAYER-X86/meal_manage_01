@@ -61,7 +61,8 @@ function getMealsList(mealTypes: string | null | undefined, mealsPerDay: number)
 }
 
 // Helper: sync MealEntry from all meal statuses for a member on a date
-async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[]) {
+// lockedMeals: optional list of meal names that are already locked by auto-fill (don't overwrite)
+async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[], lockedMeals?: string[]) {
   // Get all meal statuses for this member on this date
   const statuses = await prisma.mealStatus.findMany({
     where: { memberId, messId, date },
@@ -70,13 +71,28 @@ async function syncMealEntry(memberId: string, messId: string, date: Date, meals
   const statusMap: Record<string, boolean> = {};
   for (const s of statuses) statusMap[s.meal] = s.isOff;
 
+  // If there are locked meals, get existing entry to preserve their values
+  let existingMealsObj: Record<string, number> = {};
+  if (lockedMeals && lockedMeals.length > 0) {
+    const existing = await prisma.mealEntry.findUnique({
+      where: { date_memberId: { date, memberId } },
+    });
+    if (existing?.meals) {
+      try { existingMealsObj = JSON.parse(existing.meals as string); } catch { /* ignore */ }
+    }
+  }
+
   // Build meals object: 1 = eating (default), 0 = off
   const mealsObj: Record<string, number> = {};
   let total = 0;
   for (const meal of mealsList) {
-    const val = statusMap[meal] ? 0 : 1; // isOff=true → 0
-    mealsObj[meal] = val;
-    total += val;
+    // If this meal is locked and already has a value in the existing entry, preserve it
+    if (lockedMeals?.includes(meal) && meal in existingMealsObj) {
+      mealsObj[meal] = existingMealsObj[meal];
+    } else {
+      mealsObj[meal] = statusMap[meal] ? 0 : 1; // isOff=true → 0
+    }
+    total += mealsObj[meal];
   }
 
   // Legacy column values
@@ -114,7 +130,7 @@ export async function GET(request: NextRequest) {
   // Get mess config
   const mess = await prisma.mess.findUnique({
     where: { id: messId },
-    select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true },
+    select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true, autoMealEntry: true },
   });
   const mealsPerDay = mess?.mealsPerDay ?? 3;
   const blackouts = mess?.mealBlackouts ? JSON.parse(mess.mealBlackouts) : [];
@@ -146,6 +162,17 @@ export async function GET(request: NextRequest) {
     select: { date: true, meal: true, memberId: true, isOff: true, changedBy: true },
   });
 
+  // Get cancelled meals
+  const mealPlans = await prisma.mealPlan.findMany({
+    where: { messId, date: { in: dates } },
+    select: { date: true, cancelledMeals: true }
+  });
+  const cancelledMap: Record<string, string[]> = {};
+  for (const mp of mealPlans) {
+    const key = mp.date.toISOString().split("T")[0];
+    try { cancelledMap[key] = JSON.parse(mp.cancelledMeals || "[]"); } catch { cancelledMap[key] = []; }
+  }
+
   // Build a lookup map: "dateStr|meal|memberId" -> status
   const statusMap: Record<string, { isOff: boolean; changedBy: string | null }> = {};
   for (const s of statuses) {
@@ -158,6 +185,7 @@ export async function GET(request: NextRequest) {
     const dateStr = d.toISOString().split("T")[0];
     return {
       date: dateStr,
+      cancelledMeals: cancelledMap[dateStr] || [],
       members: members.map((m) => ({
         id: m.id,
         name: m.name,
@@ -188,7 +216,7 @@ export async function GET(request: NextRequest) {
   const { todayDate } = getTodayBD();
   const lockedMeals = mealsList.filter(meal => hasBlackoutStarted(meal, blackouts));
 
-  if (lockedMeals.length > 0) {
+  if (mess?.autoMealEntry !== false && lockedMeals.length > 0) {
     for (const m of members) {
       // Get existing entry (if any)
       const existing = await prisma.mealEntry.findUnique({
@@ -264,6 +292,7 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json({
       date: r.date,
+      cancelledMeals: r.cancelledMeals,
       mealsPerDay,
       mealsList,
       members: members.map((m) => ({ id: m.id, name: m.name })),
@@ -328,6 +357,8 @@ export async function POST(request: NextRequest) {
   const mealDate = new Date(date + "T00:00:00.000Z");
   const { bd } = getBDTime();
   const todayBD = new Date(Date.UTC(bd.getUTCFullYear(), bd.getUTCMonth(), bd.getUTCDate()));
+  const isToday = mealDate.getTime() === todayBD.getTime();
+
   if (mealDate < todayBD && !isManager) {
     return NextResponse.json({ error: "Cannot change meal status for past dates" }, { status: 400 });
   }
@@ -340,12 +371,25 @@ export async function POST(request: NextRequest) {
     isOff = !(existing?.isOff ?? false); // default is ON (false), so toggle to OFF (true)
   }
 
-  // Blackout check: non-managers can't toggle during blackout hours (any date)
-  if (!isManager && isSelf && isInBlackout(meal, blackouts)) {
+  // Blackout check: non-managers can't toggle during blackout hours OF TODAY
+  if (!isManager && isSelf && isToday && isInBlackout(meal, blackouts)) {
     return NextResponse.json({
       error: `Cannot change ${meal} status during restricted hours. Send a special request instead.`,
       blackout: true,
     }, { status: 403 });
+  }
+
+  // Cancelled Check: Nobody can toggle ON a canceled meal
+  const plan = await prisma.mealPlan.findUnique({
+    where: { date_messId: { date: mealDate, messId } },
+    select: { cancelledMeals: true }
+  });
+  if (plan?.cancelledMeals) {
+    let cm = [];
+    try { cm = JSON.parse(plan.cancelledMeals); } catch {}
+    if (cm.includes(meal) && !isOff) {
+      return NextResponse.json({ error: "This meal has been canceled by the manager for today." }, { status: 403 });
+    }
   }
 
   // Upsert the status
@@ -372,7 +416,13 @@ export async function POST(request: NextRequest) {
   });
 
   // Auto-sync MealEntry from meal status
-  await syncMealEntry(targetMemberId, messId, mealDate, mealsList);
+  // For today's date, respect locked meals (those whose blackout has already started)
+  const { todayDate: syncTodayDate } = getTodayBD();
+  let lockedMealsForSync: string[] | undefined;
+  if (mealDate.getTime() === syncTodayDate.getTime()) {
+    lockedMealsForSync = mealsList.filter(m => m !== meal && hasBlackoutStarted(m, blackouts));
+  }
+  await syncMealEntry(targetMemberId, messId, mealDate, mealsList, lockedMealsForSync);
 
   // Audit log if manager changed someone else's status
   if (isManager && !isSelf) {
@@ -433,12 +483,25 @@ export async function PATCH(request: NextRequest) {
     }
 
     // If wantOff not specified, auto-determine: toggle from current status
+    const mealDate = new Date(date + "T00:00:00.000Z");
     if (typeof wantOff !== "boolean") {
-      const mealDate = new Date(date + "T00:00:00.000Z");
       const existing = await prisma.mealStatus.findUnique({
         where: { date_meal_memberId: { date: mealDate, meal, memberId: session.user.id } },
       });
       wantOff = !(existing?.isOff ?? false); // default ON, so request OFF
+    }
+
+    // Cancelled check
+    const plan = await prisma.mealPlan.findUnique({
+      where: { date_messId: { date: mealDate, messId } },
+      select: { cancelledMeals: true }
+    });
+    if (plan?.cancelledMeals) {
+      let cm = [];
+      try { cm = JSON.parse(plan.cancelledMeals); } catch {}
+      if (cm.includes(meal) && !wantOff) {
+        return NextResponse.json({ error: "This meal has been canceled by the manager." }, { status: 403 });
+      }
     }
 
     // Check for existing pending request

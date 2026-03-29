@@ -51,6 +51,7 @@ export async function GET() {
       hasGas: user.mess.hasGas ?? false,
       hasCook: user.mess.hasCook ?? false,
       mealsPerDay: user.mess.mealsPerDay ?? 3,
+      autoMealEntry: user.mess.autoMealEntry ?? false,
       mealTypes: user.mess.mealTypes ?? '["breakfast","lunch","dinner"]',
       mealBlackouts: user.mess.mealBlackouts ?? "[]",
       createdBy: user.mess.createdBy.name,
@@ -208,12 +209,20 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealTypes, mealBlackouts } = body;
+  const { name, washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealTypes, mealBlackouts, autoMealEntry } = body;
 
   // Get current mess for audit comparison
   const currentMess = await prisma.mess.findUnique({ where: { id: session.user.messId } });
 
   const updateData: Record<string, unknown> = {};
+
+  if (name !== undefined) {
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+    if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50) {
+      return NextResponse.json({ error: "Mess name must be between 2 and 50 characters" }, { status: 400 });
+    }
+    updateData.name = trimmedName;
+  }
 
   if (mealTypes !== undefined) {
     // mealTypes is an array of meal names e.g. ["breakfast", "lunch", "dinner"]
@@ -281,6 +290,10 @@ export async function PATCH(request: Request) {
 
   if (hasCook !== undefined) {
     updateData.hasCook = Boolean(hasCook);
+  }
+
+  if (autoMealEntry !== undefined) {
+    updateData.autoMealEntry = Boolean(autoMealEntry);
   }
 
   if (bazarDaysPerWeek !== undefined) {

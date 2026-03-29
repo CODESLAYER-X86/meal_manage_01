@@ -11,6 +11,8 @@ interface MealPlan {
   lunch: string | null;
   dinner: string | null;
   meals?: string;
+  cancelledMeals?: string;
+  wastage?: string;
 }
 
 const MONTH_NAMES = [
@@ -32,6 +34,8 @@ export default function MealPlanPage() {
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
+  const [editCancelled, setEditCancelled] = useState<string[]>([]);
+  const [editWastage, setEditWastage] = useState<Record<string, string>>({});
 
 
   // Approve/reject loading
@@ -45,6 +49,7 @@ export default function MealPlanPage() {
     statuses: Record<string, Record<string, boolean>>;
     mealCounts: Record<string, number>;
     blackoutStatus: Record<string, boolean>;
+    cancelledMeals?: string[];
     pendingRequests: { id: string; date: string; meal: string; memberId: string; wantOff: boolean; reason: string; status: string }[];
   } | null>(null);
   const [mealStatusToggling, setMealStatusToggling] = useState<string | null>(null);
@@ -126,6 +131,19 @@ export default function MealPlanPage() {
       form[mt] = mealsObj[mt] || (plan as unknown as Record<string, string | null>)?.[mt] || "";
     }
     setEditForm(form);
+
+    let cMeals: string[] = [];
+    if (plan?.cancelledMeals) {
+      try { cMeals = JSON.parse(plan.cancelledMeals); } catch {}
+    }
+    setEditCancelled(cMeals);
+
+    let wObj: Record<string, string> = {};
+    if (plan?.wastage) {
+      try { wObj = JSON.parse(plan.wastage); } catch {}
+    }
+    setEditWastage(wObj);
+
     setEditingDay(day);
   };
 
@@ -143,6 +161,8 @@ export default function MealPlanPage() {
           breakfast: editForm.breakfast?.trim() || "",
           lunch: editForm.lunch?.trim() || "",
           dinner: editForm.dinner?.trim() || "",
+          cancelledMeals: editCancelled,
+          wastage: editWastage,
         }),
       });
       if (res.ok) {
@@ -314,10 +334,15 @@ export default function MealPlanPage() {
                         const canToggle = isManager || member.id === session?.user?.id;
                         const isBlackedOut = mealStatusData.blackoutStatus?.[meal] === true;
                         const blocked = isBlackedOut && !isManager && member.id === session?.user?.id;
+                        const isCancelled = mealStatusData.cancelledMeals?.includes(meal) || false;
 
                         return (
                           <td key={meal} className="text-center py-2.5 px-2">
-                            {canToggle && !blocked ? (
+                            {isCancelled ? (
+                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-500 text-sm" title="Canceled by manager completely">
+                                🚫
+                              </span>
+                            ) : canToggle && !blocked ? (
                               <button
                                 onClick={() => handleToggle(member.id, meal)}
                                 disabled={isToggling}
@@ -455,17 +480,45 @@ export default function MealPlanPage() {
               {isEditing && isManager ? (
                 <div className="p-4 space-y-3 bg-indigo-50/30">
                   {mealTypesList.map((meal) => (
-                    <div key={meal} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                      <label className="text-sm font-medium text-slate-400 capitalize w-20 shrink-0">
-                        {DEFAULT_MEAL_ICONS[meal] || "🍽️"} {meal}
-                      </label>
-                      <input
-                        type="text"
-                        value={editForm[meal] || ""}
-                        onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
-                        placeholder={`What's for ${meal}?`}
-                        className="flex-1 px-3 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
-                      />
+                    <div key={meal} className="flex flex-col gap-2 p-2 rounded-lg bg-white/[0.04]">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <label className="text-sm font-medium text-slate-400 capitalize w-20 shrink-0">
+                          {DEFAULT_MEAL_ICONS[meal] || "🍽️"} {meal}
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm[meal] || ""}
+                          onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
+                          placeholder={`What's for ${meal}?`}
+                          className="flex-1 px-3 py-2.5 border border-white/10 bg-white/[0.03] rounded-lg text-sm text-slate-200 focus:ring-2 focus:ring-indigo-400 outline-none"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 pl-0 sm:pl-24">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editCancelled.includes(meal)}
+                            onChange={(e) => {
+                              if (e.target.checked) setEditCancelled([...editCancelled, meal]);
+                              else setEditCancelled(editCancelled.filter(m => m !== meal));
+                            }}
+                            className="rounded border-white/10 text-red-500 focus:ring-red-500"
+                          />
+                          <span className="text-xs text-red-400 font-medium">Cancel Meal (Wipe billing)</span>
+                        </label>
+                        {isPast && (
+                          <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                            <span className="text-xs text-amber-500 font-medium min-w-max">Log Wastage:</span>
+                            <input
+                              type="text"
+                              value={editWastage[meal] || ""}
+                              onChange={(e) => setEditWastage({ ...editWastage, [meal]: e.target.value })}
+                              placeholder="e.g. 5x rice, 2x chicken"
+                              className="w-full px-2 py-1.5 text-xs bg-white/[0.05] border border-white/10 rounded-md text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                   <div className="flex gap-2 pt-1">
@@ -497,14 +550,32 @@ export default function MealPlanPage() {
                       }
                       return mealTypesList.map((mt) => {
                         const val = mealsObj[mt];
-                        if (!val) return null;
+                        let cMeals: string[] = [];
+                        try { cMeals = JSON.parse(plan.cancelledMeals || "[]"); } catch {}
+                        const isCancelled = cMeals.includes(mt);
+
+                        let wObj: Record<string, string> = {};
+                        try { wObj = JSON.parse(plan.wastage || "{}"); } catch {}
+                        const wastageVal = wObj[mt];
+
+                        if (!val && !isCancelled && !wastageVal) return null;
                         return (
-                          <div key={mt} className="flex items-start gap-2">
-                            <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
-                            <div>
-                              <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
-                              <p className="text-sm text-slate-100">{val}</p>
+                          <div key={mt} className="flex flex-col gap-1 mb-2 last:mb-0">
+                            <div className="flex items-start gap-2">
+                              <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
+                                  {isCancelled && <span className="text-[10px] font-bold bg-red-100/10 text-red-400 px-1.5 py-0.5 rounded">Canceled</span>}
+                                </div>
+                                <p className={`text-sm ${isCancelled ? 'line-through text-slate-500' : 'text-slate-100'}`}>{val || "..."}</p>
+                              </div>
                             </div>
+                            {wastageVal && (
+                              <div className="pl-6 flex items-start">
+                                <span className="text-xs text-amber-500/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">🗑️ Wastage: {wastageVal}</span>
+                              </div>
+                            )}
                           </div>
                         );
                       });

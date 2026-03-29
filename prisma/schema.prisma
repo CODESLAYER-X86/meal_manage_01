@@ -46,6 +46,7 @@ model Mess {
   bazarDaysPerWeek Int    @default(3)
   hasGas         Boolean  @default(false)
   hasCook        Boolean  @default(false)
+  autoMealEntry  Boolean  @default(false)
   mealsPerDay    Int      @default(3) // 2 = lunch+dinner, 3 = breakfast+lunch+dinner
   mealTypes      String   @default("[\"breakfast\",\"lunch\",\"dinner\"]") // JSON array of enabled meal names
   mealBlackouts  String   @default("[]") // JSON: [{"meals":["breakfast","lunch"],"startHour":6,"endHour":10},{"meals":["dinner"],"startHour":14,"endHour":17}]
@@ -288,6 +289,8 @@ model MealPlan {
   lunch     String?
   dinner    String?
   meals     String   @default("{}")
+  cancelledMeals String @default("[]") // JSON array of overridden meal strings e.g. ["lunch"]
+  wastage        String @default("{}") // JSON obj mapping meal string to wastage levels e.g. {"lunch": "high"}
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

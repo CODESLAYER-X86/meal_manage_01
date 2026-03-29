@@ -13,6 +13,7 @@ interface MessInfo {
   bazarDaysPerWeek: number;
   hasGas: boolean;
   hasCook: boolean;
+  autoMealEntry: boolean;
   mealsPerDay: number;
   mealTypes: string;
   mealBlackouts: string;
@@ -67,6 +68,9 @@ export default function MessInfoPage() {
   const [bazarDaysInput, setBazarDaysInput] = useState(3);
   const [hasGasInput, setHasGasInput] = useState(false);
   const [hasCookInput, setHasCookInput] = useState(false);
+  const [autoMealEntryInput, setAutoMealEntryInput] = useState(false);
+  const [autoMealSaving, setAutoMealSaving] = useState(false);
+  const [autoMealMsg, setAutoMealMsg] = useState("");
   const [extraSaving, setExtraSaving] = useState(false);
   const [extraMsg, setExtraMsg] = useState("");
   // Meal config state
@@ -75,6 +79,11 @@ export default function MessInfoPage() {
   const [blackoutsInput, setBlackoutsInput] = useState<BlackoutInterval[]>([]);
   const [mealConfigSaving, setMealConfigSaving] = useState(false);
   const [mealConfigMsg, setMealConfigMsg] = useState("");
+  // Mess name editing
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameMsg, setNameMsg] = useState("");
 
   const isManager = session?.user?.role === "MANAGER";
 
@@ -93,6 +102,7 @@ export default function MessInfoPage() {
         setBazarDaysInput(messData.mess.bazarDaysPerWeek ?? 3);
         setHasGasInput(messData.mess.hasGas ?? false);
         setHasCookInput(messData.mess.hasCook ?? false);
+        setAutoMealEntryInput(messData.mess.autoMealEntry ?? false);
         try {
           const mt = JSON.parse(messData.mess.mealTypes || '["breakfast","lunch","dinner"]');
           if (Array.isArray(mt) && mt.length > 0) setMealTypesInput(mt);
@@ -259,7 +269,112 @@ export default function MessInfoPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Mess Info Card */}
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
-        <h1 className="text-2xl font-bold text-white mb-1">🏠 {mess.name}</h1>
+        {/* Mess Name with Edit */}
+        {editingName ? (
+          <div className="mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🏠</span>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={50}
+                autoFocus
+                className="text-2xl font-bold text-white bg-white/[0.06] border border-white/10 rounded-lg px-3 py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none flex-1 min-w-0"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") { setEditingName(false); setNameMsg(""); }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    // trigger save
+                    (async () => {
+                      const trimmed = nameInput.trim();
+                      if (!trimmed || trimmed.length < 2) { setNameMsg("Name must be at least 2 characters"); return; }
+                      if (trimmed === mess.name) { setEditingName(false); return; }
+                      setNameSaving(true);
+                      setNameMsg("");
+                      try {
+                        const res = await fetch("/api/mess", {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ name: trimmed }),
+                        });
+                        if (res.ok) {
+                          setMess({ ...mess, name: trimmed });
+                          setEditingName(false);
+                          setNameMsg("Name updated!");
+                        } else {
+                          const d = await res.json();
+                          setNameMsg(d.error || "Failed to update");
+                        }
+                      } catch { setNameMsg("Error updating name"); }
+                      finally { setNameSaving(false); setTimeout(() => setNameMsg(""), 3000); }
+                    })();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                disabled={nameSaving}
+                onClick={async () => {
+                  const trimmed = nameInput.trim();
+                  if (!trimmed || trimmed.length < 2) { setNameMsg("Name must be at least 2 characters"); return; }
+                  if (trimmed === mess.name) { setEditingName(false); return; }
+                  setNameSaving(true);
+                  setNameMsg("");
+                  try {
+                    const res = await fetch("/api/mess", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: trimmed }),
+                    });
+                    if (res.ok) {
+                      setMess({ ...mess, name: trimmed });
+                      setEditingName(false);
+                      setNameMsg("Name updated!");
+                    } else {
+                      const d = await res.json();
+                      setNameMsg(d.error || "Failed to update");
+                    }
+                  } catch { setNameMsg("Error updating name"); }
+                  finally { setNameSaving(false); setTimeout(() => setNameMsg(""), 3000); }
+                }}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                {nameSaving ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={() => { setEditingName(false); setNameMsg(""); }}
+                className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.12] text-slate-300 text-sm font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            {nameMsg && (
+              <p className={`mt-1 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
+                {nameMsg.includes("updated") ? "✅" : "⚠️"} {nameMsg}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold text-white">🏠 {mess.name}</h1>
+            {isManager && (
+              <button
+                onClick={() => { setNameInput(mess.name); setEditingName(true); }}
+                className="px-2 py-1 text-slate-400 hover:text-indigo-400 hover:bg-white/[0.06] rounded-lg transition-colors text-sm"
+                title="Edit mess name"
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+        )}
+        {nameMsg && !editingName && (
+          <p className={`mb-2 text-sm ${nameMsg.includes("updated") ? "text-green-500" : "text-red-500"}`}>
+            {nameMsg.includes("updated") ? "✅" : "⚠️"} {nameMsg}
+          </p>
+        )}
         <p className="text-slate-400 text-sm">Created by {mess.createdBy} · {mess.memberCount} members</p>
 
         {/* Invite Code */}
@@ -688,12 +803,12 @@ export default function MessInfoPage() {
               step={100}
               value={thresholdInput}
               onChange={(e) => setThresholdInput(Math.max(0, Math.min(10000, parseInt(e.target.value) || 0)))}
-              className="w-28 px-3 py-2.5 border border-white/10 rounded-lg text-sm text-white text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-24 px-3 py-2.5 border border-white/10 rounded-lg text-sm text-white text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <button
               onClick={handleThresholdSave}
               disabled={thresholdSaving || thresholdInput === (mess?.dueThreshold ?? 500)}
-              className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {thresholdSaving ? "Saving..." : "Save"}
             </button>
@@ -708,6 +823,56 @@ export default function MessInfoPage() {
           </p>
         </div>
       )}
+
+      {/* Auto Meal Entry - Manager Only */}
+      {isManager && (
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
+          <h2 className="text-lg font-semibold text-white mb-1">🤖 Auto Meal Entry</h2>
+          <p className="text-sm text-slate-400 mb-4">
+            If enabled, members' Meal Statuses are automatically finalized into billing entries every day. Disable this if you want to manually verify and input meals.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoMealEntryInput}
+                onChange={(e) => setAutoMealEntryInput(e.target.checked)}
+                className="w-5 h-5 rounded border-white/10 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <span className="text-sm text-slate-300 font-medium">Enable Auto Entry</span>
+            </label>
+            <button
+              onClick={async () => {
+                setAutoMealSaving(true);
+                setAutoMealMsg("");
+                try {
+                  const res = await fetch("/api/mess", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ autoMealEntry: autoMealEntryInput }),
+                  });
+                  const data = await res.json();
+                  if (res.ok) {
+                    setAutoMealMsg("Auto Meal Entry Setting saved");
+                    if (mess) setMess({ ...mess, autoMealEntry: autoMealEntryInput });
+                  } else {
+                    setAutoMealMsg(data.error || "Failed to save");
+                  }
+                } catch { setAutoMealMsg("Something went wrong"); }
+                finally { setAutoMealSaving(false); setTimeout(() => setAutoMealMsg(""), 3000); }
+              }}
+              disabled={autoMealSaving || autoMealEntryInput === (mess?.autoMealEntry ?? false)}
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {autoMealSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
+          {autoMealMsg && (
+            <p className="mt-2 text-sm text-green-600">✅ {autoMealMsg}</p>
+          )}
+        </div>
+      )}
+
 
       {/* Mess Features - Manager Only */}
       {isManager && (

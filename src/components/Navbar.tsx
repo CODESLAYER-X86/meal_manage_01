@@ -73,6 +73,7 @@ export default function Navbar() {
               <Link href="/billing" className={linkCls("/billing")}>Billing</Link>
               <Link href="/bazar" className={linkCls("/bazar")}>Bazar</Link>
               <Link href="/transparency" className={linkCls("/transparency")}>Transparency</Link>
+              <Link href="/analysis" className={linkCls("/analysis")}>Analysis</Link>
 
               {/* More dropdown */}
               <div ref={moreRef} className="relative">
@@ -163,6 +164,7 @@ export default function Navbar() {
             <Link href="/billing" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/billing")}>📊 Billing</Link>
             <Link href="/bazar" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/bazar")}>🛒 Bazar</Link>
             <Link href="/transparency" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/transparency")}>👁️ Transparency</Link>
+            <Link href="/analysis" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/analysis")}>📉 Analysis</Link>
 
             <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">More</div>
             <Link href="/meal-plan" onClick={() => setMenuOpen(false)} className={mobileLinkCls("/meal-plan")}>🍳 Meal Plan</Link>
