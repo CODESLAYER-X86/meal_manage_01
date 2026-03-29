@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
+  const session = await auth();
+  
+  // Secure this endpoint: Only allow existing admins or the designated platform admin
+  const allowedEmail = process.env.PLATFORM_ADMIN_EMAIL?.toLowerCase();
+  const userEmail = session?.user?.email?.toLowerCase();
+  const isAdmin = (session?.user as any)?.isAdmin;
+  
+  if (!session || (!isAdmin && userEmail !== allowedEmail)) {
+    return NextResponse.json({ error: "Unauthorized. Setup PLATFORM_ADMIN_EMAIL or login as admin." }, { status: 403 });
+  }
+
   const results: string[] = [];
 
   try {

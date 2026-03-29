@@ -947,31 +947,31 @@ export default function MessInfoPage() {
 
       {/* Danger Zone - Manager Only */}
       {isManager && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border-2 border-red-200 p-6">
-          <h2 className="text-lg font-semibold text-red-700 mb-1"><AlertTriangle className="w-4 h-4 inline-block" /> Danger Zone</h2>
+        <div className="bg-[#1a1a3e]/50 backdrop-blur-xl border border-red-500/20 rounded-xl shadow-md p-6">
+          <h2 className="text-lg font-semibold text-red-400 mb-1"><AlertTriangle className="w-4 h-4 inline-block" /> Danger Zone</h2>
           <p className="text-sm text-slate-400 mb-4">Permanently delete this mess and all its data. This cannot be undone.</p>
 
           {!deleteConfirm ? (
             <button
               onClick={() => setDeleteConfirm(true)}
-              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg transition-colors"
             >
               <Trash2 className="w-4 h-4 inline-block" /> Delete Mess
             </button>
           ) : (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
-              <p className="text-sm text-red-700 font-medium">
+            <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 space-y-3">
+              <p className="text-sm text-red-300 font-medium">
                 This will permanently delete <span className="font-bold">{mess.name}</span>, all meals, deposits, bazar entries, audit logs, and remove all members.
               </p>
               <div>
-                <label className="block text-xs text-red-600 mb-1">
+                <label className="block text-xs text-red-400 mb-1">
                   Type <span className="font-mono font-bold">{mess.name}</span> to confirm
                 </label>
                 <input
                   type="text"
                   value={deleteText}
                   onChange={(e) => setDeleteText(e.target.value)}
-                  className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-3 py-2 bg-black/20 border border-red-500/30 rounded-lg text-sm text-white placeholder-red-500/30 focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:outline-none"
                   placeholder={mess.name}
                 />
               </div>
@@ -979,13 +979,13 @@ export default function MessInfoPage() {
                 <button
                   onClick={handleDeleteMess}
                   disabled={deleting || deleteText !== mess.name}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {deleting ? "Deleting..." : <><Skull className="w-4 h-4 inline-block" /> Permanently Delete</>}
                 </button>
                 <button
                   onClick={() => { setDeleteConfirm(false); setDeleteText(""); }}
-                  className="px-4 py-2 bg-white/[0.08] hover:bg-white/[0.12] text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-medium rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
