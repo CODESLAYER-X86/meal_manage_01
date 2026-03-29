@@ -60,6 +60,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       const m = currentMonth + 1;
       const safeFetch = (url: string) => fetch(url).then((r) => r.ok ? r.json() : null).catch(() => null);

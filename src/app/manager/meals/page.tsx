@@ -32,12 +32,6 @@ export default function MealEntryPage() {
     }
   }, [status, session, router]);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      loadData();
-    }
-  }, [status, date]);
-
   const loadData = async () => {
     const [membersRes, mealsRes, messRes] = await Promise.all([
       fetch("/api/members"),
@@ -79,6 +73,13 @@ export default function MealEntryPage() {
       })
     );
   };
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      loadData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, date]);
 
   const updateEntry = (index: number, field: string, value: number) => {
     const updated = [...entries];

@@ -30,6 +30,7 @@ export default function AuditLogPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       let query = filter === "all" ? "" : `&table=${filter}`;
       if (fromDate) query += `&from=${fromDate}`;

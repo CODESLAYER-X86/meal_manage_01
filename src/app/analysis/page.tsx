@@ -109,6 +109,7 @@ export default function AnalysisDashboard() {
                     ))}
                   </Pie>
                   <RechartsTooltip
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     formatter={(val: any) => `৳${Number(val).toLocaleString()}`}
                     contentStyle={{ backgroundColor: "#1e1e2d", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
                     itemStyle={{ color: "#fff" }}
@@ -141,6 +142,7 @@ export default function AnalysisDashboard() {
                 <XAxis dataKey="month" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `৳${v}`} />
                 <RechartsTooltip
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(val: any) => [`৳${Number(val)}`, "Meal Rate"]}
                   contentStyle={{ backgroundColor: "#1e1e2d", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff" }}
                 />

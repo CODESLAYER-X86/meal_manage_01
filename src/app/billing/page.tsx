@@ -32,6 +32,7 @@ export default function BillingPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       fetch(`/api/billing?month=${month}&year=${year}`)
         .then((r) => r.json())

@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       
       let changed = false;
       for (const cm of cancelledMeals) {
-        if (entryMeals[cm] > 0 || (entry as any)[cm] > 0) {
+        if (entryMeals[cm] > 0 || (entry as Record<string, unknown>)[cm] !== undefined && Number((entry as Record<string, unknown>)[cm]) > 0) {
           entryMeals[cm] = 0;
           changed = true;
         }

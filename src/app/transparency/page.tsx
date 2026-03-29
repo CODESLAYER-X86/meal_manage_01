@@ -66,6 +66,7 @@ export default function TransparencyPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     Promise.all([

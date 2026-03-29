@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   });
 
   // Calculate per-member total bill
-  let memberBills: Record<string, number> = {};
+  const memberBills: Record<string, number> = {};
   if (setting) {
     const rents: Record<string, number> = JSON.parse(setting.rents);
     const memberCount = members.length;

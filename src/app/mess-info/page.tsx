@@ -829,7 +829,7 @@ export default function MessInfoPage() {
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-6">
           <h2 className="text-lg font-semibold text-white mb-1">🤖 Auto Meal Entry</h2>
           <p className="text-sm text-slate-400 mb-4">
-            If enabled, members' Meal Statuses are automatically finalized into billing entries every day. Disable this if you want to manually verify and input meals.
+            If enabled, members&apos; Meal Statuses are automatically finalized into billing entries every day. Disable this if you want to manually verify and input meals.
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">

@@ -35,7 +35,10 @@ export default function AdminUsersPage() {
       .catch(() => setLoading(false));
   };
 
-  useEffect(() => { fetchUsers(1, ""); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchUsers(1, "");
+  }, []);
 
   const doSearch = () => fetchUsers(1, search);
 

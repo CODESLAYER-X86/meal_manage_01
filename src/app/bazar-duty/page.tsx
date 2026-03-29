@@ -57,7 +57,10 @@ export default function BazarDutyPage() {
     setLoading(false);
   }, [month, year]);
 
-  useEffect(() => { if (session?.user?.messId) loadData(); }, [session, loadData]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (session?.user?.messId) loadData();
+  }, [session, loadData]);
 
   if (!session?.user?.messId) {
     return <div className="p-6 text-center text-slate-400">Join a mess first</div>;
