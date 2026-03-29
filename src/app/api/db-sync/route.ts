@@ -60,6 +60,20 @@ export async function GET() {
       }
     }
 
+    // --- Fix missing MealPlan columns ---
+    const mpCols = await prisma.$queryRawUnsafe<{ col: string }[]>(
+      `SELECT column_name::text as col FROM information_schema.columns WHERE table_name = 'MealPlan' ORDER BY ordinal_position`
+    );
+    const existingMpCols = new Set(mpCols.map(c => c.col));
+    if (!existingMpCols.has('cancelledSnapshot')) {
+      try {
+        await prisma.$executeRawUnsafe(`ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "cancelledSnapshot" TEXT NOT NULL DEFAULT '{}'`);
+        results.push(`✅ Added MealPlan.cancelledSnapshot`);
+      } catch (e: unknown) {
+        results.push(`❌ MealPlan.cancelledSnapshot: ${(e as Error).message}`);
+      }
+    }
+
     // --- Fix missing User columns ---
     const existingUserCols = new Set(userColumns.map(c => c.col));
     const userAlters: Record<string, string> = {

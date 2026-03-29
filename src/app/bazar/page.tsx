@@ -43,6 +43,8 @@ export default function BazarEntryPage() {
   const [note, setNote] = useState("");
   const [items, setItems] = useState<BazarItemForm[]>([
     { itemName: "", quantity: "", unit: "kg", price: "" },
+    { itemName: "", quantity: "", unit: "kg", price: "" },
+    { itemName: "", quantity: "", unit: "kg", price: "" }
   ]);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
@@ -199,7 +201,11 @@ export default function BazarEntryPage() {
     });
 
     if (res.ok) {
-      setItems([{ itemName: "", quantity: "", unit: "kg", price: "" }]);
+      setItems([
+        { itemName: "", quantity: "", unit: "kg", price: "" },
+        { itemName: "", quantity: "", unit: "kg", price: "" },
+        { itemName: "", quantity: "", unit: "kg", price: "" }
+      ]);
       setNote("");
       setCompanions([]);
       setAlone(true);

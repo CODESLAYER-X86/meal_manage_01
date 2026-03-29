@@ -21,6 +21,12 @@ const MONTH_NAMES = [
 ];
 
 const DEFAULT_MEAL_ICONS: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
+const MEAL_THEMES: Record<string, string> = {
+  breakfast: "bg-gradient-to-r from-amber-500/10 to-transparent border-amber-500/20 text-amber-500",
+  lunch: "bg-gradient-to-r from-blue-500/10 to-transparent border-blue-500/20 text-blue-400",
+  dinner: "bg-gradient-to-r from-indigo-500/10 to-transparent border-indigo-500/20 text-indigo-400",
+  snacks: "bg-gradient-to-r from-orange-500/10 to-transparent border-orange-500/20 text-orange-400"
+};
 
 export default function MealPlanPage() {
   const { data: session, status } = useSession();
@@ -439,19 +445,18 @@ export default function MealPlanPage() {
               className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden transition-colors ${isToday ? "border-indigo-300 ring-1 ring-indigo-200" : "border-white/10"
                 } ${isPast ? "opacity-70" : ""}`}
             >
-              {/* Day Header */}
               <div
-                className={`flex items-center justify-between px-4 py-3 ${isToday ? "bg-indigo-50" : "bg-white/[0.04]"
-                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-white/[0.06]" : ""}`}
+                className={`flex items-center justify-between px-5 py-4 ${isToday ? "bg-indigo-500/10 border-b border-indigo-500/20" : "bg-white/[0.02] border-b border-white/5"
+                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-white/[0.05] transition-colors" : ""}`}
                 onClick={() => !isEditing && startEdit(day)}
               >
-                <div className="flex items-center gap-2">
-                  <span className={`text-lg font-bold ${isToday ? "text-indigo-700" : "text-slate-100"}`}>
+                <div className="flex items-center gap-3">
+                  <span className={`text-2xl font-black tracking-tighter ${isToday ? "text-indigo-400" : "text-slate-200"}`}>
                     {day}
                   </span>
-                  <span className="text-sm text-slate-400">{dayName}</span>
+                  <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">{dayName}</span>
                   {isToday && (
-                    <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+                    <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(79,70,229,0.2)]">
                       Today
                     </span>
                   )}
@@ -466,22 +471,24 @@ export default function MealPlanPage() {
               {/* Editing Form */}
               {isEditing && isManager ? (
                 <div className="p-4 space-y-3 bg-indigo-50/30">
-                  {mealTypesList.map((meal) => (
-                    <div key={meal} className="flex flex-col gap-2 p-2 rounded-lg bg-white/[0.04]">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                        <label className="text-sm font-medium text-slate-400 capitalize w-20 shrink-0">
-                          {DEFAULT_MEAL_ICONS[meal] || "🍽️"} {meal}
+                  {mealTypesList.map((meal) => {
+                    const themeClass = MEAL_THEMES[meal] || "bg-white/[0.04] border-white/10 text-slate-300";
+                    return (
+                    <div key={meal} className={`flex flex-col gap-3 p-4 rounded-xl border ${themeClass}`}>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="text-sm font-bold capitalize w-24 shrink-0 flex items-center gap-2">
+                          <span className="text-xl">{DEFAULT_MEAL_ICONS[meal] || "🍽️"}</span> {meal}
                         </label>
                         <input
                           type="text"
                           value={editForm[meal] || ""}
                           onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
                           placeholder={`What's for ${meal}?`}
-                          className="flex-1 px-3 py-2.5 border border-white/10 bg-white/[0.03] rounded-lg text-sm text-slate-200 focus:ring-2 focus:ring-indigo-400 outline-none"
+                          className="flex-1 px-4 py-3 border border-white/10 bg-black/20 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-white/20 outline-none transition-all"
                         />
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 pl-0 sm:pl-24">
-                        <label className="flex items-center gap-1.5 cursor-pointer">
+                      <div className="flex flex-wrap items-center gap-4 pl-0 sm:pl-28">
+                        <label className="flex items-center gap-2 cursor-pointer group">
                           <input
                             type="checkbox"
                             checked={editCancelled.includes(meal)}
@@ -489,36 +496,37 @@ export default function MealPlanPage() {
                               if (e.target.checked) setEditCancelled([...editCancelled, meal]);
                               else setEditCancelled(editCancelled.filter(m => m !== meal));
                             }}
-                            className="rounded border-white/10 text-red-500 focus:ring-red-500"
+                            className="w-4 h-4 rounded border-red-500/30 text-red-500 bg-red-500/10 focus:ring-red-500 transition-colors"
                           />
-                          <span className="text-xs text-red-400 font-medium">Cancel Meal (zeroes entries — reversible)</span>
+                          <span className="text-xs text-red-400/80 group-hover:text-red-400 font-semibold transition-colors">Cancel Meal (zeroes entries)</span>
                         </label>
                         {isPast && (
-                          <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
-                            <span className="text-xs text-amber-500 font-medium min-w-max">Log Wastage:</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                            <span className="text-xs text-amber-500/80 font-semibold min-w-max">Log Wastage:</span>
                             <input
                               type="text"
                               value={editWastage[meal] || ""}
                               onChange={(e) => setEditWastage({ ...editWastage, [meal]: e.target.value })}
                               placeholder="e.g. 5x rice, 2x chicken"
-                              className="w-full px-2 py-1.5 text-xs bg-white/[0.05] border border-white/10 rounded-md text-slate-200 focus:ring-1 focus:ring-amber-500 outline-none"
+                              className="w-full px-3 py-2 text-xs bg-black/20 border border-amber-500/20 rounded-lg text-slate-200 placeholder:text-amber-500/30 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
                             />
                           </div>
                         )}
                       </div>
                     </div>
-                  ))}
-                  <div className="flex gap-2 pt-1">
+                  );
+                 })}
+                  <div className="flex gap-3 pt-2">
                     <button
                       onClick={saveEdit}
                       disabled={saving}
-                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all disabled:opacity-50"
                     >
-                      {saving ? "Saving..." : "💾 Save"}
+                      {saving ? "Saving..." : "💾 Save Menu"}
                     </button>
                     <button
                       onClick={() => setEditingDay(null)}
-                      className="px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                      className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all"
                     >
                       Cancel
                     </button>
@@ -546,21 +554,22 @@ export default function MealPlanPage() {
                         const wastageVal = wObj[mt];
 
                         if (!val && !isCancelled && !wastageVal) return null;
+                        const themeClass = MEAL_THEMES[mt] || "text-slate-300";
                         return (
-                          <div key={mt} className="flex flex-col gap-1 mb-2 last:mb-0">
-                            <div className="flex items-start gap-2">
-                              <span className="text-base">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="text-xs text-slate-400 font-medium capitalize">{mt}</p>
-                                  {isCancelled && <span className="text-[10px] font-bold bg-red-100/10 text-red-400 px-1.5 py-0.5 rounded">Canceled</span>}
+                          <div key={mt} className="flex flex-col gap-1.5 mb-4 last:mb-0">
+                            <div className={`flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.02] ${themeClass.split(' ')[0] /* Use gradient background */}`}>
+                              <span className="text-2xl mt-0.5">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <p className="text-xs font-bold uppercase tracking-wider opacity-80">{mt}</p>
+                                  {isCancelled && <span className="text-[10px] font-bold bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Canceled</span>}
                                 </div>
-                                <p className={`text-sm ${isCancelled ? 'line-through text-slate-500' : 'text-slate-100'}`}>{val || "..."}</p>
+                                <p className={`text-base font-medium mt-1 leading-snug ${isCancelled ? 'line-through text-slate-500' : 'text-slate-100'}`}>{val || "..."}</p>
                               </div>
                             </div>
                             {wastageVal && (
-                              <div className="pl-6 flex items-start">
-                                <span className="text-xs text-amber-500/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">🗑️ Wastage: {wastageVal}</span>
+                              <div className="pl-12 flex items-start">
+                                <span className="text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">🗑️ Wastage Logs: {wastageVal}</span>
                               </div>
                             )}
                           </div>
