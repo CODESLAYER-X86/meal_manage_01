@@ -107,13 +107,27 @@ async function main() {
     },
   });
 
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@messmeal.app" },
+    update: {},
+    create: {
+      name: "Super Admin",
+      email: "admin@messmeal.app",
+      password,
+      role: "MEMBER",
+      isAdmin: true,
+      emailVerified: true,
+    },
+  });
+
   // Suppress unused variable warnings
-  void jahid; void zobayer; void kabbo; void mahbub;
+  void jahid; void zobayer; void kabbo; void mahbub; void admin;
 
   console.log("✅ Seeded 5 members: Omar (Manager), Jahid, Zobayer, Kabbo, Mahbub");
+  console.log("✅ Seeded 1 Super Admin: admin@messmeal.app");
   console.log("🏠 Default mess: 42/A Mirpur Mess (invite: MESS-DEFAULT)");
   console.log("🔑 Default password for all: 123456");
-  console.log("📧 Login emails: omar@mess.com, jahid@mess.com, zobayer@mess.com, kabbo@mess.com, mahbub@mess.com");
+  console.log("📧 Login emails: omar@mess.com, jahid@mess.com, zobayer@mess.com, kabbo@mess.com, mahbub@mess.com, admin@messmeal.app");
 }
 
 main()
