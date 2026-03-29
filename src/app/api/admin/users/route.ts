@@ -253,7 +253,8 @@ export async function DELETE(request: NextRequest) {
       prisma.user.delete({ where: { id } }),
     ]);
   } catch (e: unknown) {
-    return NextResponse.json({ error: `Failed to delete user: ${(e as Error).message}` }, { status: 500 });
+    console.error("[API] Admin user delete error:", (e as Error).message);
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
   return NextResponse.json({ success: true });
 }

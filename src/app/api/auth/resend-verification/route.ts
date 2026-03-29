@@ -7,7 +7,8 @@ import crypto from "crypto";
 // Body: { email }
 export async function POST(request: NextRequest) {
     try {
-        const { email } = await request.json();
+        const { email: rawEmail } = await request.json();
+        const email = rawEmail?.toLowerCase().trim();
         if (!email) {
             return NextResponse.json({ error: "Email is required" }, { status: 400 });
         }

@@ -6,12 +6,20 @@ import crypto from "crypto";
 
 export async function POST(request: Request) {
   try {
-    const { name, email: rawEmail, phone, password } = await request.json();
+    const { name: rawName, email: rawEmail, phone, password } = await request.json();
     const email = rawEmail?.toLowerCase().trim();
+    const name = rawName?.trim().replace(/<[^>]*>/g, ""); // Strip HTML tags
 
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Name, email, and password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (name.length < 2 || name.length > 50) {
+      return NextResponse.json(
+        { error: "Name must be between 2 and 50 characters" },
         { status: 400 }
       );
     }

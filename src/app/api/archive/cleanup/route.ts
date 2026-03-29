@@ -163,6 +163,17 @@ export async function POST(request: Request) {
   });
   results.managerRotations = r13.count;
 
+  // 14. Clean up expired/used verification tokens (always, regardless of mess)
+  const r14 = await prisma.verificationToken.deleteMany({
+    where: {
+      OR: [
+        { expiresAt: { lt: new Date() } },
+        { used: true, createdAt: { lte: cutoffEnd } },
+      ],
+    },
+  });
+  results.expiredTokens = r14.count;
+
   const totalDeleted = Object.values(results).reduce((s, n) => s + n, 0);
 
   return NextResponse.json({

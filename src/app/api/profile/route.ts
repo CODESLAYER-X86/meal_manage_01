@@ -18,6 +18,15 @@ export async function GET() {
   return NextResponse.json(user);
 }
 
+// Password strength validator (shared logic)
+function validatePasswordStrength(password: string): string | null {
+  if (password.length < 8) return "Password must be at least 8 characters";
+  if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+  if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter";
+  if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+  return null;
+}
+
 // PATCH - update email or password
 export async function PATCH(request: NextRequest) {
   const session = await auth();
@@ -29,10 +38,18 @@ export async function PATCH(request: NextRequest) {
   const { action } = body;
 
   if (action === "email") {
-    const { newEmail, password } = body;
+    const { newEmail: rawEmail, password } = body;
 
-    if (!newEmail || !password) {
+    if (!rawEmail || !password) {
       return NextResponse.json({ error: "Email and current password required" }, { status: 400 });
+    }
+
+    // SECURITY: Normalize email
+    const newEmail = rawEmail.toLowerCase().trim();
+
+    // Basic email format validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
     // Verify current password
@@ -52,12 +69,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Email already in use" }, { status: 409 });
     }
 
+    // SECURITY: Set emailVerified to false on email change — user must re-verify
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { email: newEmail },
+      data: { email: newEmail, emailVerified: false },
     });
 
-    return NextResponse.json({ success: true, message: "Email updated. Please log in again with your new email." });
+    return NextResponse.json({ success: true, message: "Email updated. Please verify your new email and log in again." });
   }
 
   if (action === "password") {
@@ -67,8 +85,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Current and new password required" }, { status: 400 });
     }
 
-    if (newPassword.length < 8) {
-      return NextResponse.json({ error: "New password must be at least 8 characters" }, { status: 400 });
+    // SECURITY: Full password strength validation (same as signup)
+    const strengthError = validatePasswordStrength(newPassword);
+    if (strengthError) {
+      return NextResponse.json({ error: strengthError }, { status: 400 });
     }
 
     // Verify current password
@@ -82,7 +102,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Incorrect current password" }, { status: 403 });
     }
 
-    const hashed = await bcryptjs.hash(newPassword, 10);
+    // SECURITY: Use consistent bcrypt cost factor 12 (same as signup)
+    const hashed = await bcryptjs.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: session.user.id },
       data: { password: hashed },

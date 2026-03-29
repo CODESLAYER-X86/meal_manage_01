@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // ===== In-memory rate limiter (per-instance, resets on cold start) =====
+// NOTE: This is acceptable at small scale. For multi-instance production
+// deployments, replace with Redis-based rate limiting (e.g. @upstash/ratelimit).
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function rateLimit(ip: string, limit: number, windowMs: number): boolean {
@@ -34,6 +36,7 @@ function getIP(request: NextRequest): string {
 
 // Rate limit configs: [max requests, window in ms]
 const RATE_LIMITS: Record<string, [number, number]> = {
+    "/api/auth/callback/credentials": [10, 15 * 60 * 1000], // 10 login attempts per 15min
     "/api/auth/signup": [5, 15 * 60 * 1000],  // 5 per 15min
     "/api/auth/forgot-password": [3, 15 * 60 * 1000],  // 3 per 15min
     "/api/auth/reset-password": [5, 15 * 60 * 1000],  // 5 per 15min
@@ -84,12 +87,23 @@ export function middleware(request: NextRequest) {
     ) {
         const origin = request.headers.get("origin");
         const host = request.headers.get("host");
-        if (origin && host && !origin.includes(host)) {
-            console.warn(`[SECURITY] CSRF blocked: ${ip} origin=${origin} host=${host} path=${pathname}`);
-            return NextResponse.json(
-                { error: "Forbidden: cross-origin request" },
-                { status: 403 }
-            );
+        if (origin && host) {
+            try {
+                const originHost = new URL(origin).host;
+                if (originHost !== host) {
+                    console.warn(`[SECURITY] CSRF blocked: ${ip} origin=${origin} host=${host} path=${pathname}`);
+                    return NextResponse.json(
+                        { error: "Forbidden: cross-origin request" },
+                        { status: 403 }
+                    );
+                }
+            } catch {
+                // Malformed origin header — block it
+                return NextResponse.json(
+                    { error: "Forbidden: invalid origin" },
+                    { status: 403 }
+                );
+            }
         }
     }
 

@@ -5,14 +5,13 @@ import { auth } from "@/lib/auth";
 export async function GET() {
   const session = await auth();
   
-  // Secure this endpoint: Only allow admins, officers, or designated platform admin email
+  // SECURITY: Only allow platform admins or designated platform admin email (NOT officers)
   const allowedEmails = (process.env.PLATFORM_ADMIN_EMAIL || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
   const userEmail = session?.user?.email?.toLowerCase() || "";
   const isAdmin = (session?.user as any)?.isAdmin;
-  const isOfficer = (session?.user as any)?.isOfficer;
   
-  if (!session || (!isAdmin && !isOfficer && !allowedEmails.includes(userEmail))) {
-    return NextResponse.json({ error: "Unauthorized. Setup PLATFORM_ADMIN_EMAIL or login as admin." }, { status: 403 });
+  if (!session || (!isAdmin && !allowedEmails.includes(userEmail))) {
+    return NextResponse.json({ error: "Unauthorized. Only Platform Admins can run db-sync." }, { status: 403 });
   }
 
   const results: string[] = [];

@@ -85,8 +85,47 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const { date, note, items, companionIds } = body;
-  // items: [{ itemName, quantity, unit, price }]
 
+  // Validate required fields
+  if (!date || !items) {
+    return NextResponse.json({ error: "date and items are required" }, { status: 400 });
+  }
+
+  // Validate date
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+  }
+
+  // Validate items is an array with reasonable limits
+  if (!Array.isArray(items) || items.length === 0) {
+    return NextResponse.json({ error: "items must be a non-empty array" }, { status: 400 });
+  }
+  if (items.length > 100) {
+    return NextResponse.json({ error: "Too many items (max 100)" }, { status: 400 });
+  }
+
+  // Validate each item
+  for (const item of items) {
+    if (!item.itemName || typeof item.itemName !== "string" || item.itemName.trim().length === 0 || item.itemName.length > 100) {
+      return NextResponse.json({ error: "Each item must have a valid itemName (max 100 chars)" }, { status: 400 });
+    }
+    if (item.price !== undefined && (typeof item.price !== "number" || item.price < 0)) {
+      return NextResponse.json({ error: "Item price must be a non-negative number" }, { status: 400 });
+    }
+  }
+
+  // Validate note length
+  if (note && typeof note === "string" && note.length > 500) {
+    return NextResponse.json({ error: "Note too long (max 500 chars)" }, { status: 400 });
+  }
+
+  // Validate companionIds
+  if (companionIds && (!Array.isArray(companionIds) || companionIds.length > 20)) {
+    return NextResponse.json({ error: "companionIds must be an array (max 20)" }, { status: 400 });
+  }
+
+  // items: [{ itemName, quantity, unit, price }]
   const totalCost = items.reduce(
     (sum: number, item: { price: number }) => sum + (item.price || 0),
     0

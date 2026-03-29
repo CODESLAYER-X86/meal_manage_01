@@ -192,7 +192,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (error: unknown) {
-    return NextResponse.json({ error: (error as Error).message || "Internal server error" }, { status: 500 });
+    console.error("[API] Mess POST error:", (error as Error).message);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

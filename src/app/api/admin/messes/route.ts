@@ -80,7 +80,8 @@ export async function DELETE(request: NextRequest) {
       prisma.mess.delete({ where: { id } }),
     ]);
   } catch (e: unknown) {
-    return NextResponse.json({ error: `Failed to delete mess: ${(e as Error).message}` }, { status: 500 });
+    console.error("[API] Admin mess delete error:", (e as Error).message);
+    return NextResponse.json({ error: "Failed to delete mess" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

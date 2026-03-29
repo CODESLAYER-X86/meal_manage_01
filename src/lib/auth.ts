@@ -120,10 +120,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.lastRefresh = Date.now();
       }
       
-      // Handle manual session update
+      // Handle manual session update — ONLY allow messId (validated on next DB refresh)
+      // SECURITY: Never allow role/isAdmin/isOfficer updates from client
       if (trigger === "update" && session !== null) {
         token.messId = session.user?.messId ?? token.messId;
-        token.role = session.user?.role ?? token.role;
       }
 
       // Refresh role/messId from DB every 5 minutes (not every request)
