@@ -43,8 +43,45 @@ export async function DELETE(request: NextRequest) {
     data: { messId: null, role: "MEMBER" },
   });
 
-  // Delete the mess (cascade will handle related records if configured)
-  await prisma.mess.delete({ where: { id } });
+  // Delete all related records in dependency order to avoid FK constraint errors
+  try {
+    // Get IDs for cascade
+    const tripIds = (await prisma.bazarTrip.findMany({ where: { messId: id }, select: { id: true } })).map(t => t.id);
+    const topicIds = (await prisma.mealVoteTopic.findMany({ where: { messId: id }, select: { id: true } })).map(t => t.id);
+
+    await prisma.$transaction([
+      // Child records first
+      ...(tripIds.length > 0 ? [prisma.bazarItem.deleteMany({ where: { tripId: { in: tripIds } } })] : []),
+      ...(topicIds.length > 0 ? [prisma.mealVote.deleteMany({ where: { topicId: { in: topicIds } } })] : []),
+      prisma.mealVoteTopic.deleteMany({ where: { messId: id } }),
+      prisma.bazarTrip.deleteMany({ where: { messId: id } }),
+      prisma.mealEntry.deleteMany({ where: { messId: id } }),
+      prisma.deposit.deleteMany({ where: { messId: id } }),
+      prisma.mealPlan.deleteMany({ where: { messId: id } }),
+      prisma.mealRating.deleteMany({ where: { messId: id } }),
+      prisma.mealOffRequest.deleteMany({ where: { messId: id } }),
+      prisma.mealStatus.deleteMany({ where: { messId: id } }),
+      prisma.mealStatusRequest.deleteMany({ where: { messId: id } }),
+      prisma.announcement.deleteMany({ where: { messId: id } }),
+      prisma.auditLog.deleteMany({ where: { messId: id } }),
+      prisma.notification.deleteMany({ where: { messId: id } }),
+      prisma.washroomCleaning.deleteMany({ where: { messId: id } }),
+      prisma.washroomDutySchedule.deleteMany({ where: { messId: id } }),
+      prisma.bazarDutySchedule.deleteMany({ where: { messId: id } }),
+      prisma.managerRotation.deleteMany({ where: { messId: id } }),
+      prisma.billPayment.deleteMany({ where: { messId: id } }),
+      prisma.billSetting.deleteMany({ where: { messId: id } }),
+      prisma.fine.deleteMany({ where: { messId: id } }),
+      prisma.joinRequest.deleteMany({ where: { messId: id } }),
+      prisma.dutySwapRequest.deleteMany({ where: { messId: id } }),
+      prisma.dispute.deleteMany({ where: { messId: id } }),
+      prisma.memberPresence.deleteMany({ where: { messId: id } }),
+      // Finally delete the mess
+      prisma.mess.delete({ where: { id } }),
+    ]);
+  } catch (e: unknown) {
+    return NextResponse.json({ error: `Failed to delete mess: ${(e as Error).message}` }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

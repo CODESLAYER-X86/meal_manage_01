@@ -189,6 +189,26 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Officers cannot delete other officers." }, { status: 403 });
   }
 
-  await prisma.user.delete({ where: { id } });
+  // Delete all related records, then the user
+  try {
+    await prisma.$transaction([
+      prisma.mealEntry.deleteMany({ where: { memberId: id } }),
+      prisma.deposit.deleteMany({ where: { memberId: id } }),
+      prisma.mealRating.deleteMany({ where: { memberId: id } }),
+      prisma.mealOffRequest.deleteMany({ where: { memberId: id } }),
+      prisma.mealStatus.deleteMany({ where: { memberId: id } }),
+      prisma.mealStatusRequest.deleteMany({ where: { memberId: id } }),
+      prisma.notification.deleteMany({ where: { userId: id } }),
+      prisma.washroomCleaning.deleteMany({ where: { memberId: id } }),
+      prisma.billPayment.deleteMany({ where: { memberId: id } }),
+      prisma.fine.deleteMany({ where: { memberId: id } }),
+      prisma.mealVote.deleteMany({ where: { voterId: id } }),
+      prisma.memberPresence.deleteMany({ where: { memberId: id } }),
+      prisma.auditLog.deleteMany({ where: { editedById: id } }),
+      prisma.user.delete({ where: { id } }),
+    ]);
+  } catch (e: unknown) {
+    return NextResponse.json({ error: `Failed to delete user: ${(e as Error).message}` }, { status: 500 });
+  }
   return NextResponse.json({ success: true });
 }
