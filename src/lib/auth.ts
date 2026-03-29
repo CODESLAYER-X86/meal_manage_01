@@ -167,6 +167,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // If DB is unreachable, keep existing values
         }
       }
+
+      // STRICT ENFORCEMENT: Never return isAdmin=true if email is not allowed,
+      // regardless of DB state or refresh timing. This ensures immediate revocation
+      // if an email is removed from the PLATFORM_ADMIN_EMAIL env variable.
+      if (token.isAdmin) {
+        const tokenEmail = (token.email as string) || (session?.user?.email as string) || "";
+        if (!isAllowedAdminEmail(tokenEmail)) {
+           token.isAdmin = false;
+        }
+      }
+      // Also strictly auto-promote on login if email *is* allowed and token doesn't have it yet
+      else {
+        const tokenEmail = (token.email as string) || (session?.user?.email as string) || "";
+        if (isAllowedAdminEmail(tokenEmail)) {
+           token.isAdmin = true;
+           // We don't necessarily update DB here to save a write, the 5-min refresh will catch it later
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
