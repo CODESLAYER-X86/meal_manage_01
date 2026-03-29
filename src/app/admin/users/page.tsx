@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 interface UserEntry {
@@ -9,6 +10,7 @@ interface UserEntry {
   phone: string | null;
   role: string;
   isAdmin: boolean;
+  isOfficer: boolean;
   isActive: boolean;
   messId: string | null;
   createdAt: string;
@@ -16,11 +18,14 @@ interface UserEntry {
 }
 
 export default function AdminUsersPage() {
+  const { data: session } = useSession();
   const [users, setUsers] = useState<UserEntry[]>([]);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const currentIsAdmin = (session?.user as any)?.isAdmin;
 
   const fetchUsers = (p: number, q: string) => {
     setLoading(true);
@@ -46,8 +51,8 @@ export default function AdminUsersPage() {
     const labels: Record<string, string> = {
       deactivate: "Deactivate this user?",
       activate: "Activate this user?",
-      makeAdmin: "Grant admin privileges?",
-      removeAdmin: "Remove admin privileges?",
+      makeOfficer: "Promote this user to Officer?",
+      removeOfficer: "Remove officer privileges from this user?",
       kickFromMess: "Remove user from their mess?",
     };
     if (!confirm(labels[action] || `Perform ${action}?`)) return;
@@ -62,7 +67,7 @@ export default function AdminUsersPage() {
   };
 
   const deleteUser = async (id: string, name: string) => {
-    if (!confirm(`Permanently delete user "${name}"? This cannot be undone.`)) return;
+    if (!confirm(`Permanently delete user "${name}"? This will also delete ALL their data (meals, deposits, etc). This cannot be undone.`)) return;
     const res = await fetch("/api/admin/users", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -70,6 +75,71 @@ export default function AdminUsersPage() {
     });
     if (res.ok) fetchUsers(page, search);
     else alert((await res.json()).error || "Failed to delete user");
+  };
+
+  // Render role badge
+  const roleBadge = (u: UserEntry) => {
+    if (u.isAdmin) return <span className="px-1.5 py-0.5 text-[9px] bg-violet-500/20 text-violet-300 border border-violet-500/20 rounded-md font-medium">Admin</span>;
+    if (u.isOfficer) return <span className="px-1.5 py-0.5 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/20 rounded-md font-medium">Officer</span>;
+    return null;
+  };
+
+  // Render action buttons for a user
+  const renderActions = (u: UserEntry) => {
+    const isSelf = u.id === session?.user?.id;
+    const btns: React.ReactNode[] = [];
+
+    // Admins are untouchable — show nothing except a label
+    if (u.isAdmin) {
+      btns.push(
+        <span key="protected" className="px-2.5 py-1 text-[10px] bg-violet-500/10 text-violet-300 border border-violet-500/20 rounded-lg font-medium">
+          🛡 Protected
+        </span>
+      );
+      return btns;
+    }
+
+    // Activate/Deactivate
+    if (!isSelf) {
+      if (u.isActive) {
+        btns.push(
+          <button key="deac" onClick={() => doAction(u.id, "deactivate")} className="px-2.5 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">Deactivate</button>
+        );
+      } else {
+        btns.push(
+          <button key="act" onClick={() => doAction(u.id, "activate")} className="px-2.5 py-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-colors">Activate</button>
+        );
+      }
+    }
+
+    // Officer management — only admins can promote/demote officers
+    if (currentIsAdmin && !isSelf) {
+      if (!u.isOfficer) {
+        btns.push(
+          <button key="mkoff" onClick={() => doAction(u.id, "makeOfficer")} className="px-2.5 py-1 text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg hover:bg-amber-500/20 transition-colors">+Officer</button>
+        );
+      } else {
+        btns.push(
+          <button key="rmoff" onClick={() => doAction(u.id, "removeOfficer")} className="px-2.5 py-1 text-[10px] bg-white/5 text-slate-400 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">-Officer</button>
+        );
+      }
+    }
+
+    // Kick from mess
+    if (u.messId && !isSelf) {
+      btns.push(
+        <button key="kick" onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">Kick</button>
+      );
+    }
+
+    // Delete
+    if (!isSelf) {
+      btns.push(
+        <button key="del" onClick={() => deleteUser(u.id, u.name)} className="px-2.5 py-1 text-[10px] bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors">🗑 Delete</button>
+      );
+    }
+
+    return btns;
   };
 
   return (
@@ -117,7 +187,7 @@ export default function AdminUsersPage() {
               <div key={u.id} className="bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-slate-400"}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : u.isOfficer ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white" : "bg-white/10 text-slate-400"}`}>
                       {u.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -126,7 +196,7 @@ export default function AdminUsersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {u.isAdmin && <span className="px-1.5 py-0.5 text-[9px] bg-violet-500/20 text-violet-300 border border-violet-500/20 rounded-md font-medium">Admin</span>}
+                    {roleBadge(u)}
                     <span className={`w-2 h-2 rounded-full ${u.isActive ? "bg-emerald-400" : "bg-red-400"}`} />
                   </div>
                 </div>
@@ -135,20 +205,7 @@ export default function AdminUsersPage() {
                   <span className="text-slate-400">{u.mess?.name || "No mess"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {u.isActive ? (
-                    <button onClick={() => doAction(u.id, "deactivate")} className="px-2.5 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20">Deactivate</button>
-                  ) : (
-                    <button onClick={() => doAction(u.id, "activate")} className="px-2.5 py-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20">Activate</button>
-                  )}
-                  {!u.isAdmin ? (
-                    <button onClick={() => doAction(u.id, "makeAdmin")} className="px-2.5 py-1 text-[10px] bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg hover:bg-violet-500/20">→Admin</button>
-                  ) : (
-                    <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-slate-400 border border-white/10 rounded-lg hover:bg-white/10">✕Admin</button>
-                  )}
-                  {u.messId && (
-                    <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20">Kick</button>
-                  )}
-                  <button onClick={() => deleteUser(u.id, u.name)} className="px-2.5 py-1 text-[10px] bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30">🗑 Delete</button>
+                  {renderActions(u)}
                 </div>
               </div>
             ))}
@@ -173,13 +230,13 @@ export default function AdminUsersPage() {
                     <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : "bg-white/10 text-slate-400"}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${u.isAdmin ? "bg-gradient-to-br from-violet-500 to-pink-500 text-white" : u.isOfficer ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white" : "bg-white/10 text-slate-400"}`}>
                             {u.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-white">{u.name}</span>
-                              {u.isAdmin && <span className="px-1.5 py-0.5 text-[9px] bg-violet-500/20 text-violet-300 border border-violet-500/20 rounded-md font-medium">Admin</span>}
+                              {roleBadge(u)}
                             </div>
                             <p className="text-[11px] text-slate-400">{u.email}</p>
                           </div>
@@ -200,20 +257,7 @@ export default function AdminUsersPage() {
                       <td className="px-5 py-4 text-slate-400 text-xs">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap justify-end gap-1.5">
-                          {u.isActive ? (
-                            <button onClick={() => doAction(u.id, "deactivate")} className="px-2.5 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">Deactivate</button>
-                          ) : (
-                            <button onClick={() => doAction(u.id, "activate")} className="px-2.5 py-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-colors">Activate</button>
-                          )}
-                          {!u.isAdmin ? (
-                            <button onClick={() => doAction(u.id, "makeAdmin")} className="px-2.5 py-1 text-[10px] bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg hover:bg-violet-500/20 transition-colors">→Admin</button>
-                          ) : (
-                            <button onClick={() => doAction(u.id, "removeAdmin")} className="px-2.5 py-1 text-[10px] bg-white/5 text-slate-400 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">✕Admin</button>
-                          )}
-                          {u.messId && (
-                            <button onClick={() => doAction(u.id, "kickFromMess")} className="px-2.5 py-1 text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg hover:bg-orange-500/20 transition-colors">Kick</button>
-                          )}
-                          <button onClick={() => deleteUser(u.id, u.name)} className="px-2.5 py-1 text-[10px] bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors">🗑 Delete</button>
+                          {renderActions(u)}
                         </div>
                       </td>
                     </tr>

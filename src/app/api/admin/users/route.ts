@@ -191,7 +191,50 @@ export async function DELETE(request: NextRequest) {
 
   // Delete all related records, then the user
   try {
+    // Reassign messes created by this user to another admin or first remaining member
+    const createdMesses = await prisma.mess.findMany({ where: { createdById: id }, select: { id: true } });
+    for (const mess of createdMesses) {
+      const replacement = await prisma.user.findFirst({
+        where: { messId: mess.id, id: { not: id }, isActive: true },
+        orderBy: { joinDate: "asc" },
+      });
+      if (replacement) {
+        await prisma.mess.update({ where: { id: mess.id }, data: { createdById: replacement.id } });
+      } else {
+        // No other members — delete the entire mess and its data
+        const tripIds = (await prisma.bazarTrip.findMany({ where: { messId: mess.id }, select: { id: true } })).map(t => t.id);
+        const topicIds = (await prisma.mealVoteTopic.findMany({ where: { messId: mess.id }, select: { id: true } })).map(t => t.id);
+        if (tripIds.length > 0) await prisma.bazarItem.deleteMany({ where: { tripId: { in: tripIds } } });
+        if (topicIds.length > 0) await prisma.mealVote.deleteMany({ where: { topicId: { in: topicIds } } });
+        await prisma.mealVoteTopic.deleteMany({ where: { messId: mess.id } });
+        await prisma.bazarTrip.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealEntry.deleteMany({ where: { messId: mess.id } });
+        await prisma.deposit.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealPlan.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealRating.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealOffRequest.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealStatus.deleteMany({ where: { messId: mess.id } });
+        await prisma.mealStatusRequest.deleteMany({ where: { messId: mess.id } });
+        await prisma.announcement.deleteMany({ where: { messId: mess.id } });
+        await prisma.auditLog.deleteMany({ where: { messId: mess.id } });
+        await prisma.notification.deleteMany({ where: { messId: mess.id } });
+        await prisma.washroomCleaning.deleteMany({ where: { messId: mess.id } });
+        await prisma.washroomDutySchedule.deleteMany({ where: { messId: mess.id } });
+        await prisma.bazarDutySchedule.deleteMany({ where: { messId: mess.id } });
+        await prisma.managerRotation.deleteMany({ where: { messId: mess.id } });
+        await prisma.billPayment.deleteMany({ where: { messId: mess.id } });
+        await prisma.billSetting.deleteMany({ where: { messId: mess.id } });
+        await prisma.fine.deleteMany({ where: { messId: mess.id } });
+        await prisma.joinRequest.deleteMany({ where: { messId: mess.id } });
+        await prisma.dutySwapRequest.deleteMany({ where: { messId: mess.id } });
+        await prisma.dispute.deleteMany({ where: { messId: mess.id } });
+        await prisma.memberPresence.deleteMany({ where: { messId: mess.id } });
+        await prisma.mess.delete({ where: { id: mess.id } });
+      }
+    }
+
     await prisma.$transaction([
+      prisma.bazarTrip.deleteMany({ where: { buyerId: id } }),
       prisma.mealEntry.deleteMany({ where: { memberId: id } }),
       prisma.deposit.deleteMany({ where: { memberId: id } }),
       prisma.mealRating.deleteMany({ where: { memberId: id } }),
@@ -202,9 +245,11 @@ export async function DELETE(request: NextRequest) {
       prisma.washroomCleaning.deleteMany({ where: { memberId: id } }),
       prisma.billPayment.deleteMany({ where: { memberId: id } }),
       prisma.fine.deleteMany({ where: { memberId: id } }),
+      prisma.fine.deleteMany({ where: { createdById: id } }),
       prisma.mealVote.deleteMany({ where: { voterId: id } }),
       prisma.memberPresence.deleteMany({ where: { memberId: id } }),
       prisma.auditLog.deleteMany({ where: { editedById: id } }),
+      prisma.joinRequest.deleteMany({ where: { userId: id } }),
       prisma.user.delete({ where: { id } }),
     ]);
   } catch (e: unknown) {
