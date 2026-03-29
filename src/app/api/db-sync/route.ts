@@ -232,6 +232,16 @@ export async function GET() {
       }
     }
 
+    // --- Fix Missing Unique Indexes ---
+    try {
+      await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "MealEntry_date_memberId_key" ON "MealEntry"("date", "memberId")`);
+      await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "MealStatus_date_memberId_meal_key" ON "MealStatus"("date", "memberId", "meal")`);
+      await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "MealPlan_date_messId_key" ON "MealPlan"("date", "messId")`);
+      results.push(`✅ Created Unique Indexes for MealEntry, MealStatus, MealPlan`);
+    } catch (e: unknown) {
+      results.push(`❌ Unique Indexes: ${(e as Error).message}`);
+    }
+
     // --- Enforce PLATFORM_ADMIN_EMAIL: strip isAdmin from unauthorized users ---
     if (allowedEmails.length > 0) {
       try {

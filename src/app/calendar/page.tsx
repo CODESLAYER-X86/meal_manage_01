@@ -331,14 +331,14 @@ export default function CalendarPage() {
               <p className="text-sm text-slate-400">No market purchases</p>
             ) : (
               selectedBazar.map((trip) => (
-                <div key={trip.id} className="mb-3 p-3 bg-orange-50 rounded-lg">
+                <div key={trip.id} className="mb-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium">Buyer: {trip.buyer.name}</span>
-                    <span className="font-bold text-orange-700">৳{trip.totalCost}</span>
+                    <span className="font-medium text-slate-200">Buyer: {trip.buyer.name}</span>
+                    <span className="font-bold text-orange-400">৳{trip.totalCost}</span>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-orange-100">
+                    <table className="w-full text-sm text-slate-300">
+                      <thead className="bg-orange-500/20 text-orange-200">
                         <tr>
                           <th className="text-left p-1.5">SL</th>
                           <th className="text-left p-1.5">Item</th>
@@ -349,12 +349,12 @@ export default function CalendarPage() {
                       </thead>
                       <tbody>
                         {trip.items.map((item) => (
-                          <tr key={item.serialNo} className="border-t border-orange-200">
+                          <tr key={item.serialNo} className="border-t border-orange-500/20">
                             <td className="p-1.5">{item.serialNo}</td>
                             <td className="p-1.5">{item.itemName}</td>
                             <td className="text-center p-1.5">{item.quantity}</td>
                             <td className="text-center p-1.5">{item.unit}</td>
-                            <td className="text-right p-1.5">৳{item.price}</td>
+                            <td className="text-right p-1.5 text-orange-300">৳{item.price}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -373,10 +373,10 @@ export default function CalendarPage() {
             ) : (
               <div className="space-y-1">
                 {selectedWashroom.map((w) => (
-                  <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-lg p-2">
-                    <span className="text-xs font-medium bg-teal-100 text-teal-700 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
-                    <span className="text-slate-300">{w.member.name}</span>
-                    <span className="ml-auto text-xs text-green-600 font-bold">✅ Done</span>
+                  <div key={w.id} className="flex items-center gap-2 text-sm bg-teal-500/10 border border-teal-500/20 rounded-lg p-2">
+                    <span className="text-xs font-medium bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded">WR-{w.washroomNumber}</span>
+                    <span className="text-slate-200">{w.member.name}</span>
+                    <span className="ml-auto text-xs text-green-400 font-bold">✅ Done</span>
                   </div>
                 ))}
               </div>
