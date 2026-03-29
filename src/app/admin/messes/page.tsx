@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Eye, Crown, Trash2, Home } from "lucide-react";
 
 interface MessMember {
   id: string;
@@ -170,7 +172,7 @@ export default function AdminMessesPage() {
 
       {messes.length === 0 ? (
         <div className="bg-[#1a1a3e]/50 border border-white/5 rounded-2xl p-12 text-center">
-          <p className="text-4xl mb-3">🏠</p>
+          <Home className="w-8 h-8 text-slate-600 mx-auto mb-3" />
           <p className="text-slate-400">No messes created yet</p>
         </div>
       ) : (
@@ -185,11 +187,14 @@ export default function AdminMessesPage() {
                     <p className="text-[10px] font-mono text-slate-400 mt-0.5">Code: {m.inviteCode}</p>
                   </div>
                   <div className="flex gap-1.5">
-                    <button onClick={() => openChangeManager(m.id, m.name)} className="px-2 py-1 text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-colors">
-                      👑 Manager
+                    <Link href={`/admin/messes/${m.id}`} className="px-2 py-1 text-[10px] bg-white/5 text-slate-300 border border-white/10 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1">
+                      <Eye className="w-3 h-3" /> Inspect
+                    </Link>
+                    <button onClick={() => openChangeManager(m.id, m.name)} className="px-2 py-1 text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-colors flex items-center gap-1">
+                      <Crown className="w-3 h-3" /> Manager
                     </button>
-                    <button onClick={() => deleteMess(m.id, m.name)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors">
-                      Delete
+                    <button onClick={() => deleteMess(m.id, m.name)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-1">
+                      <Trash2 className="w-3 h-3" /> Delete
                     </button>
                   </div>
                 </div>
@@ -234,17 +239,23 @@ export default function AdminMessesPage() {
                       <td className="px-5 py-4 text-slate-400 text-xs">{new Date(m.createdAt).toLocaleDateString()}</td>
                       <td className="px-5 py-4 text-right">
                         <div className="flex justify-end gap-1.5">
+                          <Link
+                            href={`/admin/messes/${m.id}`}
+                            className="px-3 py-1.5 text-xs bg-white/5 text-slate-300 border border-white/10 rounded-lg hover:bg-white/10 transition-all duration-200 inline-flex items-center gap-1"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Inspect
+                          </Link>
                           <button
                             onClick={() => openChangeManager(m.id, m.name)}
-                            className="px-3 py-1.5 text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-all duration-200"
+                            className="px-3 py-1.5 text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg hover:bg-indigo-500/20 transition-all duration-200 inline-flex items-center gap-1"
                           >
-                            👑 Manager
+                            <Crown className="w-3.5 h-3.5" /> Manager
                           </button>
                           <button
                             onClick={() => deleteMess(m.id, m.name)}
-                            className="px-3 py-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all duration-200"
+                            className="px-3 py-1.5 text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-all duration-200 inline-flex items-center gap-1"
                           >
-                            Delete
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
                         </div>
                       </td>

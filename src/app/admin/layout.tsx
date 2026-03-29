@@ -4,13 +4,16 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Zap, Home, Users, ClipboardList, Settings, Database, BarChart3, LogOut } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/admin", label: "Overview", icon: "⚡" },
-  { href: "/admin/messes", label: "Messes", icon: "🏠" },
-  { href: "/admin/users", label: "Users", icon: "👤" },
-  { href: "/admin/audit", label: "Audit Log", icon: "📋" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙️" },
+  { href: "/admin", label: "Overview", icon: Zap },
+  { href: "/admin/messes", label: "Messes", icon: Home },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/research", label: "Research", icon: Database },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/audit", label: "Audit Log", icon: ClipboardList },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -80,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }
               `}
             >
-              <span className="text-base">{item.icon}</span>
+              <item.icon className="w-4 h-4" />
               {item.label}
               {isActive(item.href) && (
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400 shadow-sm shadow-violet-400/50" />
@@ -110,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="text-gray-500 hover:text-red-400 transition-colors text-sm"
               title="Logout"
             >
-              🚪
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
