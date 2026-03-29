@@ -137,8 +137,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
           if (dbUser) {
             token.role = dbUser.role;
-            // Enforce: isAdmin can only be true if email is in PLATFORM_ADMIN_EMAIL
-            token.isAdmin = dbUser.isAdmin && isAllowedAdminEmail(dbUser.email);
+            const shouldBeAdmin = isAllowedAdminEmail(dbUser.email);
+            
+            // Auto-promote: email is in env var but DB doesn't have isAdmin yet
+            if (shouldBeAdmin && !dbUser.isAdmin) {
+              await prisma.user.update({
+                where: { id: token.id as string },
+                data: { isAdmin: true },
+              });
+              token.isAdmin = true;
+            }
+            // Auto-revoke: DB has isAdmin but email no longer in env var
+            else if (!shouldBeAdmin && dbUser.isAdmin) {
+              await prisma.user.update({
+                where: { id: token.id as string },
+                data: { isAdmin: false },
+              });
+              token.isAdmin = false;
+            }
+            else {
+              token.isAdmin = dbUser.isAdmin;
+            }
+            
             token.isOfficer = dbUser.isOfficer;
             token.messId = dbUser.messId;
           }
