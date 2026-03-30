@@ -65,12 +65,70 @@ export async function GET() {
       `SELECT column_name::text as col FROM information_schema.columns WHERE table_name = 'MealPlan' ORDER BY ordinal_position`
     );
     const existingMpCols = new Set(mpCols.map(c => c.col));
-    if (!existingMpCols.has('cancelledSnapshot')) {
-      try {
-        await prisma.$executeRawUnsafe(`ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "cancelledSnapshot" TEXT NOT NULL DEFAULT '{}'`);
-        results.push(`✅ Added MealPlan.cancelledSnapshot`);
-      } catch (e: unknown) {
-        results.push(`❌ MealPlan.cancelledSnapshot: ${(e as Error).message}`);
+    results.push(`MealPlan columns: ${[...existingMpCols].join(", ")}`);
+
+    const mealPlanAlters: Record<string, string> = {
+      cancelledSnapshot: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "cancelledSnapshot" TEXT NOT NULL DEFAULT '{}'`,
+      wastage: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "wastage" TEXT NOT NULL DEFAULT '{}'`,
+      meals: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "meals" TEXT NOT NULL DEFAULT '{}'`,
+      cancelledMeals: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "cancelledMeals" TEXT NOT NULL DEFAULT '[]'`,
+      breakfast: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "breakfast" TEXT`,
+      lunch: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "lunch" TEXT`,
+      dinner: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "dinner" TEXT`,
+      updatedAt: `ALTER TABLE "MealPlan" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`,
+    };
+
+    for (const [col, sql] of Object.entries(mealPlanAlters)) {
+      if (!existingMpCols.has(col)) {
+        try {
+          await prisma.$executeRawUnsafe(sql);
+          results.push(`✅ Added MealPlan.${col}`);
+        } catch (e: unknown) {
+          results.push(`❌ MealPlan.${col}: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    // --- Fix missing MealEntry columns ---
+    const meCols = await prisma.$queryRawUnsafe<{ col: string }[]>(
+      `SELECT column_name::text as col FROM information_schema.columns WHERE table_name = 'MealEntry' ORDER BY ordinal_position`
+    );
+    const existingMeCols = new Set(meCols.map(c => c.col));
+    const mealEntryAlters: Record<string, string> = {
+      meals: `ALTER TABLE "MealEntry" ADD COLUMN IF NOT EXISTS "meals" TEXT NOT NULL DEFAULT '{}'`,
+      total: `ALTER TABLE "MealEntry" ADD COLUMN IF NOT EXISTS "total" DOUBLE PRECISION NOT NULL DEFAULT 0`,
+      breakfast: `ALTER TABLE "MealEntry" ADD COLUMN IF NOT EXISTS "breakfast" DOUBLE PRECISION NOT NULL DEFAULT 0`,
+      lunch: `ALTER TABLE "MealEntry" ADD COLUMN IF NOT EXISTS "lunch" DOUBLE PRECISION NOT NULL DEFAULT 0`,
+      dinner: `ALTER TABLE "MealEntry" ADD COLUMN IF NOT EXISTS "dinner" DOUBLE PRECISION NOT NULL DEFAULT 0`,
+    };
+    for (const [col, sql] of Object.entries(mealEntryAlters)) {
+      if (!existingMeCols.has(col)) {
+        try {
+          await prisma.$executeRawUnsafe(sql);
+          results.push(`✅ Added MealEntry.${col}`);
+        } catch (e: unknown) {
+          results.push(`❌ MealEntry.${col}: ${(e as Error).message}`);
+        }
+      }
+    }
+
+    // --- Fix missing MealStatus columns ---
+    const msCols = await prisma.$queryRawUnsafe<{ col: string }[]>(
+      `SELECT column_name::text as col FROM information_schema.columns WHERE table_name = 'MealStatus' ORDER BY ordinal_position`
+    );
+    const existingMsCols = new Set(msCols.map(c => c.col));
+    const mealStatusAlters: Record<string, string> = {
+      changedBy: `ALTER TABLE "MealStatus" ADD COLUMN IF NOT EXISTS "changedBy" TEXT`,
+      updatedAt: `ALTER TABLE "MealStatus" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`,
+    };
+    for (const [col, sql] of Object.entries(mealStatusAlters)) {
+      if (!existingMsCols.has(col)) {
+        try {
+          await prisma.$executeRawUnsafe(sql);
+          results.push(`✅ Added MealStatus.${col}`);
+        } catch (e: unknown) {
+          results.push(`❌ MealStatus.${col}: ${(e as Error).message}`);
+        }
       }
     }
 
