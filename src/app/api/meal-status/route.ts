@@ -59,7 +59,10 @@ function getMealsList(mealTypes: string | null | undefined, mealsPerDay: number)
   return mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
 }
 
-// Helper: sync MealEntry from all meal statuses for a member on a date
+// Helper: sync MealEntry from all meal statuses for a member on a date.
+// lockedMeals = meals whose blackout has already STARTED.
+// For locked meals, we PRESERVE the existing snapshot value in MealEntry (immutable once locked).
+// For unlocked meals (blackout hasn't started), we always read current MealStatus.
 async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[], lockedMeals?: string[]) {
   const statuses = await prisma.mealStatus.findMany({
     where: { memberId, messId, date },
@@ -68,24 +71,28 @@ async function syncMealEntry(memberId: string, messId: string, date: Date, meals
   const statusMap: Record<string, boolean> = {};
   for (const s of statuses) statusMap[s.meal] = s.isOff;
 
-  // If there are locked meals, get existing entry to preserve their values
+  // Get existing entry so we can preserve already-locked meal values
+  const existingEntry = await prisma.mealEntry.findFirst({
+    where: { date, memberId },
+  });
   let existingMealsObj: Record<string, number> = {};
-  if (lockedMeals && lockedMeals.length > 0) {
-    const existing = await prisma.mealEntry.findFirst({
-      where: { date, memberId },
-    });
-    if (existing?.meals) {
-      try { existingMealsObj = JSON.parse(existing.meals as string); } catch { /* ignore */ }
-    }
+  if (existingEntry?.meals) {
+    try { existingMealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
   }
 
-  // Build meals object: 1 = eating (default), 0 = off
+  // Build meals object:
+  //   - Locked meal WITH existing snapshot → preserve snapshot (immutable, blackout passed)
+  //   - Everything else → read current MealStatus (1 = eating, 0 = off)
   const mealsObj: Record<string, number> = {};
   let total = 0;
   for (const meal of mealsList) {
-    if (lockedMeals?.includes(meal) && meal in existingMealsObj) {
+    const isLocked = lockedMeals?.includes(meal);
+    const hasSnapshot = meal in existingMealsObj;
+    if (isLocked && hasSnapshot) {
+      // Preserve the locked snapshot
       mealsObj[meal] = existingMealsObj[meal];
     } else {
+      // Live status (toggling still applies if blackout hasn't started, or manager override)
       mealsObj[meal] = statusMap[meal] ? 0 : 1;
     }
     total += mealsObj[meal];
@@ -94,11 +101,6 @@ async function syncMealEntry(memberId: string, messId: string, date: Date, meals
   const breakfast = mealsObj["breakfast"] ?? 0;
   const lunch = mealsObj["lunch"] ?? 0;
   const dinner = mealsObj["dinner"] ?? 0;
-
-  // Use findFirst + update/create instead of upsert to avoid index issues
-  const existingEntry = await prisma.mealEntry.findFirst({
-    where: { date, memberId },
-  });
 
   if (existingEntry) {
     await prisma.mealEntry.update({
@@ -209,38 +211,43 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // ===== AUTO-FILL: Lock each meal independently when its blackout starts =====
+    // ===== AUTO-FILL: When a meal's blackout has started, snapshot all members' entries =====
+    // We only write entries for meals that have NOT been snapshotted yet (first time blackout starts).
+    // This is now the ONLY place auto-fill happens (not duplicated inline above).
     const { todayDate } = getTodayBD();
     const lockedMeals = mealsList.filter(meal => hasBlackoutStarted(meal, blackouts));
 
     if (mess?.autoMealEntry !== false && lockedMeals.length > 0) {
       await Promise.all(members.map(async (m) => {
+        // Get the existing entry to check if we already snapshotted this meal
         const existingEntry = await prisma.mealEntry.findFirst({
           where: { date: todayDate, memberId: m.id },
         });
+        let existingMealsObj: Record<string, number> = {};
+        if (existingEntry?.meals) {
+          try { existingMealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
+        }
 
-        const existingMealsObj: Record<string, number> = existingEntry?.meals
-          ? JSON.parse(existingEntry.meals as string)
-          : {};
+        // Only auto-fill meals that haven't been snapshotted yet
+        const mealsNeedingSnapshot = lockedMeals.filter((meal) => !(meal in existingMealsObj));
+        if (mealsNeedingSnapshot.length === 0) return; // All locked meals already snapshotted
 
-        const mealsToSync = lockedMeals.filter((meal) => !(meal in existingMealsObj));
-        if (mealsToSync.length === 0) return;
-
+        // Read current MealStatus for just the meals that need snapshotting
         const mealStatuses = await prisma.mealStatus.findMany({
-          where: { memberId: m.id, messId, date: todayDate, meal: { in: mealsToSync } },
+          where: { memberId: m.id, messId, date: todayDate, meal: { in: mealsNeedingSnapshot } },
           select: { meal: true, isOff: true },
         });
         const sMap: Record<string, boolean> = {};
         for (const s of mealStatuses) sMap[s.meal] = s.isOff;
 
-        for (const meal of mealsToSync) {
+        // Write snapshot values for newly-locked meals
+        for (const meal of mealsNeedingSnapshot) {
           existingMealsObj[meal] = sMap[meal] ? 0 : 1;
         }
 
+        // Recalculate total from all meals in the list
         let total = 0;
-        for (const meal of mealsList) {
-          total += existingMealsObj[meal] ?? 0;
-        }
+        for (const meal of mealsList) total += existingMealsObj[meal] ?? 0;
 
         const breakfast = existingMealsObj["breakfast"] ?? 0;
         const lunch = existingMealsObj["lunch"] ?? 0;
@@ -424,10 +431,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Auto-sync MealEntry from meal status
+    // Auto-sync MealEntry from meal status after every toggle.
+    // For today: meals OTHER than the just-toggled one that are already locked (blackout started)
+    // are preserved as snapshots. The toggled meal is always updated live.
     const { todayDate: syncTodayDate } = getTodayBD();
     let lockedMealsForSync: string[] | undefined;
     if (mealDate.getTime() === syncTodayDate.getTime()) {
+      // Lock all meals EXCEPT the one being toggled (it just changed, so it should be live)
       lockedMealsForSync = mealsList.filter(m => m !== meal && hasBlackoutStarted(m, blackouts));
     }
     await syncMealEntry(targetMemberId, messId, mealDate, mealsList, lockedMealsForSync);
