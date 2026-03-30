@@ -361,7 +361,9 @@ export default function MealPlanPage() {
                                 🔒
                               </span>
                             ) : (
-                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${isOff ? "bg-red-50 text-red-400" : "bg-green-50 text-green-400"
+                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border transition-colors ${isOff 
+                                ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                 }`}>
                                 {isOff ? "✕" : "✓"}
                               </span>
@@ -372,13 +374,16 @@ export default function MealPlanPage() {
                     </tr>
                   ))}
                   {/* Cook Count Row */}
-                  <tr className="bg-indigo-50/50">
-                    <td className="py-2.5 pr-3">
-                      <span className="font-semibold text-indigo-700 text-sm">🧑‍🍳 Cook Count</span>
+                  <tr className="bg-white/[0.05] border-t border-white/10">
+                    <td className="py-3 pr-3">
+                      <span className="font-bold text-indigo-400 text-xs uppercase tracking-wider flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                        Cook Count
+                      </span>
                     </td>
                     {meals.map((meal) => (
-                      <td key={meal} className="text-center py-2.5 px-2">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold">
+                      <td key={meal} className="text-center py-3 px-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 text-sm font-black border border-indigo-500/30">
                           {mealStatusData.mealCounts?.[meal] ?? 0}
                         </span>
                       </td>
@@ -396,25 +401,29 @@ export default function MealPlanPage() {
                   {mealStatusData.pendingRequests.map((req) => {
                     const memberName = mealStatusData.members.find((m) => m.id === req.memberId)?.name || "Unknown";
                     return (
-                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div>
-                          <p className="text-sm font-medium text-slate-100">
-                            {memberName} wants to turn <strong className="capitalize">{req.meal}</strong> {req.wantOff ? "OFF" : "ON"}
+                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/[0.04] border border-white/10 rounded-xl transition-all hover:bg-white/[0.06]">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                             <p className="text-sm font-semibold text-slate-100">{memberName}</p>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                             Wants <span className="text-amber-400 capitalize bg-amber-400/10 px-1 rounded font-bold">{req.meal}</span> {req.wantOff ? "OFF" : "ON"}
                           </p>
-                          {req.reason && <p className="text-xs text-slate-400 mt-0.5">{req.reason}</p>}
+                          {req.reason && <p className="text-[11px] text-slate-400 mt-1 italic border-l-2 border-amber-500/30 pl-2">"{req.reason}"</p>}
                         </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleApproveRequest(req.id, "approve")}
                             disabled={mealStatusToggling === req.id}
-                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg disabled:opacity-50"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg transition-all"
                           >
                             ✅ Approve
                           </button>
                           <button
                             onClick={() => handleApproveRequest(req.id, "reject")}
                             disabled={mealStatusToggling === req.id}
-                            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg disabled:opacity-50"
+                            className="flex-1 sm:flex-none px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-all"
                           >
                             ❌ Reject
                           </button>

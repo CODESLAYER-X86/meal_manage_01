@@ -166,8 +166,8 @@ export default function CalendarPage() {
       {/* Calendar Grid */}
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden">
         <div className="grid grid-cols-7 bg-white/[0.02]">
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <div key={i} className="p-1.5 sm:p-3 text-center text-xs sm:text-sm font-medium text-slate-400 border-b">
+          {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((d, i) => (
+            <div key={i} className="p-2 sm:p-4 text-center text-[10px] sm:text-xs font-black text-indigo-400 bg-white/[0.04] border-b border-white/10 uppercase tracking-widest">
               {d}
             </div>
           ))}
@@ -191,27 +191,30 @@ export default function CalendarPage() {
               <div
                 key={day}
                 onClick={() => setSelectedDate(day)}
-                className={`p-1 sm:p-2 border-b border-r min-h-[52px] sm:min-h-[80px] cursor-pointer transition hover:bg-indigo-50 ${isSelected ? "bg-indigo-100 ring-2 ring-indigo-400" : ""
-                  }`}
+                className={`p-1 sm:p-2 border-b border-r min-h-[64px] sm:min-h-[90px] cursor-pointer transition-all relative group ${
+                  isSelected 
+                    ? "bg-indigo-500/20 ring-1 ring-inset ring-indigo-500/40" 
+                    : "hover:bg-white/[0.04]"
+                }`}
               >
-                <div className="text-xs sm:text-sm font-medium text-slate-300">{day}</div>
+                <div className={`text-xs sm:text-sm font-black mb-1 ${isSelected ? "text-indigo-300" : "text-slate-100"}`}>{day}</div>
                 {totalMeals > 0 && (
-                  <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded-full inline-block">
-                    🍛{totalMeals}
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-md border border-indigo-500/20 font-bold inline-block">
+                    🍛 <span className="text-indigo-200">{totalMeals}</span>
                   </div>
                 )}
                 {hasBazar && (
-                  <div className="mt-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 px-1 py-0.5 rounded-full inline-block">
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded-md border border-orange-500/20 font-bold inline-block">
                     🛒
                   </div>
                 )}
                 {hasWashroom && (
-                  <div className="mt-0.5 text-[10px] sm:text-xs bg-teal-100 text-teal-700 px-1 py-0.5 rounded-full inline-block">
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-teal-500/20 text-teal-300 px-1.5 py-0.5 rounded-md border border-teal-500/20 font-bold inline-block">
                     🚿
                   </div>
                 )}
                 {hasMenu && (
-                  <div className="mt-0.5 text-[10px] sm:text-xs bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full inline-block">
+                  <div className="mt-0.5 text-[10px] sm:text-xs bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded-md border border-purple-500/20 font-bold inline-block">
                     📋
                   </div>
                 )}
@@ -230,7 +233,10 @@ export default function CalendarPage() {
 
           {/* Menu */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-2">🍽️ Menu</h4>
+            <h4 className="text-xs font-black text-indigo-300/80 uppercase tracking-[2px] mb-3 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
+              Menu
+            </h4>
             {selectedPlan && (selectedPlan.breakfast || selectedPlan.lunch || selectedPlan.dinner || selectedPlan.meals) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {(() => {
@@ -244,12 +250,19 @@ export default function CalendarPage() {
                   return mealTypesList.map((mt) => {
                     const val = mealsObj[mt];
                     if (!val) return null;
-                    const colors: Record<string, string> = { breakfast: "amber", lunch: "orange", dinner: "indigo" };
-                    const color = colors[mt] || "gray";
+                    const colorMap: Record<string, { bg: string, border: string, text: string, accent: string }> = {
+                      breakfast: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", accent: "text-amber-500" },
+                      lunch: { bg: "bg-orange-500/10", border: "border-orange-500/20", text: "text-orange-400", accent: "text-orange-500" },
+                      dinner: { bg: "bg-indigo-500/10", border: "border-indigo-500/20", text: "text-indigo-400", accent: "text-indigo-400" }
+                    };
+                    const theme = colorMap[mt] || { bg: "bg-slate-500/10", border: "border-slate-500/20", text: "text-slate-400", accent: "text-slate-400" };
                     return (
-                      <div key={mt} className={`bg-${color}-50 border border-${color}-200 rounded-lg p-3`}>
-                        <p className={`text-xs font-semibold text-${color}-600 mb-1`}>{DEFAULT_ICONS[mt] || "🍽️"} <span className="capitalize">{mt}</span></p>
-                        <p className="text-sm text-slate-100">{val}</p>
+                      <div key={mt} className={`${theme.bg} border ${theme.border} rounded-xl p-4 transition-all hover:bg-white/[0.04]`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={theme.accent}>{DEFAULT_ICONS[mt] || "🍽️"}</span>
+                          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${theme.text}`}>{mt}</span>
+                        </div>
+                        <p className="text-sm text-slate-200 leading-relaxed font-medium">{val}</p>
                       </div>
                     );
                   });
@@ -262,7 +275,10 @@ export default function CalendarPage() {
 
           {/* Meals */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-2">🍛 Meal Entries</h4>
+            <h4 className="text-xs font-black text-indigo-300/80 uppercase tracking-[2px] mb-3 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></div>
+              Meal Entries
+            </h4>
             {selectedMeals.length === 0 ? (
               <p className="text-sm text-slate-400">No meal entries</p>
             ) : (
@@ -326,7 +342,10 @@ export default function CalendarPage() {
 
           {/* Bazar Items */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-2">🛒 Bazar / Market Purchases</h4>
+            <h4 className="text-xs font-black text-orange-300/80 uppercase tracking-[2px] mb-3 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"></div>
+              Bazar / Market Purchases
+            </h4>
             {selectedBazar.length === 0 ? (
               <p className="text-sm text-slate-400">No market purchases</p>
             ) : (
@@ -367,7 +386,10 @@ export default function CalendarPage() {
 
           {/* Washroom Cleanings */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-400 mb-2">🚿 Washroom Cleaning</h4>
+            <h4 className="text-xs font-black text-teal-300/80 uppercase tracking-[2px] mb-3 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.6)]"></div>
+              Washroom Cleaning
+            </h4>
             {selectedWashroom.length === 0 ? (
               <p className="text-sm text-slate-400">No washroom cleaning</p>
             ) : (
