@@ -177,10 +177,24 @@ export async function POST(request: Request) {
         );
       }
       if (existingRequest.status === "APPROVED") {
-        return NextResponse.json(
-          { error: "You are already a member of this mess." },
-          { status: 400 }
-        );
+        // User was previously approved but may have been kicked (messId is now null)
+        // If they still have messId, they are actually in the mess
+        if (currentUser?.messId) {
+          return NextResponse.json(
+            { error: "You are already a member of this mess." },
+            { status: 400 }
+          );
+        }
+        // Kicked member trying to re-join — allow by resetting to PENDING
+        await prisma.joinRequest.update({
+          where: { id: existingRequest.id },
+          data: { status: "PENDING", reviewedAt: null },
+        });
+        return NextResponse.json({
+          success: true,
+          pending: true,
+          mess: { id: mess.id, name: mess.name },
+        });
       }
       // If rejected, allow re-request by updating
       await prisma.joinRequest.update({
