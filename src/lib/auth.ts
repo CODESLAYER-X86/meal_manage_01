@@ -120,14 +120,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.lastRefresh = Date.now();
       }
       
-      // Handle manual session update — ONLY allow messId (validated on next DB refresh)
+      // Handle manual session update — validate messId against DB before accepting
       // SECURITY: Never allow role/isAdmin/isOfficer updates from client
       if (trigger === "update" && session !== null) {
-        token.messId = session.user?.messId ?? token.messId;
+        const requestedMessId = session.user?.messId;
+        if (requestedMessId && requestedMessId !== token.messId) {
+          // Validate that this mess actually exists and user belongs to it
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { messId: true },
+          });
+          token.messId = dbUser?.messId ?? null;
+        }
       }
 
-      // Refresh role/messId from DB every 5 minutes (not every request)
-      const REFRESH_INTERVAL = 5 * 60 * 1000;
+      // Refresh role/messId from DB frequently to prevent stale data
+      // (e.g. after mess deletion, kick, or role change by admin)
+      const REFRESH_INTERVAL = 30 * 1000; // 30 seconds
       const now = Date.now();
       if (token.id && (!token.lastRefresh || now - (token.lastRefresh as number) >= REFRESH_INTERVAL)) {
         try {
