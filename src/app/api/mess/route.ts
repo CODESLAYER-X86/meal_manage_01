@@ -133,31 +133,13 @@ export async function POST(request: Request) {
     }
 
     const searchCode = inviteCode.trim().toUpperCase();
-    console.log(`[DEBUG] Join attempt: searching for invite code "${searchCode}"`);
 
-    let mess = await prisma.mess.findUnique({
+    const mess = await prisma.mess.findUnique({
       where: { inviteCode: searchCode },
-      select: { id: true, name: true, inviteCode: true },
+      select: { id: true, name: true },
     });
 
-    // Fallback: findFirst in case findUnique has adapter issues
     if (!mess) {
-      console.log(`[DEBUG] findUnique returned null, trying findFirst...`);
-      mess = await prisma.mess.findFirst({
-        where: { inviteCode: searchCode },
-        select: { id: true, name: true, inviteCode: true },
-      });
-      if (mess) {
-        console.log(`[DEBUG] findFirst FOUND the mess: ${mess.name} (id=${mess.id})`);
-      }
-    }
-
-    if (!mess) {
-      // Log all existing invite codes for debugging
-      const allMesses = await prisma.mess.findMany({
-        select: { inviteCode: true, name: true },
-      });
-      console.log(`[DEBUG] Invite code "${searchCode}" not found. Existing codes:`, JSON.stringify(allMesses));
       return NextResponse.json(
         { error: "Invalid invite code. Please check and try again." },
         { status: 404 }
