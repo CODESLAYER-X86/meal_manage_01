@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 
+// Force all handlers in this route to be dynamic (no caching)
+export const dynamic = "force-dynamic";
+
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "MESS-";
@@ -12,11 +15,17 @@ function generateInviteCode(): string {
   return code;
 }
 
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  "Pragma": "no-cache",
+  "Expires": "0",
+};
+
 // GET - Get current user's mess info
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: NO_CACHE_HEADERS });
   }
 
   const user = await prisma.user.findUnique({
@@ -37,7 +46,7 @@ export async function GET() {
   });
 
   if (!user?.mess) {
-    return NextResponse.json({ mess: null });
+    return NextResponse.json({ mess: null }, { headers: NO_CACHE_HEADERS });
   }
 
   return NextResponse.json({
@@ -58,7 +67,7 @@ export async function GET() {
       memberCount: user.mess.members.length,
       members: user.mess.members,
     },
-  });
+  }, { headers: NO_CACHE_HEADERS });
 }
 
 // POST - Create or Join a mess

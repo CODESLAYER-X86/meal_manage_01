@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 // GET - Get pending join requests for manager's mess, or check user's own pending request
 export async function GET(request: Request) {
   const session = await auth();

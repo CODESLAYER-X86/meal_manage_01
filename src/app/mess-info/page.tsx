@@ -93,7 +93,7 @@ export default function MessInfoPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const messRes = await fetch("/api/mess");
+      const messRes = await fetch("/api/mess", { cache: "no-store" });
       const messData = await messRes.json();
       setMess(messData.mess);
 

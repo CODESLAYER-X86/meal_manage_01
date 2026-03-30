@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import prisma from "@/lib/prisma";
 
 // GET - Support Vercel cron (which sends GET requests)
