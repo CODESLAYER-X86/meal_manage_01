@@ -13,14 +13,21 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [createdCode, setCreatedCode] = useState("");
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { data: session, update, status } = useSession();
 
-  // Safety guard: if user already has a mess (session updated), redirect to dashboard
+  // Safety guard: check fresh API status, not just the potentially stale session
   useEffect(() => {
-    if (session?.user && (session.user as { messId?: string | null }).messId) {
-      window.location.href = "/dashboard";
+    if (status === "authenticated") {
+      fetch("/api/mess", { cache: "no-store" })
+        .then(res => res.json())
+        .then(data => {
+          if (data.mess) {
+            window.location.href = "/dashboard";
+          }
+        })
+        .catch(() => {});
     }
-  }, [session]);
+  }, [status]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

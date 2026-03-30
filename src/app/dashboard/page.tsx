@@ -91,6 +91,7 @@ export default function DashboardPage() {
   const [requestReason, setRequestReason] = useState("");
   const [requestSubmitting, setRequestSubmitting] = useState(false);
   const [mealTypesList, setMealTypesList] = useState<string[]>(["breakfast", "lunch", "dinner"]);
+  const [mess, setMess] = useState<any>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -112,7 +113,7 @@ export default function DashboardPage() {
         fetch(`/api/meal-plan?date=${todayStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch(`/api/meal-plan?date=${tmrwStr}`).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch("/api/announcements?limit=3").then((r) => r.ok ? r.json() : null).catch(() => null),
-        fetch("/api/mess").then((r) => r.ok ? r.json() : null).catch(() => null),
+        fetch("/api/mess", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch(`/api/bill-payments?month=${now.getMonth() + 1}&year=${now.getFullYear()}`).then((r) => r.ok ? r.json() : null).catch(() => null),
         fetch(`/api/meal-status?date=${todayStr}`).then((r) => r.json()).catch(() => null),
         fetch(`/api/meal-status?date=${tmrwStr}`).then((r) => r.json()).catch(() => null),
@@ -120,6 +121,7 @@ export default function DashboardPage() {
         setBill(billData);
         setAuditLogs(Array.isArray(logs) ? logs : []);
         setTodayMenu(todayPlan && todayPlan.id ? todayPlan : null);
+        setMess(messData?.mess);
         try {
           const mt = JSON.parse(messData?.mess?.mealTypes || '["breakfast","lunch","dinner"]');
           if (Array.isArray(mt) && mt.length > 0) setMealTypesList(mt);
@@ -148,7 +150,8 @@ export default function DashboardPage() {
 
   if (!session) return null;
 
-  const isManager = session.user?.role === "MANAGER";
+  // Derive isManager from fresh API data if available, fall back to session
+  const isManager = mess?.members?.some((m: any) => m.id === session.user?.id && m.role === "MANAGER") ?? session.user?.role === "MANAGER";
   const myBill = bill?.members.find((m) => m.id === session.user?.id);
 
   const getMealIcon = (mealType: string) => {

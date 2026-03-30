@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Home, Pencil, Mailbox, Check, Clipboard, Hourglass, Smartphone, X, Users, Crown, Ban, Utensils, AlarmClock, Trash2, Droplets, Coins, Bot, Settings, AlertTriangle, Skull } from "lucide-react";
+import { Home, Pencil, Mailbox, Check, Clipboard, Hourglass, Smartphone, X, Users, Crown, Ban, Utensils, AlarmClock, Trash2, Droplets, Coins, Bot, Settings, AlertTriangle, Skull, RefreshCw } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -412,41 +412,46 @@ export default function MessInfoPage() {
 
       {/* Pending Join Requests - Manager Only */}
       {isManager && pendingRequests.length > 0 && (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border-2 border-yellow-300 p-6">
-          <h2 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
-            <Hourglass className="w-5 h-5 inline-block" /> Pending Join Requests
-            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+        <div className="bg-yellow-500/5 backdrop-blur-xl border border-yellow-500/30 rounded-xl shadow-lg shadow-yellow-500/5 p-6 animate-pulse">
+          <h2 className="text-lg font-semibold text-yellow-200 mb-1 flex items-center gap-2">
+            <Hourglass className="w-5 h-5 text-yellow-400 animate-spin" /> Pending Join Requests
+            <span className="px-2 py-0.5 bg-yellow-400/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-400/30">
               {pendingRequests.length}
             </span>
           </h2>
-          <p className="text-sm text-slate-400 mb-4">These people want to join your mess</p>
+          <p className="text-sm text-yellow-200/60 mb-4 font-medium">These people want to join your mess</p>
           <div className="space-y-3">
             {pendingRequests.map((req) => (
               <div
                 key={req.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/5 border border-white/10 rounded-xl hover:border-yellow-500/40 transition-all group"
               >
-                <div>
-                  <p className="font-medium text-white">{req.user.name}</p>
-                  <p className="text-sm text-slate-400 truncate">{req.user.email}</p>
-                  {req.user.phone && (
-                    <p className="text-xs text-slate-400"><Smartphone className="w-3 h-3 inline-block" /> {req.user.phone}</p>
-                  )}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-yellow-400 font-bold">
+                    {req.user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white group-hover:text-yellow-100 transition-colors">{req.user.name}</p>
+                    <p className="text-sm text-slate-400 font-medium truncate">{req.user.email}</p>
+                    {req.user.phone && (
+                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><Smartphone className="w-3 h-3" /> {req.user.phone}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => handleRequest(req.id, "approve")}
                     disabled={actionLoading === req.id}
-                    className="px-3 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex-1 sm:flex-none"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-emerald-600/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {actionLoading === req.id ? "..." : <><Check className="w-4 h-4 inline-block" /> Approve</>}
+                    {actionLoading === req.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Approve</>}
                   </button>
                   <button
                     onClick={() => handleRequest(req.id, "reject")}
                     disabled={actionLoading === req.id}
-                    className="px-3 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex-1 sm:flex-none"
+                    className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-sm font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    <X className="w-4 h-4 inline-block" /> Reject
+                    <X className="w-4 h-4" /> Reject
                   </button>
                 </div>
               </div>
