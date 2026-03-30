@@ -100,46 +100,53 @@ export async function POST(request: NextRequest) {
 
   // --- RESTORE: For un-cancelled meals, restore values from snapshot ---
   if (newlyRestored.length > 0) {
-    for (const rm of newlyRestored) {
+    await Promise.all(newlyRestored.map(async (rm) => {
       const mealSnapshot = snapshot[rm];
-      if (!mealSnapshot || Object.keys(mealSnapshot).length === 0) continue;
+      if (!mealSnapshot || Object.keys(mealSnapshot).length === 0) return;
 
-      for (const [memberId, originalVal] of Object.entries(mealSnapshot)) {
+      await Promise.all(Object.entries(mealSnapshot).map(async ([memberId, originalVal]) => {
         const entry = await prisma.mealEntry.findUnique({
           where: { date_memberId: { date: new Date(date), memberId } },
         });
-        if (!entry) continue;
+        if (!entry) return;
 
         let entryMeals: Record<string, number> = {};
         try { entryMeals = JSON.parse(entry.meals || "{}"); } catch { /* ignore */ }
 
-        entryMeals[rm] = originalVal;
-        const b = entryMeals.breakfast ?? 0;
-        const l = entryMeals.lunch ?? 0;
-        const d = entryMeals.dinner ?? 0;
-        const total = Object.values(entryMeals).reduce((sum, v) => sum + Number(v), 0);
+        let changed = false;
+        if (entryMeals[rm] === 0 || ((entry as Record<string, unknown>)[rm] !== undefined && Number((entry as Record<string, unknown>)[rm]) === 0)) {
+          entryMeals[rm] = Number(originalVal) || 1;
+          changed = true;
+        }
 
-        await prisma.mealEntry.update({
-          where: { id: entry.id },
-          data: {
-            breakfast: b, lunch: l, dinner: d,
-            meals: JSON.stringify(entryMeals),
-            total,
-          },
-        });
-      }
+        if (changed) {
+          const b = entryMeals.breakfast ?? 0;
+          const l = entryMeals.lunch ?? 0;
+          const d = entryMeals.dinner ?? 0;
+          const total = Object.values(entryMeals).reduce((sum, v) => sum + Number(v), 0);
+
+          await prisma.mealEntry.update({
+            where: { id: entry.id },
+            data: {
+              breakfast: b, lunch: l, dinner: d,
+              meals: JSON.stringify(entryMeals),
+              total,
+            },
+          });
+        }
+      }));
 
       // Clean up used snapshot key
       delete snapshot[rm];
-    }
+    }));
 
     // Also restore MealStatus for restored meals
-    for (const rm of newlyRestored) {
+    await Promise.all(newlyRestored.map(async (rm) => {
       await prisma.mealStatus.updateMany({
         where: { date: new Date(date), messId, meal: rm, isOff: true },
         data: { isOff: false },
       });
-    }
+    }));
   }
 
   const dDate = new Date(date);
@@ -183,7 +190,7 @@ export async function POST(request: NextRequest) {
       where: { date: new Date(date), messId },
     });
 
-    for (const entry of entries) {
+    await Promise.all(entries.map(async (entry) => {
       let entryMeals: Record<string, number> = {};
       try { entryMeals = JSON.parse(entry.meals || "{}"); } catch { /* ignore */ }
 
@@ -210,30 +217,33 @@ export async function POST(request: NextRequest) {
           },
         });
       }
-    }
+    }));
 
     // Also set MealStatus to OFF for cancelled meals
-    for (const cm of newlyCancelled) {
+    if (newlyCancelled.length > 0) {
       const members = await prisma.user.findMany({
         where: { messId, isActive: true },
         select: { id: true },
       });
-      for (const m of members) {
-        const dDate = new Date(date);
-        const existingMS = await prisma.mealStatus.findFirst({
-          where: { date: dDate, meal: cm, memberId: m.id },
-        });
-        if (existingMS) {
-          await prisma.mealStatus.update({
-            where: { id: existingMS.id },
-            data: { isOff: true, changedBy: session.user.id },
+
+      const dDate = new Date(date);
+      await Promise.all(newlyCancelled.map(async (cm) => {
+        await Promise.all(members.map(async (m) => {
+          const existingMS = await prisma.mealStatus.findFirst({
+            where: { date: dDate, meal: cm, memberId: m.id },
           });
-        } else {
-          await prisma.mealStatus.create({
-            data: { date: dDate, meal: cm, memberId: m.id, messId, isOff: true, changedBy: session.user.id },
-          });
-        }
-      }
+          if (existingMS) {
+            await prisma.mealStatus.update({
+              where: { id: existingMS.id },
+              data: { isOff: true, changedBy: session.user.id },
+            });
+          } else {
+            await prisma.mealStatus.create({
+              data: { date: dDate, meal: cm, memberId: m.id, messId, isOff: true, changedBy: session.user.id },
+            });
+          }
+        }));
+      }));
     }
   }
 
