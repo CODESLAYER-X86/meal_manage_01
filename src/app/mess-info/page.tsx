@@ -392,21 +392,45 @@ export default function MessInfoPage() {
         )}
         <p className="text-slate-400 text-sm">Created by {mess.createdBy} · {mess.memberCount} members</p>
 
-        {/* Invite Code */}
-        <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
-          <p className="text-sm text-slate-400 mb-2 font-medium"><Mailbox className="w-4 h-4 inline-block -mt-1" /> Invite Code — Share with new members</p>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <p className="text-xl sm:text-2xl font-mono font-bold text-indigo-600 tracking-widest break-all flex-1">
-              {mess.inviteCode}
-            </p>
+        {/* Invite Code - High Visibility Box */}
+        <div className="mt-8 bg-[#1e293b]/50 border-2 border-indigo-500/40 rounded-2xl p-6 relative overflow-hidden shadow-2xl shadow-indigo-500/10">
+          <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/5">
+            <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-lg shadow-indigo-500/20">
+              <Mailbox className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs text-indigo-400 font-black uppercase tracking-wider">Invitation Access</p>
+              <p className="text-sm text-slate-300 font-medium">Share this code with your roommates to join</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch gap-4">
+            <div className="flex-1 bg-black/40 border border-white/10 rounded-xl px-6 py-5 flex items-center justify-center sm:justify-start">
+              <p className="text-3xl sm:text-4xl font-mono font-black text-white tracking-[0.25em] drop-shadow-lg">
+                {mess.inviteCode}
+              </p>
+            </div>
+            
             <button
               onClick={copyCode}
-              className="px-4 py-2.5 bg-white/[0.06] border border-white/10 rounded-lg text-sm font-medium hover:bg-white/[0.04] transition-colors w-full sm:w-auto text-center"
+              className={`flex items-center justify-center gap-3 px-8 py-5 rounded-xl font-black text-base transition-all shrink-0 shadow-2xl active:scale-95
+                ${copied 
+                  ? "bg-emerald-500 text-white shadow-emerald-500/40" 
+                  : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/40"
+                }`}
             >
-              {copied ? <><Check className="w-4 h-4 inline-block" /> Copied!</> : <><Clipboard className="w-4 h-4 inline-block" /> Copy</>}
+              {copied ? (
+                <><Check className="w-6 h-6 animate-bounce" /> Copied!</>
+              ) : (
+                <><Clipboard className="w-6 h-6" /> Copy Code</>
+              )}
             </button>
           </div>
-          <p className="text-xs text-slate-400 mt-2">Members who use this code will need your approval to join</p>
+          
+          <div className="mt-5 flex items-center justify-center sm:justify-start gap-2 text-xs text-slate-400 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+            <Users className="w-4 h-4 text-indigo-400" />
+            <span>New members require your approval to become active</span>
+          </div>
         </div>
       </div>
 
