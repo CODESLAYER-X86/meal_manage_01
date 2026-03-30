@@ -183,9 +183,12 @@ export default function MealPlanPage() {
           return [...prev, saved];
         });
         setEditingDay(null);
+      } else {
+        const errData = await res.json().catch(() => null);
+        alert(`Failed to save: ${errData?.error || res.statusText}`);
       }
-    } catch {
-      // ignore
+    } catch (err: any) {
+      alert(`Network error saving plan: ${err.message}`);
     } finally {
       setSaving(false);
     }

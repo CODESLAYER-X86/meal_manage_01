@@ -69,6 +69,8 @@ interface MealStatusData {
   mealCounts: Record<string, number>; // meal -> count eating
   blackoutStatus: Record<string, boolean>; // meal -> isBlackedOut
   pendingRequests: { id: string; date: string; meal: string; memberId: string; wantOff: boolean; reason: string; status: string }[];
+  debugOnly?: boolean;
+  error?: string;
 }
 
 export default function DashboardPage() {
@@ -381,6 +383,14 @@ export default function DashboardPage() {
             };
 
             const renderDayStatus = (data: MealStatusData | null, dateStr: string, label: string, icon: React.ReactNode) => {
+              if (data?.debugOnly) {
+                return (
+                  <div className="flex-1 p-4 bg-red-900/50 border border-red-500/50 rounded-xl">
+                    <h3 className="text-sm font-bold text-red-200 mb-2">Backend Crash</h3>
+                    <p className="text-xs text-red-300 font-mono break-all">{data.error}</p>
+                  </div>
+                );
+              }
               if (!data) return null;
               const meals = data.mealsList || (data.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"]);
 
