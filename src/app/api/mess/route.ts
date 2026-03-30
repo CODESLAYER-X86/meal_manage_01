@@ -216,24 +216,26 @@ export async function POST(request: Request) {
 // PATCH - Update mess settings (manager only)
 export async function PATCH(request: Request) {
   const session = await auth();
-  if (!session?.user?.id || !session.user.messId) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Always use DB values, not JWT (may be stale)
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true, messId: true },
   });
 
-  if (user?.role !== "MANAGER") {
+  if (!user?.messId || user.role !== "MANAGER") {
     return NextResponse.json({ error: "Only the manager can update mess settings" }, { status: 403 });
   }
 
+  const messId = user.messId;
   const body = await request.json();
   const { name, washroomCount, dueThreshold, hasGas, hasCook, bazarDaysPerWeek, mealsPerDay, mealTypes, mealBlackouts, autoMealEntry } = body;
 
   // Get current mess for audit comparison
-  const currentMess = await prisma.mess.findUnique({ where: { id: session.user.messId } });
+  const currentMess = await prisma.mess.findUnique({ where: { id: messId } });
 
   const updateData: Record<string, unknown> = {};
 
@@ -329,7 +331,7 @@ export async function PATCH(request: Request) {
   }
 
   await prisma.mess.update({
-    where: { id: session.user.messId },
+    where: { id: messId },
     data: updateData,
   });
 
@@ -344,9 +346,9 @@ export async function PATCH(request: Request) {
     if (changes.length > 0) {
       await createAuditLog({
         editedById: session.user.id,
-        messId: session.user.messId,
+        messId,
         tableName: "Mess",
-        recordId: session.user.messId,
+        recordId: messId,
         fieldName: "settings",
         oldValue: changes.map(c => c.split(" → ")[0]).join(", "),
         newValue: changes.join("; "),
@@ -361,20 +363,21 @@ export async function PATCH(request: Request) {
 // DELETE - Delete the entire mess (manager only)
 export async function DELETE() {
   const session = await auth();
-  if (!session?.user?.id || !session.user.messId) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Always use DB values, not JWT (may be stale)
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true, messId: true },
   });
 
-  if (user?.role !== "MANAGER") {
+  if (!user?.messId || user.role !== "MANAGER") {
     return NextResponse.json({ error: "Only the manager can delete the mess" }, { status: 403 });
   }
 
-  const messId = session.user.messId;
+  const messId = user.messId;
 
   // Audit log before deletion
   const messInfo = await prisma.mess.findUnique({ where: { id: messId }, select: { name: true } });

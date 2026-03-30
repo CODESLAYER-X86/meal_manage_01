@@ -134,9 +134,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // Refresh role/messId from DB frequently to prevent stale data
+      // Refresh role/messId from DB periodically to prevent stale data
       // (e.g. after mess deletion, kick, or role change by admin)
-      const REFRESH_INTERVAL = 30 * 1000; // 30 seconds
+      const REFRESH_INTERVAL = 60 * 1000; // 60 seconds
       const now = Date.now();
       if (token.id && (!token.lastRefresh || now - (token.lastRefresh as number) >= REFRESH_INTERVAL)) {
         try {

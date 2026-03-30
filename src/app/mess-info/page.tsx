@@ -86,17 +86,27 @@ export default function MessInfoPage() {
   const [nameSaving, setNameSaving] = useState(false);
   const [nameMsg, setNameMsg] = useState("");
 
-  const isManager = session?.user?.role === "MANAGER";
+  // Derive isManager from the API response, not the JWT (which can be stale)
+  const isManager = mess?.members.some(
+    (m) => m.id === session?.user?.id && m.role === "MANAGER"
+  ) ?? false;
 
   const fetchData = useCallback(async () => {
     try {
-      const [messRes, requestsRes] = await Promise.all([
-        fetch("/api/mess"),
-        isManager ? fetch("/api/join-requests") : Promise.resolve(null),
-      ]);
-
+      const messRes = await fetch("/api/mess");
       const messData = await messRes.json();
       setMess(messData.mess);
+
+      if (!messData.mess) {
+        setLoading(false);
+        return;
+      }
+
+      // Check if the current user is a manager from the API response
+      const userIsManager = messData.mess.members?.some(
+        (m: { id: string; role: string }) => m.id === session?.user?.id && m.role === "MANAGER"
+      );
+
       if (messData.mess) {
         setWashroomInput(messData.mess.washroomCount || 0);
         setThresholdInput(messData.mess.dueThreshold ?? 500);
@@ -118,24 +128,28 @@ export default function MessInfoPage() {
         }
       }
 
-      if (requestsRes) {
-        const reqData = await requestsRes.json();
-        setPendingRequests(reqData.requests || []);
+      // Fetch join requests if user is a manager (determined from API, not JWT)
+      if (userIsManager) {
+        try {
+          const requestsRes = await fetch("/api/join-requests");
+          const reqData = await requestsRes.json();
+          setPendingRequests(reqData.requests || []);
+        } catch {
+          // ignore
+        }
       }
     } catch {
       // ignore
     } finally {
       setLoading(false);
     }
-  }, [isManager]);
+  }, [session?.user?.id]);
 
   useEffect(() => {
-    if (session && !session.user?.messId) {
-      router.push("/onboarding");
-      return;
+    if (session) {
+      fetchData();
     }
-    fetchData();
-  }, [session, router, fetchData]);
+  }, [session, fetchData]);
 
   const copyCode = () => {
     if (mess) {

@@ -10,12 +10,18 @@ export default async function Home() {
     return;
   }
 
-  if (session.user.isAdmin && !session.user.messId) {
+  // Always check DB for the real messId — JWT can be stale
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { messId: true, isAdmin: true },
+  });
+
+  if (dbUser?.isAdmin && !dbUser.messId) {
     redirect("/admin");
     return;
   }
 
-  if (!session.user.messId) {
+  if (!dbUser?.messId) {
     // Check if user has a pending join request
     const pendingRequest = await prisma.joinRequest.findFirst({
       where: {

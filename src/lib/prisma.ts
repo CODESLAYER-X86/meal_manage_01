@@ -3,23 +3,15 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Strip channel_binding=require from the connection string.
-// PgBouncer (used by Neon -pooler endpoints) does NOT support SCRAM channel
-// binding, so leaving it in causes intermittent authentication failures.
-function sanitizeConnectionString(url: string): string {
-  try {
-    const u = new URL(url);
-    u.searchParams.delete("channel_binding");
-    return u.toString();
-  } catch {
-    // Fallback: simple regex removal
-    return url
-      .replace(/[&?]channel_binding=[^&]*/g, "")
-      .replace(/\?&/, "?");
-  }
+// Strip channel_binding param which is incompatible with PgBouncer (Neon pooler)
+function cleanUrl(url: string): string {
+  return url
+    .replace(/([&?])channel_binding=[^&]*/g, (_, prefix) => prefix === "?" ? "?" : "")
+    .replace(/\?&/, "?")
+    .replace(/\?$/, "");
 }
 
-const connectionString = sanitizeConnectionString(process.env.DATABASE_URL!);
+const connectionString = cleanUrl(process.env.DATABASE_URL!);
 
 const adapter = new PrismaNeon({ connectionString });
 

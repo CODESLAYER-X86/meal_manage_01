@@ -30,23 +30,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ pendingRequest });
   }
 
-  // Manager checking pending requests for their mess
-  if (!session.user.messId) {
-    return NextResponse.json({ error: "Not in a mess" }, { status: 400 });
-  }
-
+  // Manager checking pending requests for their mess - use DB values
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true, messId: true },
   });
 
-  if (user?.role !== "MANAGER") {
+  if (!user?.messId) {
+    return NextResponse.json({ error: "Not in a mess" }, { status: 400 });
+  }
+
+  if (user.role !== "MANAGER") {
     return NextResponse.json({ error: "Only managers can view join requests" }, { status: 403 });
   }
 
   const requests = await prisma.joinRequest.findMany({
     where: {
-      messId: session.user.messId,
+      messId: user.messId,
       status: "PENDING",
     },
     include: {
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 // POST - Approve, reject join request, or kick a member
 export async function POST(request: Request) {
   const session = await auth();
-  if (!session?.user?.id || !session.user.messId) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     select: { role: true, messId: true },
   });
 
-  if (manager?.role !== "MANAGER") {
+  if (manager?.role !== "MANAGER" || !manager?.messId) {
     return NextResponse.json({ error: "Only managers can manage members" }, { status: 403 });
   }
 
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       include: { user: { select: { name: true } } },
     });
 
-    if (!joinRequest || joinRequest.messId !== session.user.messId || joinRequest.status !== "PENDING") {
+    if (!joinRequest || joinRequest.messId !== manager.messId || joinRequest.status !== "PENDING") {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 
     await createAuditLog({
       editedById: session.user.id,
-      messId: session.user.messId,
+      messId: manager.messId,
       tableName: "JoinRequest",
       recordId: requestId,
       fieldName: `Approved ${joinRequest.user.name}`,
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
       include: { user: { select: { name: true } } },
     });
 
-    if (!joinRequest || joinRequest.messId !== session.user.messId || joinRequest.status !== "PENDING") {
+    if (!joinRequest || joinRequest.messId !== manager.messId || joinRequest.status !== "PENDING") {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
 
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
     await createAuditLog({
       editedById: session.user.id,
-      messId: session.user.messId,
+      messId: manager.messId,
       tableName: "JoinRequest",
       recordId: requestId,
       fieldName: `Rejected ${joinRequest.user.name}`,
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
       select: { name: true, messId: true, role: true },
     });
 
-    if (!member || member.messId !== session.user.messId) {
+    if (!member || member.messId !== manager?.messId) {
       return NextResponse.json({ error: "Member not found in your mess" }, { status: 404 });
     }
 
@@ -173,7 +173,7 @@ export async function POST(request: Request) {
 
     await createAuditLog({
       editedById: session.user.id,
-      messId: session.user.messId,
+      messId: manager.messId,
       tableName: "User",
       recordId: memberId,
       fieldName: `Kicked ${member.name}`,
