@@ -263,12 +263,18 @@ export default function DashboardPage() {
                       return mealTypesList.map((mt) => {
                         const val = mealsObj[mt];
                         if (!val) return null;
+                        const colorMap: Record<string, { bg: string, border: string, text: string, icon: string }> = {
+                          breakfast: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", icon: "text-amber-500" },
+                          lunch: { bg: "bg-orange-500/10", border: "border-orange-500/20", text: "text-orange-400", icon: "text-orange-500" },
+                          dinner: { bg: "bg-indigo-500/10", border: "border-indigo-500/20", text: "text-indigo-400", icon: "text-indigo-400" }
+                        };
+                        const theme = colorMap[mt] || { bg: "bg-slate-500/10", border: "border-slate-500/20", text: "text-slate-400", icon: "text-slate-400" };
                         return (
-                          <div key={mt} className="flex items-start gap-3">
-                            <div className="pt-0.5">{getMealIcon(mt)}</div>
+                          <div key={mt} className={`flex items-start gap-3 p-3 rounded-xl border ${theme.bg} ${theme.border}`}>
+                            <div className={`pt-0.5 ${theme.icon}`}>{getMealIcon(mt)}</div>
                             <div className="flex-1">
-                              <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{mt}</p>
-                              <p className="text-sm text-slate-200 mt-0.5 leading-snug">{val}</p>
+                              <p className={`text-[10px] uppercase tracking-wider font-black ${theme.text}`}>{mt}</p>
+                              <p className="text-sm text-slate-100 mt-1 leading-snug font-medium">{val}</p>
                             </div>
                           </div>
                         );
@@ -303,12 +309,18 @@ export default function DashboardPage() {
                       return mealTypesList.map((mt) => {
                         const val = mealsObj[mt];
                         if (!val) return null;
+                        const colorMap: Record<string, { bg: string, border: string, text: string, icon: string }> = {
+                          breakfast: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", icon: "text-amber-500" },
+                          lunch: { bg: "bg-orange-500/10", border: "border-orange-500/20", text: "text-orange-400", icon: "text-orange-500" },
+                          dinner: { bg: "bg-indigo-500/10", border: "border-indigo-500/20", text: "text-indigo-400", icon: "text-indigo-400" }
+                        };
+                        const theme = colorMap[mt] || { bg: "bg-slate-500/10", border: "border-slate-500/20", text: "text-slate-400", icon: "text-slate-400" };
                         return (
-                          <div key={mt} className="flex items-start gap-3">
-                            <div className="pt-0.5">{getMealIcon(mt)}</div>
+                          <div key={mt} className={`flex items-start gap-3 p-3 rounded-xl border ${theme.bg} ${theme.border}`}>
+                            <div className={`pt-0.5 ${theme.icon}`}>{getMealIcon(mt)}</div>
                             <div className="flex-1">
-                              <p className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">{mt}</p>
-                              <p className="text-sm text-slate-200 mt-0.5 leading-snug">{val}</p>
+                              <p className={`text-[10px] uppercase tracking-wider font-black ${theme.text}`}>{mt}</p>
+                              <p className="text-sm text-slate-100 mt-1 leading-snug font-medium">{val}</p>
                             </div>
                           </div>
                         );
