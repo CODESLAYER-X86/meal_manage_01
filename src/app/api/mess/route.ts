@@ -407,62 +407,65 @@ export async function DELETE() {
     action: "DELETE",
   });
 
-  // Delete all mess data in the correct order (respecting FK constraints)
-  await prisma.$transaction([
-    // Delete duty scheduling tables
-    prisma.dutySwapRequest.deleteMany({ where: { messId } }),
-    prisma.bazarDutySchedule.deleteMany({ where: { messId } }),
-    prisma.washroomDutySchedule.deleteMany({ where: { messId } }),
-    // Delete meal status tables first
-    prisma.mealStatusRequest.deleteMany({ where: { messId } }),
-    prisma.mealStatus.deleteMany({ where: { messId } }),
-    // Delete new tables first
-    prisma.memberPresence.deleteMany({ where: { messId } }),
-    prisma.billPayment.deleteMany({ where: { messId } }),
-    prisma.billSetting.deleteMany({ where: { messId } }),
-    prisma.fine.deleteMany({ where: { messId } }),
-    // Delete meal votes (FK to MealVoteTopic)
-    prisma.mealVote.deleteMany({ where: { topic: { messId } } }),
-    // Delete meal vote topics
-    prisma.mealVoteTopic.deleteMany({ where: { messId } }),
-    // Delete meal ratings
-    prisma.mealRating.deleteMany({ where: { messId } }),
-    // Delete notifications
-    prisma.notification.deleteMany({ where: { messId } }),
-    // Delete announcements
-    prisma.announcement.deleteMany({ where: { messId } }),
-    // Delete join requests
-    prisma.joinRequest.deleteMany({ where: { messId } }),
-    // Delete meal-off requests
-    prisma.mealOffRequest.deleteMany({ where: { messId } }),
-    // Delete meal plans
-    prisma.mealPlan.deleteMany({ where: { messId } }),
-    // Delete disputes
-    prisma.dispute.deleteMany({ where: { messId } }),
-    // Delete audit logs
-    prisma.auditLog.deleteMany({ where: { messId } }),
-    // Delete manager rotations
-    prisma.managerRotation.deleteMany({ where: { messId } }),
-    // Delete washroom cleaning
-    prisma.washroomCleaning.deleteMany({ where: { messId } }),
-    // Delete bazar items (via trips)
-    prisma.bazarItem.deleteMany({
-      where: { trip: { messId } },
-    }),
-    // Delete bazar trips
-    prisma.bazarTrip.deleteMany({ where: { messId } }),
-    // Delete deposits
-    prisma.deposit.deleteMany({ where: { messId } }),
-    // Delete meal entries
-    prisma.mealEntry.deleteMany({ where: { messId } }),
-    // Remove all members from the mess (set messId to null, role to MEMBER)
-    prisma.user.updateMany({
-      where: { messId },
-      data: { messId: null, role: "MEMBER" },
-    }),
-    // Delete the mess itself
-    prisma.mess.delete({ where: { id: messId } }),
-  ]);
+  try {
+    // Delete all mess data in sequential batches to avoid serverless timeout
+    // Batch 1: Delete tables with FK dependencies on other mess tables
+    await prisma.$transaction([
+      prisma.dutySwapRequest.deleteMany({ where: { messId } }),
+      prisma.mealVote.deleteMany({ where: { topic: { messId } } }),
+      prisma.bazarItem.deleteMany({ where: { trip: { messId } } }),
+    ]);
 
-  return NextResponse.json({ success: true });
+    // Batch 2: Delete scheduling and status tables
+    await prisma.$transaction([
+      prisma.bazarDutySchedule.deleteMany({ where: { messId } }),
+      prisma.washroomDutySchedule.deleteMany({ where: { messId } }),
+      prisma.mealStatusRequest.deleteMany({ where: { messId } }),
+      prisma.mealStatus.deleteMany({ where: { messId } }),
+      prisma.memberPresence.deleteMany({ where: { messId } }),
+    ]);
+
+    // Batch 3: Delete financial and content tables
+    await prisma.$transaction([
+      prisma.billPayment.deleteMany({ where: { messId } }),
+      prisma.billSetting.deleteMany({ where: { messId } }),
+      prisma.fine.deleteMany({ where: { messId } }),
+      prisma.mealVoteTopic.deleteMany({ where: { messId } }),
+      prisma.mealRating.deleteMany({ where: { messId } }),
+      prisma.notification.deleteMany({ where: { messId } }),
+    ]);
+
+    // Batch 4: Delete remaining dependent tables
+    await prisma.$transaction([
+      prisma.announcement.deleteMany({ where: { messId } }),
+      prisma.joinRequest.deleteMany({ where: { messId } }),
+      prisma.mealOffRequest.deleteMany({ where: { messId } }),
+      prisma.mealPlan.deleteMany({ where: { messId } }),
+      prisma.dispute.deleteMany({ where: { messId } }),
+      prisma.auditLog.deleteMany({ where: { messId } }),
+    ]);
+
+    // Batch 5: Delete core data tables
+    await prisma.$transaction([
+      prisma.managerRotation.deleteMany({ where: { messId } }),
+      prisma.washroomCleaning.deleteMany({ where: { messId } }),
+      prisma.bazarTrip.deleteMany({ where: { messId } }),
+      prisma.deposit.deleteMany({ where: { messId } }),
+      prisma.mealEntry.deleteMany({ where: { messId } }),
+    ]);
+
+    // Batch 6: Remove members and delete mess
+    await prisma.$transaction([
+      prisma.user.updateMany({
+        where: { messId },
+        data: { messId: null, role: "MEMBER" },
+      }),
+      prisma.mess.delete({ where: { id: messId } }),
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    console.error("[API] Mess DELETE error:", (error as Error).message);
+    return NextResponse.json({ error: "Failed to delete mess. Please try again." }, { status: 500 });
+  }
 }
