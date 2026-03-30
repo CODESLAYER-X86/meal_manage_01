@@ -13,15 +13,43 @@ import {
 } from "lucide-react";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const moreRef = useRef<HTMLDivElement>(null);
+  const [hasMessId, setHasMessId] = useState<boolean | null>(null);
 
+  // If session exists but messId is null, check the API to see if the user
+  // actually has a mess (JWT might be stale for up to 5 minutes after approval)
   useEffect(() => {
-    if (session?.user?.id) {
+    if (!session?.user) {
+      setHasMessId(null);
+      return;
+    }
+    if (session.user.messId || (session.user as { isAdmin?: boolean })?.isAdmin) {
+      setHasMessId(true);
+      return;
+    }
+    // messId is null in JWT — check the DB via API
+    fetch("/api/mess")
+      .then((r) => r.json())
+      .then(async (data) => {
+        if (data.mess?.id) {
+          // Update the JWT so it has the correct messId going forward
+          await update({ user: { messId: data.mess.id } });
+          setHasMessId(true);
+        } else {
+          setHasMessId(false);
+        }
+      })
+      .catch(() => setHasMessId(false));
+  }, [session?.user?.messId, session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Notification polling
+  useEffect(() => {
+    if (session?.user?.id && hasMessId) {
       fetch("/api/notifications?unread=true&limit=1")
         .then((r) => r.json())
         .then((data) => setUnreadCount(data.unreadCount || 0))
@@ -34,7 +62,7 @@ export default function Navbar() {
       }, 60000);
       return () => clearInterval(interval);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, hasMessId]);
 
   // Close "More" dropdown on outside click
   useEffect(() => {
@@ -46,7 +74,7 @@ export default function Navbar() {
   }, []);
 
   if (!session) return null;
-  if (!session.user?.messId && !(session.user as { isAdmin?: boolean })?.isAdmin) return null;
+  if (hasMessId === null || hasMessId === false) return null;
 
   const isManager = session.user?.role === "MANAGER";
 

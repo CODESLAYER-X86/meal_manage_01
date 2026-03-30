@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Clock, ArrowLeft, LogOut, CheckCircle, Loader2 } from "lucide-react";
 
 export default function PendingPage() {
-  useSession();
+  const { update } = useSession();
   const router = useRouter();
   const [messName, setMessName] = useState("");
   const [status, setStatus] = useState<"loading" | "pending" | "approved" | "rejected" | "none">("loading");
@@ -24,6 +24,9 @@ export default function PendingPage() {
           const messRes = await fetch("/api/mess");
           const messData = await messRes.json();
           if (messData.mess) {
+            // Update the JWT session with the new messId immediately
+            // so the Navbar and other components see it right away
+            await update({ user: { messId: messData.mess.id } });
             setStatus("approved");
           } else {
             setStatus("none");
@@ -41,8 +44,9 @@ export default function PendingPage() {
 
   useEffect(() => {
     if (status === "approved") {
-      router.push("/dashboard");
-      router.refresh();
+      // Hard navigation to force server-side re-render with updated JWT
+      window.location.href = "/dashboard";
+      return;
     }
     if (status === "none") {
       router.push("/onboarding");
