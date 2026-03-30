@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PartyPopper, Clipboard, Home, AlertTriangle, Crown, Users, Rocket, Key, MailPlus } from "lucide-react";
@@ -13,7 +13,14 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [createdCode, setCreatedCode] = useState("");
   const router = useRouter();
-  const { update } = useSession();
+  const { data: session, update } = useSession();
+
+  // Safety guard: if user already has a mess (session updated), redirect to dashboard
+  useEffect(() => {
+    if (session?.user && (session.user as { messId?: string | null }).messId) {
+      window.location.href = "/dashboard";
+    }
+  }, [session]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +42,10 @@ export default function OnboardingPage() {
       }
 
       setCreatedCode(data.mess.inviteCode);
-      // Refresh session to pick up new messId
-      await update();
+      // Refresh session with the NEW messId so the JWT is immediately updated.
+      // Without this, the token's messId stays null for up to 5 minutes (the DB refresh interval),
+      // which causes the user to be redirected back to /onboarding if they close and reopen the tab.
+      await update({ user: { messId: data.mess.id } });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -74,8 +83,9 @@ export default function OnboardingPage() {
   };
 
   const goToDashboard = () => {
-    router.push("/dashboard");
-    router.refresh();
+    // Use hard navigation so the server re-reads the updated JWT with the new messId.
+    // router.push keeps the client-side cached session which may still show messId as null.
+    window.location.href = "/dashboard";
   };
 
   // Success screen after creating a mess
