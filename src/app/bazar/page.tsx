@@ -391,7 +391,7 @@ export default function BazarEntryPage() {
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
@@ -400,7 +400,7 @@ export default function BazarEntryPage() {
                   type="text"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                   placeholder="e.g. Morning bazar, special items..."
                 />
               </div>
@@ -467,7 +467,7 @@ export default function BazarEntryPage() {
                     <button type="button" onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700 text-lg" title="Remove">✕</button>
                   </div>
                   <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
-                    <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-3 py-2 border border-white/10 bg-transparent rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, পেঁয়াজ...)" required />
+                    <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-3 py-2 border border-white/10 bg-white/5 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Item name (e.g. Beef, Rice, পেঁয়াজ...)" required />
                     {activeAutoIdx === i && suggestions.length > 0 && (
                       <div className="absolute z-20 w-full mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                         {suggestions.map((s) => (
@@ -483,11 +483,11 @@ export default function BazarEntryPage() {
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">Qty</label>
-                      <input type="number" step="0.1" value={item.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} className="w-full px-2 py-2 border rounded-lg text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1" />
+                      <input type="number" step="0.1" value={item.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} className="w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1" />
                     </div>
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">Unit</label>
-                      <select value={item.unit} onChange={(e) => updateItem(i, "unit", e.target.value)} className="w-full px-2 py-2 border rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                      <select value={item.unit} onChange={(e) => updateItem(i, "unit", e.target.value)} className="w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                         <option value="kg">kg</option>
                         <option value="g">g</option>
                         <option value="litre">litre</option>
@@ -499,7 +499,7 @@ export default function BazarEntryPage() {
                     </div>
                     <div>
                       <label className="block text-xs text-slate-400 mb-1">Price ৳</label>
-                      <input type="number" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} className="w-full px-2 py-2 border rounded-lg text-right text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0" />
+                      <input type="number" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} className="w-full px-2 py-2 bg-white/5 border border-white/10 rounded-lg text-right text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0" />
                     </div>
                   </div>
                 </div>
@@ -525,7 +525,7 @@ export default function BazarEntryPage() {
                       <td className="p-2 text-center text-slate-400">{i + 1}</td>
                       <td className="p-2">
                         <div className="relative" ref={activeAutoIdx === i ? autoRef : undefined}>
-                          <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-2 py-1.5 border border-white/10 bg-transparent rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, পেঁয়াজ..." required />
+                          <input type="text" value={item.itemName} onChange={(e) => updateItem(i, "itemName", e.target.value)} onFocus={() => { setSuggestions(searchCatalog(item.itemName, 8)); setActiveAutoIdx(i); }} className="w-full px-2 py-1.5 border border-white/10 bg-white/5 rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Beef, Rice, পেঁয়াজ..." required />
                           {activeAutoIdx === i && suggestions.length > 0 && (
                             <div className="absolute z-20 w-64 mt-1 bg-[#1a1f2e] border border-white/10 rounded-lg shadow-xl max-h-48 overflow-y-auto">
                               {suggestions.map((s) => (
@@ -540,10 +540,10 @@ export default function BazarEntryPage() {
                         </div>
                       </td>
                       <td className="p-2">
-                        <input type="number" step="0.1" value={item.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} className="w-full px-2 py-1.5 border rounded text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1" />
+                        <input type="number" step="0.1" value={item.quantity} onChange={(e) => updateItem(i, "quantity", e.target.value)} className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-center text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="1" />
                       </td>
                       <td className="p-2">
-                        <select value={item.unit} onChange={(e) => updateItem(i, "unit", e.target.value)} className="w-full px-2 py-1.5 border rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <select value={item.unit} onChange={(e) => updateItem(i, "unit", e.target.value)} className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                           <option value="kg">kg</option>
                           <option value="g">g</option>
                           <option value="litre">litre</option>
@@ -554,7 +554,7 @@ export default function BazarEntryPage() {
                         </select>
                       </td>
                       <td className="p-2">
-                        <input type="number" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} className="w-full px-2 py-1.5 border rounded text-right text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0" />
+                        <input type="number" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-right text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0" />
                       </td>
                       <td className="p-2 text-center">
                         <button type="button" onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700 text-lg" title="Remove">✕</button>

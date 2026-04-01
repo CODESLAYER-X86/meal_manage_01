@@ -562,6 +562,38 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* Manager Cash Balance */}
+          {isManager && bill && (
+            <div className="bg-[#1a1a3e]/50 backdrop-blur-sm border border-emerald-500/30 p-5 rounded-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 opacity-10">
+                <Wallet className="w-16 h-16 text-emerald-400" />
+              </div>
+              <h2 className="text-sm font-bold tracking-wider uppercase text-emerald-400 mb-4 flex items-center gap-2 relative z-10">
+                <DollarSign className="w-4 h-4" /> Manager Cash in Hand
+              </h2>
+              <div className="space-y-3 relative z-10">
+                <div className="flex justify-between items-center bg-white/5 p-2 rounded-lg border border-white/5">
+                  <span className="text-xs text-slate-400 font-medium tracking-wide uppercase">Total Deposits</span>
+                  <span className="font-semibold text-sm text-emerald-400">
+                    ৳{bill.members.reduce((acc, m) => acc + m.totalDeposit, 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center bg-white/5 p-2 rounded-lg border border-white/5">
+                  <span className="text-xs text-slate-400 font-medium tracking-wide uppercase">Total Expense</span>
+                  <span className="font-semibold text-sm text-rose-400">
+                    ৳{bill.totalExpense}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 mt-2">
+                  <span className="text-xs text-emerald-300 font-bold tracking-wide uppercase">Balance</span>
+                  <span className={`font-bold text-lg ${bill.members.reduce((acc, m) => acc + m.totalDeposit, 0) - bill.totalExpense < 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                    ৳{bill.members.reduce((acc, m) => acc + m.totalDeposit, 0) - bill.totalExpense}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* This Month Summary Box */}
           <div className="bg-[#1a1a3e]/50 backdrop-blur-sm border border-white/10 p-5 rounded-2xl">
             <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">

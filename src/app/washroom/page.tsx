@@ -228,29 +228,29 @@ export default function WashroomPage() {
 
       {/* Manager: Log Cleaning Form */}
       {isManager && (
-        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-5">
-          <h2 className="text-base font-semibold text-indigo-800 mb-3">✍️ Log Washroom Cleaning</h2>
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 p-5">
+          <h2 className="text-base font-semibold text-slate-100 mb-3">✍️ Log Washroom Cleaning</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div>
-              <label className="block text-xs font-medium text-indigo-700 mb-1">Date</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Date</label>
               <input
                 type="date"
                 value={logDate}
                 onChange={(e) => setLogDate(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm"
+                className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-indigo-700 mb-1">Washroom</label>
-              <select value={logWR} onChange={(e) => setLogWR(Number(e.target.value))} className="w-full rounded-lg border px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-slate-400 mb-1">Washroom</label>
+              <select value={logWR} onChange={(e) => setLogWR(Number(e.target.value))} className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                 {wrColumns.map((wn) => (
                   <option key={wn} value={wn}>WR-{wn}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-indigo-700 mb-1">Cleaned by</label>
-              <select value={logMember} onChange={(e) => setLogMember(e.target.value)} className="w-full rounded-lg border px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-slate-400 mb-1">Cleaned by</label>
+              <select value={logMember} onChange={(e) => setLogMember(e.target.value)} className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Select member</option>
                 {members.map((m) => {
                   const count = yearlyStats[m.id] || 0;
@@ -259,12 +259,12 @@ export default function WashroomPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-indigo-700 mb-1">Note</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Note</label>
               <input
                 type="text"
                 value={logNote}
                 onChange={(e) => setLogNote(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2 text-sm"
+                className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Optional..."
               />
             </div>

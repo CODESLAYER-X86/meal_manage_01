@@ -135,7 +135,7 @@ export default function DepositsPage() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
           <div>
@@ -143,7 +143,7 @@ export default function DepositsPage() {
             <select
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
             >
               {members.map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
@@ -156,7 +156,7 @@ export default function DepositsPage() {
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="500"
               required
             />
@@ -167,7 +167,7 @@ export default function DepositsPage() {
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="Optional"
             />
           </div>

@@ -46,3 +46,18 @@ body {
 .btn-glow:hover::after {
   transform: translateX(100%);
 }
+
+/* Global dropdown/select fix for dark mode */
+select option {
+  background-color: #1a1f2e;
+  color: #e2e8f0;
+}
+
+/* Base style for form inputs to ensure consistency */
+input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]), 
+select, 
+textarea {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--foreground);
+}

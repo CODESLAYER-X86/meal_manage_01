@@ -66,7 +66,7 @@ export default function BillingPage() {
           <select
             value={month}
             onChange={(e) => setMonth(Number(e.target.value))}
-            className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
           >
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -77,7 +77,7 @@ export default function BillingPage() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
           >
             {[2025, 2026, 2027].map((y) => (
               <option key={y} value={y}>{y}</option>

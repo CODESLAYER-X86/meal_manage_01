@@ -282,12 +282,12 @@ export default function BillsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold text-slate-100 text-white">💳 Bills & Rent</h1>
         <div className="flex gap-2">
-          <select value={month} onChange={e => setMonth(Number(e.target.value))} className="rounded-lg border border-white/[0.08]  text-white px-2 py-1 text-sm">
+          <select value={month} onChange={e => setMonth(Number(e.target.value))} className="rounded-lg bg-white/5 border border-white/10 text-slate-100 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>{new Date(2000, i).toLocaleString("default", { month: "short" })}</option>
             ))}
           </select>
-          <select value={year} onChange={e => setYear(Number(e.target.value))} className="rounded-lg border border-white/[0.08]  text-white px-2 py-1 text-sm">
+          <select value={year} onChange={e => setYear(Number(e.target.value))} className="rounded-lg bg-white/5 border border-white/10 text-slate-100 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
             {[year - 1, year, year + 1].map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
@@ -333,7 +333,7 @@ export default function BillsPage() {
                     placeholder="0"
                     value={rents[m.id] || ""}
                     onChange={e => setRents(prev => ({ ...prev, [m.id]: e.target.value }))}
-                    className="flex-1 rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm"
+                    className="flex-1 rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               ))}
@@ -347,7 +347,7 @@ export default function BillsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-slate-400">WiFi (Total)</label>
-                <input type="number" value={wifi} onChange={e => setWifi(e.target.value)} placeholder="0" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
+                <input type="number" value={wifi} onChange={e => setWifi(e.target.value)} placeholder="0" className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
               <div>
                 <label className="text-xs text-slate-400">Electricity (Total)</label>
@@ -371,7 +371,7 @@ export default function BillsPage() {
               </div>
               <div className="col-span-2">
                 <label className="text-xs text-slate-400">Note for &quot;Other&quot; (visible to all)</label>
-                <input type="text" value={otherNote} onChange={e => setOtherNote(e.target.value)} placeholder="e.g. Building maintenance" className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm" />
+                <input type="text" value={otherNote} onChange={e => setOtherNote(e.target.value)} placeholder="e.g. Building maintenance" className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
             </div>
           </div>
@@ -440,8 +440,8 @@ export default function BillsPage() {
       <div className="bg-white/[0.03] backdrop-blur-xl rounded-xl shadow-md shadow-black/10 border border-white/[0.08] p-4 space-y-3">
         <h2 className="text-lg font-semibold text-slate-100 text-white">💵 Submit Payment</h2>
         <div className="flex gap-2">
-          <input type="number" placeholder="Amount" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="flex-1 rounded-lg border border-white/[0.08]  text-white px-3 py-2 text-sm" />
-          <input type="text" placeholder="Note (optional)" value={payNote} onChange={e => setPayNote(e.target.value)} className="flex-1 rounded-lg border border-white/[0.08]  text-white px-3 py-2 text-sm" />
+          <input type="number" placeholder="Amount" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="flex-1 rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input type="text" placeholder="Note (optional)" value={payNote} onChange={e => setPayNote(e.target.value)} className="flex-1 rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
         <button onClick={submitPayment} className="w-full bg-green-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-700">
           Submit Payment
@@ -515,7 +515,7 @@ export default function BillsPage() {
                 <select
                   value={fineMemberId}
                   onChange={e => setFineMemberId(e.target.value)}
-                  className="w-full rounded-lg border border-white/[0.08]  text-white px-3 py-1.5 text-sm"
+                  className="w-full rounded-lg bg-white/5 border border-white/10 text-slate-100 px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">Select member...</option>
                   {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
