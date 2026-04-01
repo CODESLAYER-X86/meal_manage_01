@@ -563,7 +563,7 @@ export default function DashboardPage() {
           )}
 
           {/* Manager Cash Balance */}
-          {isManager && bill && (
+          {bill && (
             <div className="bg-[#1a1a3e]/50 backdrop-blur-sm border border-emerald-500/30 p-5 rounded-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-3 opacity-10">
                 <Wallet className="w-16 h-16 text-emerald-400" />
