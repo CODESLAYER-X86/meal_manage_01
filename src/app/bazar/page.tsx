@@ -330,8 +330,8 @@ export default function BazarEntryPage() {
         <span className="text-sm text-slate-400">Logged in as <strong>{session?.user?.name}</strong></span>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">⚠️ {error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm">✅ {success}</div>}
+      {error && <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-sm">⚠️ {error}</div>}
+      {success && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg text-sm">✅ {success}</div>}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-white/[0.06] rounded-lg p-1">
@@ -446,7 +446,7 @@ export default function BazarEntryPage() {
               </p>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
               <p className="text-xs text-yellow-700">⏳ Your entry will be submitted for manager approval. Once approved, trip counts will be updated for you and your companions.</p>
             </div>
           </div>
@@ -608,9 +608,9 @@ export default function BazarEntryPage() {
 
                     {/* Status badge */}
                     {trip.approved ? (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✅ Approved</span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">✅ Approved</span>
                     ) : (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">⏳ Pending</span>
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">⏳ Pending</span>
                     )}
 
                     {/* Manager actions */}
@@ -633,7 +633,7 @@ export default function BazarEntryPage() {
 
                   {/* Inline edit form */}
                   {editingTripId === trip.id ? (
-                    <div className="border-t p-4 bg-blue-50 space-y-3">
+                    <div className="border-t border-white/5 p-4 bg-blue-500/10 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-slate-400 mb-1">📅 Date</label>

@@ -198,13 +198,13 @@ export default function BillingPage() {
                     {m.netDue > 0 ? `৳${m.netDue}` : `-৳${Math.abs(m.netDue)}`}
                   </td>
                   <td className="p-2 sm:p-4 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.netDue > 0
-                      ? "bg-red-100 text-red-700"
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${m.netDue > 0
+                      ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                       : m.netDue < 0
-                        ? "bg-green-100 text-green-700"
-                        : "bg-white/[0.06] text-slate-400"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-white/[0.06] text-slate-400 border-white/10"
                       }`}>
-                      {m.netDue > 0 ? "Owes" : m.netDue < 0 ? "Refund" : "Settled"}
+                      {m.netDue > 0 ? `Pay ৳${m.netDue}` : m.netDue < 0 ? `Refund ৳${Math.abs(m.netDue)}` : "Settled"}
                     </span>
                   </td>
                 </tr>
@@ -229,7 +229,7 @@ export default function BillingPage() {
       </div>
 
       {/* Formula Explanation */}
-      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm text-blue-800">
+      <div className="bg-blue-500/10 p-4 rounded-xl border border-blue-500/20 text-sm text-blue-300">
         <p className="font-semibold mb-1">📐 How it&apos;s calculated:</p>
         <p>Meal Rate = Total Expense ÷ Total Meals = ৳{bill?.totalExpense} ÷ {bill?.totalMeals} = <strong>৳{bill?.mealRate}/meal</strong></p>
         <p>Your Cost = Your Meals × Meal Rate</p>

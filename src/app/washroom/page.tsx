@@ -194,8 +194,8 @@ export default function WashroomPage() {
           {washroomCount} washroom{washroomCount !== 1 ? "s" : ""} · Next cleaning due every {intervalDays} days · Manager logs who cleaned
         </p>
 
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mt-3">⚠️ {error}</div>}
-        {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg text-sm mt-3">✅ {success}</div>}
+        {error && <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-sm mt-3">⚠️ {error}</div>}
+        {success && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg text-sm mt-3">✅ {success}</div>}
       </div>
 
       {/* Next Due Dates */}
@@ -207,7 +207,7 @@ export default function WashroomPage() {
               const dueDate = nextDueDates[wn];
               const overdue = isOverdue(dueDate);
               return (
-                <div key={wn} className={`rounded-lg p-4 border ${overdue ? "bg-red-50 border-red-200" : dueDate ? "bg-blue-50 border-blue-200" : "bg-white/[0.02] border-white/10"}`}>
+                <div key={wn} className={`rounded-lg p-4 border ${overdue ? "bg-rose-500/10 border-rose-500/20" : dueDate ? "bg-blue-500/10 border-blue-500/20" : "bg-white/[0.02] border-white/10"}`}>
                   <p className="text-sm font-semibold text-slate-300">WR-{wn}</p>
                   {dueDate ? (
                     <>
@@ -334,11 +334,11 @@ export default function WashroomPage() {
                   {c.note && <span className="text-xs text-slate-400 italic">— {c.note}</span>}
 
                   <div className="ml-auto flex items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                       ✅ Done
                     </span>
                     {isManager && (
-                      <button onClick={() => deleteCleaning(c.id)} className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">✕</button>
+                      <button onClick={() => deleteCleaning(c.id)} className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-1 rounded hover:bg-red-500/20">✕</button>
                     )}
                   </div>
                 </div>

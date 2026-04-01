@@ -295,8 +295,8 @@ export default function BillsPage() {
 
       {/* My Bill Summary */}
       {myBill > 0 && (
-        <div className={`rounded-xl p-4 border ${myRemaining > 0 ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-          <p className="text-sm font-medium text-slate-300 text-slate-400">Your bill this month</p>
+        <div className={`rounded-xl p-4 border ${myRemaining > 0 ? "bg-rose-500/10 border-rose-500/20" : "bg-emerald-500/10 border-emerald-500/20"}`}>
+          <p className="text-sm font-medium text-slate-400">Your bill this month</p>
           <p className="text-2xl font-bold mt-1 text-white text-white">৳{myBill.toFixed(0)}</p>
           {setting && (
             <div className="mt-2 text-xs text-slate-400 space-y-0.5">
@@ -463,9 +463,9 @@ export default function BillsPage() {
                 <span className="text-xs text-slate-400">{new Date(p.createdAt).toLocaleDateString()}</span>
                 <div className="ml-auto flex items-center gap-2">
                   {p.confirmed ? (
-                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✅ Confirmed</span>
+                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">✅ Confirmed</span>
                   ) : (
-                    <span className="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">⏳ Pending</span>
+                    <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">⏳ Pending</span>
                   )}
                   {isManager && !p.confirmed && (
                     <button onClick={() => confirmPayment(p.id, true)} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">
@@ -498,7 +498,7 @@ export default function BillsPage() {
           {isManager && (
             <button
               onClick={() => { setShowFineForm(!showFineForm); setFineError(""); }}
-              className="text-sm bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg hover:bg-orange-200 font-medium"
+              className="text-sm bg-orange-500/10 border border-orange-500/20 text-orange-400 px-3 py-1.5 rounded-lg hover:bg-orange-500/20 font-medium"
             >
               {showFineForm ? "✕ Cancel" : "➕ Issue Fine"}
             </button>
@@ -507,8 +507,8 @@ export default function BillsPage() {
 
         {/* Issue Fine Form (Manager) */}
         {isManager && showFineForm && (
-          <div className="p-4 border-b border-white/[0.08] bg-orange-50 space-y-3">
-            <h3 className="text-sm font-semibold text-orange-800">Issue a Fine</h3>
+          <div className="p-4 border-b border-white/[0.08] bg-orange-500/10 space-y-3">
+            <h3 className="text-sm font-semibold text-orange-400">Issue a Fine</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs text-slate-400">Member</label>
@@ -567,7 +567,7 @@ export default function BillsPage() {
                     <span className="font-medium text-slate-200">{f.member.name}</span>
                     <span className="font-bold text-orange-600">৳{f.amount}</span>
                     {f.settled ? (
-                      <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✅ Settled</span>
+                      <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">✅ Settled</span>
                     ) : (
                       <span className="text-xs font-medium text-red-600 bg-white/[0.03] backdrop-blur-xl px-2 py-0.5 rounded-full">⚠️ Unsettled</span>
                     )}
