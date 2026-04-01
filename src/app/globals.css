@@ -48,16 +48,22 @@ body {
 }
 
 /* Global dropdown/select fix for dark mode */
+select {
+  background-color: #0a0f1c !important; /* Force opaque dark background */
+  color: #e2e8f0 !important;
+  color-scheme: dark;
+}
+
 select option {
-  background-color: #1a1f2e;
-  color: #e2e8f0;
+  background-color: #0a0f1c !important;
+  color: #e2e8f0 !important;
 }
 
 /* Base style for form inputs to ensure consistency */
 input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]), 
-select, 
 textarea {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.05); /* very slightly white over dark */
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--foreground);
+  color-scheme: dark;
 }
