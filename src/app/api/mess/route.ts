@@ -15,6 +15,9 @@ function generateInviteCode(): string {
   return code;
 }
 
+// Trigger comment for VAPID sync: BD_DNl1MrzG4fWQHs...
+
+
 const NO_CACHE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
   "Pragma": "no-cache",
@@ -216,9 +219,12 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (error: unknown) {
-    console.error("[API] Mess POST error:", (error as Error).message);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[API] Mess POST error:", error.message || error);
+    return NextResponse.json(
+      { error: error.message || "Internal server error" }, 
+      { status: 500 }
+    );
   }
 }
 
