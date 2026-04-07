@@ -25,18 +25,7 @@ function getTodayBD(): { todayStr: string; todayDate: Date; tomorrowDate: Date }
   return { todayStr, todayDate, tomorrowDate };
 }
 
-// Helper: check if a meal is in a blackout window right now (supports minute precision)
-function isInBlackout(meal: string, blackouts: { meals: string[]; startHour: number; startMinute?: number; endHour: number; endMinute?: number }[]): boolean {
-  const { hour, minute } = getBDTime();
-  const nowTotal = hour * 60 + minute;
-  for (const b of blackouts) {
-    if (!b.meals?.includes(meal)) continue;
-    const startTotal = b.startHour * 60 + (b.startMinute ?? 0);
-    const endTotal = b.endHour * 60 + (b.endMinute ?? 0);
-    if (nowTotal >= startTotal && nowTotal < endTotal) return true;
-  }
-  return false;
-}
+
 
 // Helper: check if blackout has STARTED (past the start time, regardless of end)
 function hasBlackoutStarted(meal: string, blackouts: { meals: string[]; startHour: number; startMinute?: number; endHour: number; endMinute?: number }[]): boolean {
@@ -61,60 +50,7 @@ function getMealsList(mealTypes: string | null | undefined, mealsPerDay: number)
   return mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"];
 }
 
-// Helper: sync MealEntry from all meal statuses for a member on a date.
-// lockedMeals = meals whose blackout has already STARTED.
-// For locked meals, we PRESERVE the existing snapshot value in MealEntry (immutable once locked).
-// For unlocked meals (blackout hasn't started), we always read current MealStatus.
-async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[], lockedMeals?: string[]) {
-  const statuses = await prisma.mealStatus.findMany({
-    where: { memberId, messId, date },
-    select: { meal: true, isOff: true },
-  });
-  const statusMap: Record<string, boolean> = {};
-  for (const s of statuses) statusMap[s.meal] = s.isOff;
 
-  // Get existing entry so we can preserve already-locked meal values
-  const existingEntry = await prisma.mealEntry.findFirst({
-    where: { date, memberId },
-  });
-  let existingMealsObj: Record<string, number> = {};
-  if (existingEntry?.meals) {
-    try { existingMealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
-  }
-
-  // Build meals object:
-  //   - Locked meal WITH existing snapshot → preserve snapshot (immutable, blackout passed)
-  //   - Everything else → read current MealStatus (1 = eating, 0 = off)
-  const mealsObj: Record<string, number> = {};
-  let total = 0;
-  for (const meal of mealsList) {
-    const isLocked = lockedMeals?.includes(meal);
-    const hasSnapshot = meal in existingMealsObj;
-    if (isLocked && hasSnapshot) {
-      // Preserve the locked snapshot
-      mealsObj[meal] = existingMealsObj[meal];
-    } else {
-      // Live status (toggling still applies if blackout hasn't started, or manager override)
-      mealsObj[meal] = statusMap[meal] ? 0 : 1;
-    }
-    total += mealsObj[meal];
-  }
-
-  const breakfast = mealsObj["breakfast"] ?? 0;
-  const lunch = mealsObj["lunch"] ?? 0;
-  const dinner = mealsObj["dinner"] ?? 0;
-
-  if (existingEntry) {
-    await prisma.mealEntry.update({
-      where: { id: existingEntry.id },
-      data: { breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
-    });
-  } else {
-    await prisma.mealEntry.create({
-      data: { date, memberId, messId, breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
-    });
-  }
-}
 
 // GET - Get meal status for a date (or today + tomorrow)
 export async function GET(request: NextRequest) {
@@ -131,7 +67,7 @@ export async function GET(request: NextRequest) {
     // Get mess config
     const mess = await prisma.mess.findUnique({
       where: { id: messId },
-      select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true, autoMealEntry: true },
+      select: { mealsPerDay: true, mealTypes: true, mealBlackouts: true },
     });
     const mealsPerDay = mess?.mealsPerDay ?? 3;
     let blackouts: any[] = [];
@@ -213,60 +149,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // ===== AUTO-FILL: When a meal's blackout has started, snapshot all members' entries =====
-    // We only write entries for meals that have NOT been snapshotted yet (first time blackout starts).
-    // This is now the ONLY place auto-fill happens (not duplicated inline above).
-    const { todayDate } = getTodayBD();
-    const lockedMeals = mealsList.filter(meal => hasBlackoutStarted(meal, blackouts));
 
-    if (mess?.autoMealEntry !== false && lockedMeals.length > 0) {
-      await Promise.all(members.map(async (m) => {
-        // Get the existing entry to check if we already snapshotted this meal
-        const existingEntry = await prisma.mealEntry.findFirst({
-          where: { date: todayDate, memberId: m.id },
-        });
-        let existingMealsObj: Record<string, number> = {};
-        if (existingEntry?.meals) {
-          try { existingMealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
-        }
-
-        // Only auto-fill meals that haven't been snapshotted yet
-        const mealsNeedingSnapshot = lockedMeals.filter((meal) => !(meal in existingMealsObj));
-        if (mealsNeedingSnapshot.length === 0) return; // All locked meals already snapshotted
-
-        // Read current MealStatus for just the meals that need snapshotting
-        const mealStatuses = await prisma.mealStatus.findMany({
-          where: { memberId: m.id, messId, date: todayDate, meal: { in: mealsNeedingSnapshot } },
-          select: { meal: true, isOff: true },
-        });
-        const sMap: Record<string, boolean> = {};
-        for (const s of mealStatuses) sMap[s.meal] = s.isOff;
-
-        // Write snapshot values for newly-locked meals
-        for (const meal of mealsNeedingSnapshot) {
-          existingMealsObj[meal] = sMap[meal] ? 0 : 1;
-        }
-
-        // Recalculate total from all meals in the list
-        let total = 0;
-        for (const meal of mealsList) total += existingMealsObj[meal] ?? 0;
-
-        const breakfast = existingMealsObj["breakfast"] ?? 0;
-        const lunch = existingMealsObj["lunch"] ?? 0;
-        const dinner = existingMealsObj["dinner"] ?? 0;
-
-        if (existingEntry) {
-          await prisma.mealEntry.update({
-            where: { id: existingEntry.id },
-            data: { breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
-          });
-        } else {
-          await prisma.mealEntry.create({
-            data: { date: todayDate, memberId: m.id, messId, breakfast, lunch, dinner, meals: JSON.stringify(existingMealsObj), total },
-          });
-        }
-      }));
-    }
 
     // Get pending special requests for this user
     const pendingRequests = await prisma.mealStatusRequest.findMany({
@@ -280,7 +163,7 @@ export async function GET(request: NextRequest) {
 
     // Check current blackout status for each meal
     const blackoutStatus = mealsList.reduce((acc, meal) => {
-      acc[meal] = isInBlackout(meal, blackouts);
+      acc[meal] = hasBlackoutStarted(meal, blackouts);
       return acc;
     }, {} as Record<string, boolean>);
 
@@ -394,9 +277,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Blackout check
-    if (!isManager && isSelf && isToday && isInBlackout(meal, blackouts)) {
+    if (!isManager && isSelf && isToday && hasBlackoutStarted(meal, blackouts)) {
       return NextResponse.json({
-        error: `Cannot change ${meal} status during restricted hours. Send a special request instead.`,
+        error: `Cannot change ${meal} status after the confirmation time. Send a special request instead.`,
         blackout: true,
       }, { status: 403 });
     }
@@ -433,16 +316,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Auto-sync MealEntry from meal status after every toggle.
-    // For today: meals OTHER than the just-toggled one that are already locked (blackout started)
-    // are preserved as snapshots. The toggled meal is always updated live.
-    const { todayDate: syncTodayDate } = getTodayBD();
-    let lockedMealsForSync: string[] | undefined;
-    if (mealDate.getTime() === syncTodayDate.getTime()) {
-      // Lock all meals EXCEPT the one being toggled (it just changed, so it should be live)
-      lockedMealsForSync = mealsList.filter(m => m !== meal && hasBlackoutStarted(m, blackouts));
-    }
-    await syncMealEntry(targetMemberId, messId, mealDate, mealsList, lockedMealsForSync);
+    // MealStatus toggle does NOT touch MealEntry.
+    // The heartbeat cron is the sole writer to MealEntry.
+    // Members plan via MealStatus; the cron snapshots it at cutoff time.
 
     // Audit log if manager changed someone else's status
     if (isManager && !isSelf) {
@@ -617,13 +493,25 @@ export async function PATCH(request: NextRequest) {
           });
         }
 
-        // Auto-sync MealEntry from approved status change
-        const mess2 = await prisma.mess.findUnique({
-          where: { id: messId },
-          select: { mealsPerDay: true, mealTypes: true },
+        // If MealEntry already exists (cron already ran), directly patch the specific meal
+        const existingMealEntry = await prisma.mealEntry.findFirst({
+          where: { date: req.date, memberId: req.memberId },
         });
-        const mealsList2 = getMealsList(mess2?.mealTypes, mess2?.mealsPerDay ?? 3);
-        await syncMealEntry(req.memberId, messId, req.date, mealsList2);
+        if (existingMealEntry) {
+          let mealsObj: Record<string, number> = {};
+          try { mealsObj = JSON.parse(existingMealEntry.meals as string || "{}"); } catch { /* ignore */ }
+          mealsObj[req.meal] = req.wantOff ? 0 : 1;
+          let total = 0;
+          for (const v of Object.values(mealsObj)) total += v;
+          await prisma.mealEntry.update({
+            where: { id: existingMealEntry.id },
+            data: {
+              [req.meal]: req.wantOff ? 0 : 1,
+              meals: JSON.stringify(mealsObj),
+              total,
+            },
+          });
+        }
       }
 
       // Audit log for approve/reject
