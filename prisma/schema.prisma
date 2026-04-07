@@ -118,6 +118,7 @@ model User {
   finesCreated      Fine[]         @relation("FineCreatedBy")
   bazarDutySchedules   BazarDutySchedule[]
   washroomDutySchedules WashroomDutySchedule[]
+  pushSubscriptions     PushSubscription[]
 
   @@index([messId])
 }
@@ -579,4 +580,17 @@ model DutySwapRequest {
   createdAt     DateTime @default(now())
 
   @@index([messId, status])
+}
+
+// ========== PUSH SUBSCRIPTION ==========
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

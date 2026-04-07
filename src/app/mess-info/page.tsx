@@ -410,12 +410,12 @@ export default function MessInfoPage() {
                 {mess.inviteCode}
               </p>
             </div>
-            
+
             <button
               onClick={copyCode}
               className={`flex items-center justify-center gap-3 px-8 py-5 rounded-xl font-black text-base transition-all shrink-0 shadow-2xl active:scale-95
-                ${copied 
-                  ? "bg-emerald-500 text-white shadow-emerald-500/40" 
+                ${copied
+                  ? "bg-emerald-500 text-white shadow-emerald-500/40"
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/40"
                 }`}
             >
@@ -426,7 +426,7 @@ export default function MessInfoPage() {
               )}
             </button>
           </div>
-          
+
           <div className="mt-5 flex items-center justify-center sm:justify-start gap-2 text-xs text-slate-400 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
             <Users className="w-4 h-4 text-indigo-400" />
             <span>New members require your approval to become active</span>
@@ -631,17 +631,17 @@ export default function MessInfoPage() {
             <p className="mt-2 text-xs text-slate-400">Current: {mealTypesInput.length} meal{mealTypesInput.length !== 1 ? "s" : ""}/day — {mealTypesInput.join(", ")}</p>
           </div>
 
-          {/* Meal Entry Cutoff Times */}
+          {/* Blackout Windows */}
           <div className="mb-5">
             <label className="text-sm text-slate-300 font-medium block mb-2">
-              <AlarmClock className="w-5 h-5 inline-block -mt-1" /> Meal Entry Time (Auto Lock)
+              <AlarmClock className="w-5 h-5 inline-block -mt-1" /> Blackout Windows (Restrictions)
             </label>
             <p className="text-xs text-slate-400 mb-3">
-              After this time, meal status toggles are locked for the rest of the day. The auto meal entry will snapshot at this time.
+              Members cannot toggle meals ON/OFF during these times. They must send a special request instead.
             </p>
 
             {blackoutsInput.length === 0 && (
-              <p className="text-sm text-slate-400 italic mb-3">No cutoff time set — members can toggle meals anytime.</p>
+              <p className="text-sm text-slate-400 italic mb-3">No restrictions set — members can toggle meals anytime.</p>
             )}
 
             <div className="space-y-3">
@@ -650,7 +650,7 @@ export default function MessInfoPage() {
                 return (
                   <div key={idx} className="p-4 bg-white/[0.04] border border-white/10 rounded-lg">
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <span className="text-sm font-medium text-slate-300">Cutoff #{idx + 1}</span>
+                      <span className="text-sm font-medium text-slate-300">Restriction #{idx + 1}</span>
                       <button
                         onClick={() => {
                           const updated = [...blackoutsInput];
@@ -688,22 +688,36 @@ export default function MessInfoPage() {
                       ))}
                     </div>
 
-                    {/* Cutoff time */}
+                    {/* Time range */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-slate-400">Lock after:</span>
+                      <span className="text-xs text-slate-400">From:</span>
                       <input
                         type="time"
                         value={`${String(bo.startHour).padStart(2, '0')}:${String(bo.startMinute ?? 0).padStart(2, '0')}`}
                         onChange={(e) => {
                           const [h, m] = e.target.value.split(':').map(Number);
                           const updated = [...blackoutsInput];
-                          updated[idx] = { ...updated[idx], startHour: h, startMinute: m, endHour: 23, endMinute: 59 };
+                          updated[idx] = { ...updated[idx], startHour: h, startMinute: m };
                           setBlackoutsInput(updated);
                         }}
                         className="px-2 py-1.5 border border-white/10 rounded-lg text-sm text-white focus:ring-2 focus:ring-indigo-500"
                       />
-                      <span className="text-xs text-slate-500">Locked until end of day</span>
+                      <span className="text-xs text-slate-400">To:</span>
+                      <input
+                        type="time"
+                        value={`${String(bo.endHour).padStart(2, '0')}:${String(bo.endMinute ?? 0).padStart(2, '0')}`}
+                        onChange={(e) => {
+                          const [h, m] = e.target.value.split(':').map(Number);
+                          const updated = [...blackoutsInput];
+                          updated[idx] = { ...updated[idx], endHour: h, endMinute: m };
+                          setBlackoutsInput(updated);
+                        }}
+                        className="px-2 py-1.5 border border-white/10 rounded-lg text-sm text-white focus:ring-2 focus:ring-indigo-500"
+                      />
                     </div>
+                    {(bo.startHour * 60 + (bo.startMinute ?? 0)) >= (bo.endHour * 60 + (bo.endMinute ?? 0)) && (
+                      <p className="text-xs text-red-500 mt-1"><AlertTriangle className="w-4 h-4 inline-block" /> Start time must be before end time</p>
+                    )}
                     {bo.meals.length === 0 && (
                       <p className="text-xs text-red-500 mt-1"><AlertTriangle className="w-4 h-4 inline-block" /> Select at least one meal</p>
                     )}
@@ -716,12 +730,12 @@ export default function MessInfoPage() {
               onClick={() =>
                 setBlackoutsInput([
                   ...blackoutsInput,
-                  { meals: mealTypesInput.slice(0, 2), startHour: 7, startMinute: 0, endHour: 23, endMinute: 59 },
+                  { meals: mealTypesInput.slice(0, 2), startHour: 6, startMinute: 0, endHour: 10, endMinute: 0 },
                 ])
               }
               className="mt-3 px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 text-sm font-medium rounded-lg transition-colors border border-white/10"
             >
-              + Add cutoff time
+              + Add another restriction
             </button>
           </div>
 
@@ -731,7 +745,12 @@ export default function MessInfoPage() {
               // Validate
               for (const bo of blackoutsInput) {
                 if (bo.meals.length === 0) {
-                  setMealConfigMsg("Each cutoff must have at least one meal selected");
+                  setMealConfigMsg("Each restriction must have at least one meal selected");
+                  setTimeout(() => setMealConfigMsg(""), 3000);
+                  return;
+                }
+                if (bo.startHour * 60 + (bo.startMinute ?? 0) >= bo.endHour * 60 + (bo.endMinute ?? 0)) {
+                  setMealConfigMsg("Start time must be before end time in all restrictions");
                   setTimeout(() => setMealConfigMsg(""), 3000);
                   return;
                 }
@@ -770,8 +789,8 @@ export default function MessInfoPage() {
           )}
           <p className="mt-3 text-xs text-slate-400">
             {mess && blackoutsInput.length > 0
-              ? `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · ${blackoutsInput.length} cutoff${blackoutsInput.length !== 1 ? "s" : ""} active`
-              : `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · No cutoffs — members can toggle anytime`}
+              ? `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · ${blackoutsInput.length} restriction${blackoutsInput.length !== 1 ? "s" : ""} active`
+              : `Currently: ${mealTypesInput.length} meals/day (${mealTypesInput.join(", ")}) · No restrictions — members can toggle anytime`}
           </p>
         </div>
       )}

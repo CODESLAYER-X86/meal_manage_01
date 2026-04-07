@@ -1,17 +1,54 @@
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import webpush from "web-push";
 
 export const dynamic = "force-dynamic";
-import prisma from "@/lib/prisma";
 
-// GET - Support Vercel cron (which sends GET requests)
 export async function GET(request: Request) {
   return POST(request);
 }
 
-// POST - Run auto-notifications (called by cron or manual trigger)
-// Generates notifications for: overdue bills, high meal dues, upcoming washroom duties, bazar duties tomorrow
+// Bulk send helper
+async function blastPushNotifications(userId: string, title: string, body: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { pushSubscriptions: true },
+  });
+
+  if (!user || user.pushSubscriptions.length === 0) return;
+
+  if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+      "mailto:hello@example.com",
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+      process.env.VAPID_PRIVATE_KEY!
+    );
+  } else {
+    return; // VAPID not configured
+  }
+
+  const payload = JSON.stringify({
+    title,
+    body,
+    icon: "/icons/icon-192.png",
+    url: "/dashboard",
+  });
+
+  for (const sub of user.pushSubscriptions) {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload
+      );
+    } catch (err: any) {
+      if (err.statusCode === 410 || err.statusCode === 404) {
+        await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+      }
+    }
+  }
+}
+
 export async function POST(request: Request) {
-  // Verify cron secret or admin
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -26,7 +63,6 @@ export async function POST(request: Request) {
   let notificationsCreated = 0;
 
   try {
-    // Get all active messes
     const messes = await prisma.mess.findMany({
       select: {
         id: true,
@@ -42,7 +78,7 @@ export async function POST(request: Request) {
       const messId = mess.id;
       const memberIds = mess.members.map((m) => m.id);
 
-      // 1. BILL OVERDUE: Check if bills are set and any member hasn't paid after 7th of month
+      // 1. BILL OVERDUE
       if (currentDay >= 7) {
         const billSetting = await prisma.billSetting.findUnique({
           where: { messId_month_year: { messId, month: currentMonth, year: currentYear } },
@@ -50,22 +86,19 @@ export async function POST(request: Request) {
 
         if (billSetting) {
           const rents: Record<string, number> = JSON.parse(billSetting.rents);
-          const sharedUtilities =
-            billSetting.wifi + billSetting.electricity + billSetting.gas + billSetting.cookSalary;
+          const sharedUtilities = billSetting.wifi + billSetting.electricity + billSetting.gas + billSetting.cookSalary;
           const perMemberUtility = memberIds.length > 0 ? sharedUtilities / memberIds.length : 0;
 
           for (const memberId of memberIds) {
             const totalDue = (rents[memberId] || 0) + perMemberUtility;
             if (totalDue <= 0) continue;
 
-            // Check confirmed payments
             const payments = await prisma.billPayment.findMany({
               where: { memberId, messId, month: currentMonth, year: currentYear, confirmed: true },
             });
             const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
             if (totalPaid < totalDue) {
-              // Check if we already sent this notification today
               const existingNotif = await prisma.notification.findFirst({
                 where: {
                   userId: memberId,
@@ -76,15 +109,16 @@ export async function POST(request: Request) {
               });
 
               if (!existingNotif) {
+                const title = "⚠️ Bill Payment Overdue";
+                const message = `Your bill of ৳${totalDue.toFixed(0)} for ${getMonthName(currentMonth)} is overdue. Paid: ৳${totalPaid.toFixed(0)}.`;
+                
                 await prisma.notification.create({
-                  data: {
-                    userId: memberId,
-                    messId,
-                    type: "bill_overdue",
-                    title: "⚠️ Bill Payment Overdue",
-                    message: `Your bill of ৳${totalDue.toFixed(0)} for ${getMonthName(currentMonth)} is overdue. Paid: ৳${totalPaid.toFixed(0)}.`,
-                  },
+                  data: { userId: memberId, messId, type: "bill_overdue", title, message },
                 });
+                
+                // Blast parallel Web Push attempt (doesn't block cron if fails)
+                blastPushNotifications(memberId, title, message).catch(console.error);
+
                 notificationsCreated++;
               }
             }
@@ -92,24 +126,21 @@ export async function POST(request: Request) {
         }
       }
 
-      // 2. HIGH MEAL DUE: Check if anyone's meal due exceeds threshold
+      // 2. HIGH MEAL DUE
       const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
       const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59);
 
       for (const memberId of memberIds) {
-        // Calculate meal total for this month
         const mealEntries = await prisma.mealEntry.findMany({
           where: { memberId, messId, date: { gte: startOfMonth, lte: endOfMonth } },
         });
         const totalMeals = mealEntries.reduce((sum, e) => sum + e.total, 0);
 
-        // Calculate deposits this month
         const deposits = await prisma.deposit.findMany({
           where: { memberId, messId, date: { gte: startOfMonth, lte: endOfMonth } },
         });
         const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
 
-        // Get all bazar expenses for the mess this month (to compute meal rate)
         const bazarTrips = await prisma.bazarTrip.findMany({
           where: { messId, date: { gte: startOfMonth, lte: endOfMonth } },
         });
@@ -134,21 +165,21 @@ export async function POST(request: Request) {
           });
 
           if (!existingNotif) {
+            const title = "🍽️ High Meal Due";
+            const message = `Your meal due is ৳${due.toFixed(0)} which exceeds the threshold of ৳${mess.dueThreshold}.`;
+            
             await prisma.notification.create({
-              data: {
-                userId: memberId,
-                messId,
-                type: "meal_due_high",
-                title: "🍽️ High Meal Due",
-                message: `Your meal due is ৳${due.toFixed(0)} which exceeds the threshold of ৳${mess.dueThreshold}.`,
-              },
+              data: { userId: memberId, messId, type: "meal_due_high", title, message },
             });
+            
+            blastPushNotifications(memberId, title, message).catch(console.error);
+
             notificationsCreated++;
           }
         }
       }
 
-      // 3. BAZAR DUTY REMINDER: Tomorrow's bazar duty
+      // 3. BAZAR DUTY REMINDER
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       const tomorrowStart = new Date(Date.UTC(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate()));
@@ -167,20 +198,20 @@ export async function POST(request: Request) {
           },
         });
         if (!existingNotif) {
+          const title = "🛒 Bazar Duty Tomorrow";
+          const message = `You have bazar duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}). Don't forget!`;
+          
           await prisma.notification.create({
-            data: {
-              userId: duty.memberId,
-              messId,
-              type: "bazar_duty_reminder",
-              title: "🛒 Bazar Duty Tomorrow",
-              message: `You have bazar duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}). Don't forget!`,
-            },
+            data: { userId: duty.memberId, messId, type: "bazar_duty_reminder", title, message },
           });
+
+          blastPushNotifications(duty.memberId, title, message).catch(console.error);
+          
           notificationsCreated++;
         }
       }
 
-      // 4. WASHROOM DUTY REMINDER: Tomorrow's washroom duty (new model)
+      // 4. WASHROOM DUTY REMINDER
       const tomorrowWashroomDuties = await prisma.washroomDutySchedule.findMany({
         where: { messId, completed: false, date: { gte: tomorrowStart, lte: tomorrowEnd } },
       });
@@ -194,20 +225,20 @@ export async function POST(request: Request) {
           },
         });
         if (!existingNotif) {
+          const title = "🚿 Washroom Duty Tomorrow";
+          const message = `You have washroom #${duty.washroomNumber} cleaning duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}).`;
+          
           await prisma.notification.create({
-            data: {
-              userId: duty.memberId,
-              messId,
-              type: "washroom_duty_reminder",
-              title: "🚿 Washroom Duty Tomorrow",
-              message: `You have washroom #${duty.washroomNumber} cleaning duty tomorrow (${tomorrowStart.toISOString().split("T")[0]}).`,
-            },
+            data: { userId: duty.memberId, messId, type: "washroom_duty_reminder", title, message },
           });
+
+          blastPushNotifications(duty.memberId, title, message).catch(console.error);
+
           notificationsCreated++;
         }
       }
 
-      // 5. MEAL STATUS REMINDER: Remind all members to set meal status for tomorrow
+      // 5. MEAL STATUS REMINDER
       for (const memberId of memberIds) {
         const hasStatus = await prisma.mealStatus.findFirst({
           where: { memberId, messId, date: { gte: tomorrowStart, lte: tomorrowEnd } },
@@ -222,15 +253,15 @@ export async function POST(request: Request) {
             },
           });
           if (!existingNotif) {
+            const title = "🍽️ Set Your Meal Status";
+            const message = `Don't forget to set your meal status for tomorrow!`;
+            
             await prisma.notification.create({
-              data: {
-                userId: memberId,
-                messId,
-                type: "meal_status_reminder",
-                title: "🍽️ Set Your Meal Status",
-                message: `Don't forget to set your meal status for tomorrow!`,
-              },
+              data: { userId: memberId, messId, type: "meal_status_reminder", title, message },
             });
+
+            blastPushNotifications(memberId, title, message).catch(console.error);
+
             notificationsCreated++;
           }
         }
@@ -245,8 +276,5 @@ export async function POST(request: Request) {
 }
 
 function getMonthName(month: number): string {
-  return [
-    "", "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ][month];
+  return ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month];
 }

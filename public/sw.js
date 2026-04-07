@@ -92,3 +92,57 @@ self.addEventListener("message", (event) => {
     self.skipWaiting();
   }
 });
+
+// --- Push Notifications ---
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const title = data.title || "MessMate";
+    const options = {
+      body: data.body || "",
+      icon: data.icon || "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: {
+        url: data.url || "/dashboard",
+      },
+      vibrate: [200, 100, 200],
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (err) {
+    // Fallback if data is not JSON
+    event.waitUntil(
+      self.registration.showNotification("MessMate", {
+        body: event.data.text(),
+        icon: "/icons/icon-192.png",
+      })
+    );
+  }
+});
+
+// --- Notification Click ---
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close(); // Close the notification
+
+  const urlToOpen = event.notification.data?.url || "/dashboard";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // Check if there is already a window/tab open with the target URL
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        // If so, just focus it.
+        if (client.url.includes(urlToOpen) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window/tab
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+

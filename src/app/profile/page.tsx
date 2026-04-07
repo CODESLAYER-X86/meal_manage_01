@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PushNotificationSetup from "@/components/PushNotificationSetup";
 
 export default function ProfilePage() {
   const { status } = useSession();
@@ -145,6 +146,9 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Push Notifications Setup */}
+      <PushNotificationSetup />
 
       {/* Change Email */}
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] p-6 rounded-xl shadow-md shadow-black/10 border">
