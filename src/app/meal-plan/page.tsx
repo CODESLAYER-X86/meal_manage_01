@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, Check, X, Lock, Ban, Clock, CalendarDays, Utensils, Users, ChefHat, AlertCircle } from "lucide-react";
 
 interface MealPlan {
   id: string;
@@ -20,13 +21,15 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-const DEFAULT_MEAL_ICONS: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙", snacks: "🍪", supper: "🌃" };
-const MEAL_THEMES: Record<string, string> = {
-  breakfast: "bg-gradient-to-r from-amber-500/10 to-transparent border-amber-500/20 text-amber-500",
-  lunch: "bg-gradient-to-r from-blue-500/10 to-transparent border-blue-500/20 text-blue-400",
-  dinner: "bg-gradient-to-r from-indigo-500/10 to-transparent border-indigo-500/20 text-indigo-400",
-  snacks: "bg-gradient-to-r from-orange-500/10 to-transparent border-orange-500/20 text-orange-400"
+const MEAL_META: Record<string, { icon: string; accent: string; glow: string; label: string }> = {
+  breakfast: { icon: "🌅", accent: "from-amber-500/20 via-amber-500/5 to-transparent", glow: "shadow-amber-500/10", label: "Breakfast" },
+  lunch:     { icon: "☀️",  accent: "from-sky-500/20 via-sky-500/5 to-transparent",    glow: "shadow-sky-500/10",   label: "Lunch" },
+  dinner:    { icon: "🌙",  accent: "from-indigo-500/20 via-indigo-500/5 to-transparent", glow: "shadow-indigo-500/10", label: "Dinner" },
+  snacks:    { icon: "🍪",  accent: "from-orange-500/20 via-orange-500/5 to-transparent", glow: "shadow-orange-500/10", label: "Snacks" },
+  supper:    { icon: "🌃",  accent: "from-teal-500/20 via-teal-500/5 to-transparent",  glow: "shadow-teal-500/10",  label: "Supper" },
 };
+
+const DAY_ABBR = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 export default function MealPlanPage() {
   const { data: session, status } = useSession();
@@ -43,7 +46,6 @@ export default function MealPlanPage() {
   const [editCancelled, setEditCancelled] = useState<string[]>([]);
   const [editWastage, setEditWastage] = useState<Record<string, string>>({});
 
-  // Meal status state
   const [mealStatusData, setMealStatusData] = useState<{
     mealsPerDay: number;
     mealsList?: string[];
@@ -81,7 +83,6 @@ export default function MealPlanPage() {
       const messData = await messRes.json();
       setPlans(Array.isArray(plansData) ? plansData : []);
       if (statusData?.mealsPerDay) setMealStatusData(statusData);
-      // Set meal types from mess config or status response
       if (statusData?.mealsList) {
         setMealTypesList(statusData.mealsList);
       } else {
@@ -90,11 +91,8 @@ export default function MealPlanPage() {
           if (Array.isArray(mt) && mt.length > 0) setMealTypesList(mt);
         } catch { /* use default */ }
       }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
   }, [month, year, statusDate]);
 
   useEffect(() => {
@@ -123,29 +121,19 @@ export default function MealPlanPage() {
   const startEdit = (day: number) => {
     if (!isManager) return;
     const plan = getPlanForDay(day);
-    // Parse meals JSON if available, else use legacy columns
     let mealsObj: Record<string, string> = {};
-    if (plan?.meals) {
-      try { mealsObj = JSON.parse(plan.meals); } catch { /* ignore */ }
-    }
+    if (plan?.meals) { try { mealsObj = JSON.parse(plan.meals); } catch { /* ignore */ } }
     const form: Record<string, string> = {};
     for (const mt of mealTypesList) {
       form[mt] = mealsObj[mt] || (plan as unknown as Record<string, string | null>)?.[mt] || "";
     }
     setEditForm(form);
-
     let cMeals: string[] = [];
-    if (plan?.cancelledMeals) {
-      try { cMeals = JSON.parse(plan.cancelledMeals); } catch {}
-    }
+    if (plan?.cancelledMeals) { try { cMeals = JSON.parse(plan.cancelledMeals); } catch {} }
     setEditCancelled(cMeals);
-
     let wObj: Record<string, string> = {};
-    if (plan?.wastage) {
-      try { wObj = JSON.parse(plan.wastage); } catch {}
-    }
+    if (plan?.wastage) { try { wObj = JSON.parse(plan.wastage); } catch {} }
     setEditWastage(wObj);
-
     setEditingDay(day);
   };
 
@@ -169,17 +157,12 @@ export default function MealPlanPage() {
       });
       if (res.ok) {
         const saved = await res.json();
-        // Update local state immediately so UI reflects the change
         setPlans((prev) => {
           const idx = prev.findIndex((p) => {
             const d = new Date(p.date);
             return d.getUTCFullYear() === year && d.getUTCMonth() + 1 === month && d.getUTCDate() === editingDay;
           });
-          if (idx >= 0) {
-            const updated = [...prev];
-            updated[idx] = saved;
-            return updated;
-          }
+          if (idx >= 0) { const updated = [...prev]; updated[idx] = saved; return updated; }
           return [...prev, saved];
         });
         setEditingDay(null);
@@ -188,13 +171,10 @@ export default function MealPlanPage() {
         alert(`Failed to save: ${errData?.error || res.statusText}`);
       }
     } catch (err: any) {
-      alert(`Network error saving plan: ${err.message}`);
-    } finally {
-      setSaving(false);
-    }
+      alert(`Network error: ${err.message}`);
+    } finally { setSaving(false); }
   };
 
-  // Refresh meal status
   const refreshMealStatus = useCallback(async () => {
     try {
       const now = new Date();
@@ -210,43 +190,59 @@ export default function MealPlanPage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20"></div>
+            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 animate-spin"></div>
+          </div>
+          <p className="text-slate-400 text-sm font-medium">Loading meal plan...</p>
+        </div>
       </div>
     );
   }
 
+  const meals = mealStatusData?.mealsList || mealTypesList;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+    <div className="max-w-4xl mx-auto space-y-5 pb-10">
+
+      {/* ── Header ── */}
+      <div className="relative overflow-hidden bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 sm:p-6">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">🍳 Meal Plan</h1>
-            <p className="text-sm text-slate-400 mt-0.5">
-              {isManager ? "Set what will be cooked each day" : "See what's being cooked each day"}
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center">
+                <CalendarDays className="w-4.5 h-4.5 text-indigo-400" />
+              </div>
+              <h1 className="text-xl font-bold text-white tracking-tight">Meal Plan</h1>
+            </div>
+            <p className="text-sm text-slate-400 pl-12">
+              {isManager ? "Set what's being cooked each day" : "See what's on the menu"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => changeMonth(-1)} className="px-3 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] rounded-lg text-sm font-medium transition-colors">
-              ←
+            <button
+              onClick={() => changeMonth(-1)}
+              className="w-9 h-9 flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.07] rounded-xl transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 text-slate-300" />
             </button>
-            <span className="text-base sm:text-lg font-semibold text-slate-300 min-w-[140px] text-center">
+            <span className="text-base font-semibold text-slate-200 min-w-[150px] text-center">
               {MONTH_NAMES[month - 1]} {year}
             </span>
-            <button onClick={() => changeMonth(1)} className="px-3 py-2.5 bg-white/[0.06] hover:bg-white/[0.08] rounded-lg text-sm font-medium transition-colors">
-              →
+            <button
+              onClick={() => changeMonth(1)}
+              className="w-9 h-9 flex items-center justify-center bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.07] rounded-xl transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 text-slate-300" />
             </button>
           </div>
         </div>
-
       </div>
 
-
-
-      {/* Meal Status Grid - Today/Tomorrow */}
+      {/* ── Meal Status Card ── */}
       {mealStatusData && (() => {
-        const meals = mealStatusData.mealsList || (mealStatusData.mealsPerDay === 2 ? ["lunch", "dinner"] : ["breakfast", "lunch", "dinner"]);
-        const mealIcons: Record<string, string> = { breakfast: "🌅", lunch: "☀️", dinner: "🌙" };
         const now = new Date();
         const dateStr = statusDate === "today"
           ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
@@ -262,9 +258,7 @@ export default function MealPlanPage() {
               body: JSON.stringify({ date: dateStr, meal, memberId }),
             });
             if (res.ok) await refreshMealStatus();
-          } catch { /* ignore */ } finally {
-            setMealStatusToggling(null);
-          }
+          } catch { /* ignore */ } finally { setMealStatusToggling(null); }
         };
 
         const handleApproveRequest = async (requestId: string, action: "approve" | "reject") => {
@@ -276,58 +270,71 @@ export default function MealPlanPage() {
               body: JSON.stringify({ action, requestId }),
             });
             if (res.ok) await refreshMealStatus();
-          } catch { /* ignore */ } finally {
-            setMealStatusToggling(null);
-          }
+          } catch { /* ignore */ } finally { setMealStatusToggling(null); }
         };
 
         return (
-          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border border-white/10 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-white">🍽️ Meal Status</h2>
-                <p className="text-sm text-slate-400">Who&apos;s eating today/tomorrow</p>
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+            {/* Card Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 border-b border-white/[0.06]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-white">Meal Status</h2>
+                  <p className="text-xs text-slate-400">Who's eating {statusDate}</p>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setStatusDate("today")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "today" ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
+              <div className="flex gap-1.5 p-1 bg-white/[0.04] border border-white/[0.06] rounded-xl">
+                {(["today", "tomorrow"] as const).map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setStatusDate(d)}
+                    className={`px-4 py-1.5 text-sm font-semibold rounded-lg capitalize transition-all ${
+                      statusDate === d
+                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/25"
+                        : "text-slate-400 hover:text-slate-200"
                     }`}
-                >
-                  📅 Today
-                </button>
-                <button
-                  onClick={() => setStatusDate("tomorrow")}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${statusDate === "tomorrow" ? "bg-indigo-600 text-white" : "bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]"
-                    }`}
-                >
-                  🔮 Tomorrow
-                </button>
+                  >
+                    {d === "today" ? "📅 Today" : "🔮 Tomorrow"}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Status Grid */}
-            <div className="overflow-x-auto">
+            {/* Status Table */}
+            <div className="overflow-x-auto p-1">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-2 pr-3 text-slate-400 font-medium">Member</th>
-                    {meals.map((meal) => (
-                      <th key={meal} className="text-center py-2 px-2 text-slate-400 font-medium">
-                        <span className="hidden sm:inline">{mealIcons[meal]} </span>
-                        <span className="capitalize">{meal}</span>
-                      </th>
-                    ))}
+                  <tr>
+                    <th className="text-left py-3 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Member</th>
+                    {meals.map((meal) => {
+                      const meta = MEAL_META[meal];
+                      return (
+                        <th key={meal} className="text-center py-3 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          <span className="mr-1">{meta?.icon || "🍽️"}</span>
+                          <span className="hidden sm:inline">{meta?.label || meal}</span>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/[0.04]">
                   {mealStatusData.members.map((member) => (
-                    <tr key={member.id} className="border-b border-gray-100 last:border-0">
-                      <td className="py-2.5 pr-3">
-                        <span className="font-medium text-slate-300 text-sm">{member.name}</span>
-                        {member.id === session?.user?.id && (
-                          <span className="ml-1 text-xs text-slate-400">(you)</span>
-                        )}
+                    <tr key={member.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-300 shrink-0">
+                            {member.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="font-medium text-slate-200 text-sm">{member.name}</span>
+                            {member.id === session?.user?.id && (
+                              <span className="ml-1.5 text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 px-1.5 py-0.5 rounded-full">you</span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       {meals.map((meal) => {
                         const isOff = mealStatusData.statuses?.[member.id]?.[meal] === true;
@@ -339,33 +346,38 @@ export default function MealPlanPage() {
                         const isCancelled = mealStatusData.cancelledMeals?.includes(meal) || false;
 
                         return (
-                          <td key={meal} className="text-center py-2.5 px-2">
-                            {isCancelled ? (
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-500 text-sm" title="Canceled by manager completely">
-                                🚫
+                          <td key={meal} className="text-center py-3 px-3">
+                            {isToggling ? (
+                              <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl">
+                                <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                            ) : isCancelled ? (
+                              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 text-sm" title="Canceled by manager">
+                                <Ban className="w-4 h-4 text-red-400" />
                               </span>
-                            ) : canToggle && !blocked ? (
+                            ) : blocked ? (
+                              <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20" title="Blackout window active">
+                                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                              </span>
+                            ) : canToggle ? (
                               <button
                                 onClick={() => handleToggle(member.id, meal)}
-                                disabled={isToggling}
-                                className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${isOff
-                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                  : "bg-green-100 text-green-600 hover:bg-green-200"
-                                  } ${isToggling ? "opacity-50" : ""}`}
+                                className={`inline-flex items-center justify-center w-9 h-9 rounded-xl text-sm font-bold transition-all active:scale-90 border ${
+                                  isOff
+                                    ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/25"
+                                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/25"
+                                }`}
                                 title={isOff ? "Click to turn ON" : "Click to turn OFF"}
                               >
-                                {isOff ? "✕" : "✓"}
+                                {isOff ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                               </button>
-                            ) : blocked ? (
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-50 text-amber-500 text-sm" title="Blackout window">
-                                🔒
-                              </span>
                             ) : (
-                              <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold border transition-colors ${isOff 
-                                ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
-                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                }`}>
-                                {isOff ? "✕" : "✓"}
+                              <span className={`inline-flex items-center justify-center w-9 h-9 rounded-xl border ${
+                                isOff
+                                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              }`}>
+                                {isOff ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
                               </span>
                             )}
                           </td>
@@ -373,17 +385,18 @@ export default function MealPlanPage() {
                       })}
                     </tr>
                   ))}
+
                   {/* Cook Count Row */}
-                  <tr className="bg-white/[0.05] border-t border-white/10">
-                    <td className="py-3 pr-3">
-                      <span className="font-bold text-indigo-400 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                        Cook Count
-                      </span>
+                  <tr className="bg-white/[0.02]">
+                    <td className="py-3 px-5">
+                      <div className="flex items-center gap-2">
+                        <ChefHat className="w-3.5 h-3.5 text-indigo-400" />
+                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Cook Count</span>
+                      </div>
                     </td>
                     {meals.map((meal) => (
-                      <td key={meal} className="text-center py-3 px-2">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 text-sm font-black border border-indigo-500/30">
+                      <td key={meal} className="text-center py-3 px-3">
+                        <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-sm font-black">
                           {mealStatusData.mealCounts?.[meal] ?? 0}
                         </span>
                       </td>
@@ -393,37 +406,40 @@ export default function MealPlanPage() {
               </table>
             </div>
 
-            {/* Pending Meal Status Requests - Manager Only */}
+            {/* Pending Requests */}
             {isManager && mealStatusData.pendingRequests?.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-white/10">
-                <h3 className="text-sm font-semibold text-amber-800 mb-2">⏳ Pending Meal Change Requests</h3>
+              <div className="p-5 border-t border-white/[0.06]">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <h3 className="text-sm font-bold text-amber-300">Pending Meal Change Requests</h3>
+                  <span className="px-2 py-0.5 text-[10px] font-black bg-amber-500/15 text-amber-300 border border-amber-500/25 rounded-full">
+                    {mealStatusData.pendingRequests.length}
+                  </span>
+                </div>
                 <div className="space-y-2">
                   {mealStatusData.pendingRequests.map((req) => {
                     const memberName = mealStatusData.members.find((m) => m.id === req.memberId)?.name || "Unknown";
                     return (
-                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white/[0.04] border border-white/10 rounded-xl transition-all hover:bg-white/[0.06]">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                             <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
-                             <p className="text-sm font-semibold text-slate-100">{memberName}</p>
-                          </div>
-                          <p className="text-xs text-slate-300">
-                             Wants <span className="text-amber-400 capitalize bg-amber-400/10 px-1 rounded font-bold">{req.meal}</span> {req.wantOff ? "OFF" : "ON"}
+                      <div key={req.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-amber-500/5 border border-amber-500/15 rounded-xl">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-200">{memberName}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            Wants <span className="text-amber-300 font-bold capitalize">{req.meal}</span> {req.wantOff ? "OFF" : "ON"}
                           </p>
-                          {req.reason && <p className="text-[11px] text-slate-400 mt-1 italic border-l-2 border-amber-500/30 pl-2">"{req.reason}"</p>}
+                          {req.reason && <p className="text-[11px] text-slate-500 mt-1 italic">"{req.reason}"</p>}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 shrink-0">
                           <button
                             onClick={() => handleApproveRequest(req.id, "approve")}
                             disabled={mealStatusToggling === req.id}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg transition-all"
+                            className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 text-xs font-bold rounded-lg transition-all disabled:opacity-40"
                           >
                             ✅ Approve
                           </button>
                           <button
                             onClick={() => handleApproveRequest(req.id, "reject")}
                             disabled={mealStatusToggling === req.id}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold rounded-lg transition-all"
+                            className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-rose-400 text-xs font-bold rounded-lg transition-all disabled:opacity-40"
                           >
                             ❌ Reject
                           </button>
@@ -438,161 +454,216 @@ export default function MealPlanPage() {
         );
       })()}
 
-      {/* Meal Plan Calendar */}
-      <div className="space-y-3">
+      {/* ── Day Cards ── */}
+      <div className="space-y-2">
         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
           const plan = getPlanForDay(day);
           const dateObj = new Date(year, month - 1, day);
-          const dayName = dateObj.toLocaleDateString("en", { weekday: "short" });
-          const todayDate = new Date();
-          todayDate.setHours(0, 0, 0, 0);
+          const dayAbbr = DAY_ABBR[dateObj.getDay()];
+          const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
           dateObj.setHours(0, 0, 0, 0);
           const isToday = dateObj.getTime() === todayDate.getTime();
           const isPast = dateObj < todayDate;
           const isEditing = editingDay === day;
 
+          let mealsObj: Record<string, string> = {};
+          try { mealsObj = JSON.parse(plan?.meals || "{}"); } catch {}
+          if (Object.keys(mealsObj).length === 0 && plan) {
+            if (plan.breakfast) mealsObj.breakfast = plan.breakfast;
+            if (plan.lunch) mealsObj.lunch = plan.lunch;
+            if (plan.dinner) mealsObj.dinner = plan.dinner;
+          }
+          let cMeals: string[] = [];
+          try { cMeals = JSON.parse(plan?.cancelledMeals || "[]"); } catch {}
+          let wObj: Record<string, string> = {};
+          try { wObj = JSON.parse(plan?.wastage || "{}"); } catch {}
+
+          const hasContent = mealTypesList.some((mt) => mealsObj[mt] || cMeals.includes(mt));
+
           return (
             <div
               key={day}
-              className={`bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-xl shadow-md shadow-black/10 border overflow-hidden transition-colors ${isToday ? "border-indigo-300 ring-1 ring-indigo-200" : "border-white/10"
-                } ${isPast ? "opacity-70" : ""}`}
+              className={`border rounded-2xl overflow-hidden transition-all duration-200 ${
+                isToday
+                  ? "border-indigo-500/40 bg-indigo-500/[0.04] shadow-lg shadow-indigo-500/5"
+                  : "border-white/[0.06] bg-white/[0.02]"
+              } ${isPast && !isEditing ? "opacity-60" : ""}`}
             >
+              {/* Day Header */}
               <div
-                className={`flex items-center justify-between px-5 py-4 ${isToday ? "bg-indigo-500/10 border-b border-indigo-500/20" : "bg-white/[0.02] border-b border-white/5"
-                  } ${isManager && !isEditing ? "cursor-pointer hover:bg-white/[0.05] transition-colors" : ""}`}
+                className={`flex items-center justify-between px-4 py-3.5 border-b ${
+                  isToday ? "border-indigo-500/20 bg-indigo-500/[0.06]" : "border-white/[0.05]"
+                } ${isManager && !isEditing ? "cursor-pointer hover:bg-white/[0.03] active:bg-white/[0.05]" : ""} transition-colors`}
                 onClick={() => !isEditing && startEdit(day)}
               >
-                <div className="flex items-center gap-3">
-                  <span className={`text-2xl font-black tracking-tighter ${isToday ? "text-indigo-400" : "text-slate-200"}`}>
-                    {day}
-                  </span>
-                  <span className="text-sm font-medium text-slate-400 uppercase tracking-widest">{dayName}</span>
-                  {isToday && (
-                    <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-[0_0_10px_rgba(79,70,229,0.2)]">
-                      Today
+                <div className="flex items-center gap-3.5">
+                  <div className={`flex flex-col items-center justify-center w-10 h-10 rounded-xl font-black transition-all ${
+                    isToday
+                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+                      : "bg-white/[0.05] text-slate-300"
+                  }`}>
+                    <span className="text-lg leading-none">{day}</span>
+                  </div>
+                  <div>
+                    <span className={`text-xs font-bold uppercase tracking-widest ${isToday ? "text-indigo-300" : "text-slate-500"}`}>
+                      {dayAbbr}
                     </span>
+                    {isToday && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Today</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mini meal chips preview */}
+                  {hasContent && !isEditing && (
+                    <div className="hidden sm:flex items-center gap-1.5 ml-2">
+                      {mealTypesList.map((mt) => {
+                        const meta = MEAL_META[mt];
+                        if (!mealsObj[mt] && !cMeals.includes(mt)) return null;
+                        return (
+                          <span
+                            key={mt}
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                              cMeals.includes(mt)
+                                ? "bg-red-500/10 text-red-400 border-red-500/20 line-through"
+                                : "bg-white/[0.05] text-slate-400 border-white/[0.07]"
+                            }`}
+                          >
+                            {meta?.icon} {mealsObj[mt] ? mealsObj[mt].slice(0, 18) + (mealsObj[mt].length > 18 ? "…" : "") : mt}
+                          </span>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  {isManager && !isEditing && (
-                    <span className="text-xs text-slate-400 hidden sm:inline">tap to edit</span>
-                  )}
-                </div>
+                {isManager && !isEditing && (
+                  <span className="text-[11px] text-slate-600 hidden sm:block font-medium">tap to edit</span>
+                )}
               </div>
 
-              {/* Editing Form */}
-              {isEditing && isManager ? (
-                <div className="p-4 space-y-3 bg-indigo-50/30">
+              {/* ── Edit Form ── */}
+              {isEditing && isManager && (
+                <div className="p-4 space-y-3 bg-[#0d1526]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Utensils className="w-4 h-4 text-indigo-400" />
+                    <span className="text-sm font-bold text-slate-300">Editing menu for {MONTH_NAMES[month - 1]} {day}</span>
+                  </div>
+
                   {mealTypesList.map((meal) => {
-                    const themeClass = MEAL_THEMES[meal] || "bg-white/[0.04] border-white/10 text-slate-300";
+                    const meta = MEAL_META[meal] || { icon: "🍽️", accent: "from-slate-500/10 to-transparent", label: meal };
+                    const isCancelledEdit = editCancelled.includes(meal);
                     return (
-                    <div key={meal} className={`flex flex-col gap-3 p-4 rounded-xl border ${themeClass}`}>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <label className="text-sm font-bold capitalize w-24 shrink-0 flex items-center gap-2">
-                          <span className="text-xl">{DEFAULT_MEAL_ICONS[meal] || "🍽️"}</span> {meal}
-                        </label>
-                        <input
-                          type="text"
-                          value={editForm[meal] || ""}
-                          onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
-                          placeholder={`What's for ${meal}?`}
-                          className="flex-1 px-4 py-3 border border-white/10 bg-black/20 rounded-xl text-sm text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-white/20 outline-none transition-all"
-                        />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-4 pl-0 sm:pl-28">
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={editCancelled.includes(meal)}
-                            onChange={(e) => {
-                              if (e.target.checked) setEditCancelled([...editCancelled, meal]);
-                              else setEditCancelled(editCancelled.filter(m => m !== meal));
-                            }}
-                            className="w-4 h-4 rounded border-red-500/30 text-red-500 bg-red-500/10 focus:ring-red-500 transition-colors"
-                          />
-                          <span className="text-xs text-red-400/80 group-hover:text-red-400 font-semibold transition-colors">Cancel Meal (zeroes entries)</span>
-                        </label>
-                        {isPast && (
-                          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-                            <span className="text-xs text-amber-500/80 font-semibold min-w-max">Log Wastage:</span>
+                      <div key={meal} className={`rounded-xl border overflow-hidden ${isCancelledEdit ? "border-red-500/20 opacity-60" : "border-white/[0.07]"}`}>
+                        <div className={`flex items-center gap-3 px-4 py-3 bg-gradient-to-r ${meta.accent}`}>
+                          <span className="text-xl">{meta.icon}</span>
+                          <span className="text-sm font-bold text-slate-200 capitalize">{meal}</span>
+                          <div className="flex-1" />
+                          <label className="flex items-center gap-1.5 cursor-pointer group">
                             <input
-                              type="text"
-                              value={editWastage[meal] || ""}
-                              onChange={(e) => setEditWastage({ ...editWastage, [meal]: e.target.value })}
-                              placeholder="e.g. 5x rice, 2x chicken"
-                              className="w-full px-3 py-2 text-xs bg-black/20 border border-amber-500/20 rounded-lg text-slate-200 placeholder:text-amber-500/30 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                              type="checkbox"
+                              checked={isCancelledEdit}
+                              onChange={(e) => {
+                                if (e.target.checked) setEditCancelled([...editCancelled, meal]);
+                                else setEditCancelled(editCancelled.filter((m) => m !== meal));
+                              }}
+                              className="w-3.5 h-3.5 rounded border-red-500/30 accent-red-500"
                             />
-                          </div>
-                        )}
+                            <span className="text-[11px] text-rose-400 font-semibold group-hover:text-rose-300 transition-colors">Cancel Meal</span>
+                          </label>
+                        </div>
+                        <div className="px-4 pb-3 pt-2.5 bg-white/[0.02] space-y-2.5">
+                          <input
+                            type="text"
+                            value={editForm[meal] || ""}
+                            onChange={(e) => setEditForm({ ...editForm, [meal]: e.target.value })}
+                            placeholder={`What's for ${meal}?`}
+                            disabled={isCancelledEdit}
+                            className="w-full px-4 py-2.5 bg-black/30 border border-white/[0.08] rounded-xl text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all disabled:opacity-40"
+                          />
+                          {isPast && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] text-amber-400/80 font-semibold whitespace-nowrap">🗑️ Wastage:</span>
+                              <input
+                                type="text"
+                                value={editWastage[meal] || ""}
+                                onChange={(e) => setEditWastage({ ...editWastage, [meal]: e.target.value })}
+                                placeholder="e.g. 5x rice, 2x chicken"
+                                className="flex-1 px-3 py-1.5 text-xs bg-black/20 border border-amber-500/15 rounded-lg text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500/30 transition-all"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                 })}
-                  <div className="flex gap-3 pt-2">
+                    );
+                  })}
+
+                  <div className="flex gap-2.5 pt-1">
                     <button
                       onClick={saveEdit}
                       disabled={saving}
-                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all disabled:opacity-50"
+                      className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-600/25 transition-all disabled:opacity-50 active:scale-[0.98]"
                     >
-                      {saving ? "Saving..." : "💾 Save Menu"}
+                      {saving ? (
+                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving...</>
+                      ) : (
+                        <><Check className="w-4 h-4" /> Save Menu</>
+                      )}
                     </button>
                     <button
                       onClick={() => setEditingDay(null)}
-                      className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all"
+                      className="px-6 py-2.5 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.07] text-slate-300 text-sm font-bold rounded-xl transition-all active:scale-[0.98]"
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
-              ) : plan && (plan.breakfast || plan.lunch || plan.dinner || plan.meals) ? (
-                <div className="px-4 py-3">
-                  <div className="space-y-2">
-                    {(() => {
-                      let mealsObj: Record<string, string> = {};
-                      try { mealsObj = JSON.parse(plan?.meals || "{}"); } catch { /* ignore */ }
-                      if (Object.keys(mealsObj).length === 0 && plan) {
-                        if (plan.breakfast) mealsObj.breakfast = plan.breakfast;
-                        if (plan.lunch) mealsObj.lunch = plan.lunch;
-                        if (plan.dinner) mealsObj.dinner = plan.dinner;
-                      }
-                      return mealTypesList.map((mt) => {
-                        const val = mealsObj[mt];
-                        let cMeals: string[] = [];
-                        try { cMeals = JSON.parse(plan.cancelledMeals || "[]"); } catch {}
-                        const isCancelled = cMeals.includes(mt);
+              )}
 
-                        let wObj: Record<string, string> = {};
-                        try { wObj = JSON.parse(plan.wastage || "{}"); } catch {}
-                        const wastageVal = wObj[mt];
-
-                        if (!val && !isCancelled && !wastageVal) return null;
-                        const themeClass = MEAL_THEMES[mt] || "text-slate-300";
-                        return (
-                          <div key={mt} className="flex flex-col gap-1.5 mb-4 last:mb-0">
-                            <div className={`flex items-start gap-3 p-3 rounded-xl border border-white/5 bg-white/[0.02] ${themeClass.split(' ')[0] /* Use gradient background */}`}>
-                              <span className="text-2xl mt-0.5">{DEFAULT_MEAL_ICONS[mt] || "🍽️"}</span>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <p className="text-xs font-bold uppercase tracking-wider opacity-80">{mt}</p>
-                                  {isCancelled && <span className="text-[10px] font-bold bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">Canceled</span>}
-                                </div>
-                                <p className={`text-base font-medium mt-1 leading-snug ${isCancelled ? 'line-through text-slate-500' : 'text-slate-100'}`}>{val || "..."}</p>
-                              </div>
+              {/* ── Meal Display ── */}
+              {!isEditing && hasContent && (
+                <div className="px-4 py-3 space-y-2.5">
+                  {mealTypesList.map((mt) => {
+                    const val = mealsObj[mt];
+                    const isCancelled = cMeals.includes(mt);
+                    const wastageVal = wObj[mt];
+                    if (!val && !isCancelled && !wastageVal) return null;
+                    const meta = MEAL_META[mt] || { icon: "🍽️", accent: "from-slate-500/10 to-transparent", label: mt, glow: "" };
+                    return (
+                      <div key={mt} className="flex flex-col gap-1.5">
+                        <div className={`flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r ${meta.accent} border border-white/[0.04]`}>
+                          <span className="text-lg mt-0.5">{meta.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-0.5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{meta.label}</p>
+                              {isCancelled && (
+                                <span className="text-[10px] font-black bg-red-500/15 text-red-400 px-2 py-0.5 rounded-full border border-red-500/25 shrink-0">CANCELLED</span>
+                              )}
                             </div>
-                            {wastageVal && (
-                              <div className="pl-12 flex items-start">
-                                <span className="text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">🗑️ Wastage Logs: {wastageVal}</span>
-                              </div>
-                            )}
+                            <p className={`text-sm font-medium leading-snug ${isCancelled ? "line-through text-slate-600" : "text-slate-200"}`}>
+                              {val || <span className="text-slate-600 italic text-xs">No menu set</span>}
+                            </p>
                           </div>
-                        );
-                      });
-                    })()}
-                  </div>
+                        </div>
+                        {wastageVal && (
+                          <div className="flex items-center gap-2 pl-12">
+                            <AlertCircle className="w-3 h-3 text-amber-500/60 shrink-0" />
+                            <span className="text-[11px] text-amber-400/70 bg-amber-500/8 px-2 py-0.5 rounded-lg border border-amber-500/15">
+                              Wastage: {wastageVal}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ) : (
-                <div className="px-4 py-3">
-                  <p className="text-sm text-slate-400 italic">No menu planned</p>
+              )}
+
+              {/* ── Empty State ── */}
+              {!isEditing && !hasContent && (
+                <div className="px-4 py-3.5">
+                  <p className="text-sm text-slate-600 italic">No menu planned</p>
                 </div>
               )}
             </div>

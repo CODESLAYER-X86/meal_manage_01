@@ -11,6 +11,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Enforce 7-day retention for all in-app notifications.
+  const retentionCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  await prisma.notification.deleteMany({
+    where: {
+      userId: session.user.id,
+      createdAt: { lt: retentionCutoff },
+    },
+  });
+
   const { searchParams } = new URL(request.url);
   const unreadOnly = searchParams.get("unread") === "true";
   const limit = Math.min(Number(searchParams.get("limit") || 20), 100);
