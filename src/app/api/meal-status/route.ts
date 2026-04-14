@@ -443,16 +443,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Auto-sync MealEntry from meal status after every toggle.
-    // For today: meals that are already locked (blackout started) are preserved as snapshots.
-    // This ensures that even if status is toggled after confirmation time, the snapshotted meal entry doesn't change.
-    const { todayDate: syncTodayDate } = getTodayBD();
-    let lockedMealsForSync: string[] | undefined;
-    if (mealDate.getTime() === syncTodayDate.getTime()) {
-      // Lock all meals that have started blackout.
-      lockedMealsForSync = mealsList.filter(m => hasBlackoutStarted(m, blackouts));
-    }
-    await syncMealEntry(targetMemberId, messId, mealDate, mealsList, lockedMealsForSync);
+    // NOTE: We do NOT call syncMealEntry here. The MealEntry snapshot is created
+    // by the auto-fill logic in GET when the blackout first starts. After that,
+    // the snapshot is immutable (frozen). Toggling MealStatus only affects the
+    // live status display and cook count — it does NOT re-sync the billing entry.
+    // If a manager approves a special request during blackout, that flow (PATCH)
+    // handles its own sync with the correct override logic.
 
     // Audit log if manager changed someone else's status
     if (isManager && !isSelf) {
@@ -627,13 +623,44 @@ export async function PATCH(request: NextRequest) {
           });
         }
 
-        // Auto-sync MealEntry from approved status change
+        // Surgically update ONLY the approved meal in MealEntry, preserving all other snapshots.
+        // We do NOT call syncMealEntry because that would re-read all statuses and potentially
+        // overwrite other locked meal snapshots.
         const mess2 = await prisma.mess.findUnique({
           where: { id: messId },
           select: { mealsPerDay: true, mealTypes: true },
         });
         const mealsList2 = getMealsList(mess2?.mealTypes, mess2?.mealsPerDay ?? 3);
-        await syncMealEntry(req.memberId, messId, req.date, mealsList2);
+
+        const existingEntry = await prisma.mealEntry.findFirst({
+          where: { date: req.date, memberId: req.memberId },
+        });
+        let mealsObj: Record<string, number> = {};
+        if (existingEntry?.meals) {
+          try { mealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
+        }
+
+        // Update only the approved meal
+        mealsObj[req.meal] = req.wantOff ? 0 : 1;
+
+        // Recalculate total
+        let total = 0;
+        for (const ml of mealsList2) total += mealsObj[ml] ?? 0;
+
+        const breakfast = mealsObj["breakfast"] ?? 0;
+        const lunch = mealsObj["lunch"] ?? 0;
+        const dinner = mealsObj["dinner"] ?? 0;
+
+        if (existingEntry) {
+          await prisma.mealEntry.update({
+            where: { id: existingEntry.id },
+            data: { breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
+          });
+        } else {
+          await prisma.mealEntry.create({
+            data: { date: req.date, memberId: req.memberId, messId, breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
+          });
+        }
       }
 
       // Audit log for approve/reject
