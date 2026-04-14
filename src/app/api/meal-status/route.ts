@@ -443,12 +443,41 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // NOTE: We do NOT call syncMealEntry here. The MealEntry snapshot is created
-    // by the auto-fill logic in GET when the blackout first starts. After that,
-    // the snapshot is immutable (frozen). Toggling MealStatus only affects the
-    // live status display and cook count — it does NOT re-sync the billing entry.
-    // If a manager approves a special request during blackout, that flow (PATCH)
-    // handles its own sync with the correct override logic.
+    // Sync MealEntry after toggle:
+    // - For future dates or today BEFORE blackout: full sync (all meals from live status)
+    // - For today AFTER blackout: surgically update ONLY the toggled meal, preserving other frozen snapshots
+    const isMealLocked = isToday && hasBlackoutStarted(meal, blackouts);
+
+    if (isMealLocked) {
+      // Surgical update: only change the specific meal that was just toggled (manager override).
+      // Regular members can't reach here — they're blocked by the 403 check above.
+      const existingEntry = await prisma.mealEntry.findFirst({
+        where: { date: mealDate, memberId: targetMemberId },
+      });
+      let mealsObj: Record<string, number> = {};
+      if (existingEntry?.meals) {
+        try { mealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
+      }
+      mealsObj[meal] = isOff ? 0 : 1;
+      let total = 0;
+      for (const ml of mealsList) total += mealsObj[ml] ?? 0;
+      const breakfast = mealsObj["breakfast"] ?? 0;
+      const lunch = mealsObj["lunch"] ?? 0;
+      const dinner = mealsObj["dinner"] ?? 0;
+      if (existingEntry) {
+        await prisma.mealEntry.update({
+          where: { id: existingEntry.id },
+          data: { breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
+        });
+      } else {
+        await prisma.mealEntry.create({
+          data: { date: mealDate, memberId: targetMemberId, messId, breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
+        });
+      }
+    } else {
+      // Normal sync: no locked meals, read all live statuses
+      await syncMealEntry(targetMemberId, messId, mealDate, mealsList);
+    }
 
     // Audit log if manager changed someone else's status
     if (isManager && !isSelf) {
