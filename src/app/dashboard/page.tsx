@@ -440,7 +440,7 @@ export default function DashboardPage() {
                           </div>
                           
                           <div className="flex flex-col items-end gap-1">
-                            {isBlackedOut && !isManagerUser ? (
+                            {isBlackedOut ? (
                               hasPending ? (
                                 <span className="text-[10px] font-semibold text-amber-500 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
                                   Pending Review
