@@ -443,9 +443,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Sync MealEntry after toggle:
-    // - For future dates or today BEFORE blackout: full sync (all meals from live status)
-    // - For today AFTER blackout: surgically update ONLY the toggled meal, preserving other frozen snapshots
+    // Sync MealEntry ONLY if this is a manager overriding an already-locked status.
+    // For normal toggles BEFORE blackout or for TOMORROW: we do absolutely NOTHING
+    // to MealEntry. The auto-sync system (GET) will safely read the MealStatus and
+    // build the MealEntry snapshot naturally when the actual blackout arrives.
     const isMealLocked = isToday && hasBlackoutStarted(meal, blackouts);
 
     if (isMealLocked) {
@@ -474,9 +475,6 @@ export async function POST(request: NextRequest) {
           data: { date: mealDate, memberId: targetMemberId, messId, breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
         });
       }
-    } else {
-      // Normal sync: no locked meals, read all live statuses
-      await syncMealEntry(targetMemberId, messId, mealDate, mealsList);
     }
 
     // Audit log if manager changed someone else's status
