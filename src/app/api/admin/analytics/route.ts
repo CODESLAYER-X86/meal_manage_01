@@ -67,20 +67,27 @@ export async function GET() {
     // 4. Per-mess comparison (meal rate, members, total meals, total deposits)
     const messes = await prisma.mess.findMany({
       include: {
-        _count: { select: { members: true, mealEntries: true } },
+        _count: { select: { members: true } },
         deposits: { select: { amount: true } },
         bazarTrips: { select: { totalCost: true } },
       },
     });
 
+    const mealSums = await prisma.mealEntry.groupBy({
+      by: ["messId"],
+      _sum: { total: true },
+    });
+    const mealSumMap = Object.fromEntries(mealSums.map(m => [m.messId, m._sum.total || 0]));
+
     const messComparison = messes.map((m) => {
       const totalDeposits = m.deposits.reduce((sum, d) => sum + d.amount, 0);
       const totalBazar = m.bazarTrips.reduce((sum, t) => sum + t.totalCost, 0);
-      const mealRate = m._count.mealEntries > 0 ? totalBazar / m._count.mealEntries : 0;
+      const totalMeals = mealSumMap[m.id] || 0;
+      const mealRate = totalMeals > 0 ? totalBazar / totalMeals : 0;
       return {
         name: m.name,
         members: m._count.members,
-        totalMeals: m._count.mealEntries,
+        totalMeals: totalMeals,
         totalDeposits,
         totalBazar,
         mealRate: Math.round(mealRate * 100) / 100,
@@ -113,10 +120,10 @@ export async function GET() {
     }));
 
     // 7. Platform totals
-    const [totalUsers, totalMesses, totalMealEntries, totalDepositSum] = await Promise.all([
+    const [totalUsers, totalMesses, totalMealEntriesSum, totalDepositSum] = await Promise.all([
       prisma.user.count(),
       prisma.mess.count(),
-      prisma.mealEntry.count(),
+      prisma.mealEntry.aggregate({ _sum: { total: true } }),
       prisma.deposit.aggregate({ _sum: { amount: true } }),
     ]);
 
@@ -130,7 +137,7 @@ export async function GET() {
       totals: {
         users: totalUsers,
         messes: totalMesses,
-        mealEntries: totalMealEntries,
+        mealEntries: totalMealEntriesSum._sum.total || 0,
         deposits: totalDepositSum._sum.amount || 0,
       },
     });
