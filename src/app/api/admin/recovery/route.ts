@@ -57,12 +57,12 @@ export async function POST(request: NextRequest) {
 // GET - Check admin auth status
 export async function GET() {
   const session = await auth();
-  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
+  if (!session?.user || !(session.user.isAdmin || session.user.isOfficer)) {
     return NextResponse.json({ isAdmin: false, isOfficer: false });
   }
   return NextResponse.json({ 
-    isAdmin: (session.user as any).isAdmin ?? false,
-    isOfficer: (session.user as any).isOfficer ?? false,
+    isAdmin: session.user.isAdmin ?? false,
+    isOfficer: session.user.isOfficer ?? false,
     email: session.user.email, 
     name: session.user.name 
   });

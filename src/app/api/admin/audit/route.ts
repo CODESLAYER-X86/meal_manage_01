@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
-  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
+  if (!session?.user || !(session.user.isAdmin || session.user.isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

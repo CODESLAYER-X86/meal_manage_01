@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
-  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
+  if (!session?.user || !(session.user.isAdmin || session.user.isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const session = await auth();
-  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
+  if (!session?.user || !(session.user.isAdmin || session.user.isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -91,7 +91,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const session = await auth();
-  if (!session?.user || !((session.user as any).isAdmin || (session.user as any).isOfficer)) {
+  if (!session?.user || !(session.user.isAdmin || session.user.isOfficer)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

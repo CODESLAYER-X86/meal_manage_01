@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 import prisma from "@/lib/prisma";
-import { auth, isAllowedAdminEmail } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import type { Session } from "next-auth";
 
 // Helper: check if session user is admin or officer
-function hasAdminAccess(session: any): boolean {
-  return session?.user?.isAdmin || session?.user?.isOfficer;
+function hasAdminAccess(session: Session | null): boolean {
+  return !!(session?.user?.isAdmin || session?.user?.isOfficer);
 }
 
 export async function GET(request: NextRequest) {
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.user.count({ where }),
     ]);
-    const usersWithOfficer = users.map((u: any) => ({ ...u, isOfficer: false }));
+    const usersWithOfficer = users.map((u) => ({ ...u, isOfficer: false }));
     return NextResponse.json({ users: usersWithOfficer, total, page, pages: Math.ceil(total / limit) });
   }
 }
@@ -67,8 +68,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const isAdmin = (session.user as any).isAdmin;
-  const isOfficer = (session.user as any).isOfficer && !isAdmin;
+  const isAdmin = session.user.isAdmin;
+  const isOfficer = session.user.isOfficer && !isAdmin;
 
   const { id, action } = await request.json();
   if (!id || !action) return NextResponse.json({ error: "id and action required" }, { status: 400 });
@@ -154,8 +155,8 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const isAdmin = (session.user as any).isAdmin;
-  const isOfficer = (session.user as any).isOfficer && !isAdmin;
+  const isAdmin = session.user.isAdmin;
+  const isOfficer = session.user.isOfficer && !isAdmin;
 
   const { id } = await request.json();
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
