@@ -65,56 +65,6 @@ function getMealsList(mealTypes: string | null | undefined, mealsPerDay: number)
 // lockedMeals = meals whose blackout has already STARTED.
 // For locked meals, we PRESERVE the existing snapshot value in MealEntry (immutable once locked).
 // For unlocked meals (blackout hasn't started), we always read current MealStatus.
-async function syncMealEntry(memberId: string, messId: string, date: Date, mealsList: string[], lockedMeals?: string[]) {
-  const statuses = await prisma.mealStatus.findMany({
-    where: { memberId, messId, date },
-    select: { meal: true, isOff: true },
-  });
-  const statusMap: Record<string, boolean> = {};
-  for (const s of statuses) statusMap[s.meal] = s.isOff;
-
-  // Get existing entry so we can preserve already-locked meal values
-  const existingEntry = await prisma.mealEntry.findFirst({
-    where: { date, memberId },
-  });
-  let existingMealsObj: Record<string, number> = {};
-  if (existingEntry?.meals) {
-    try { existingMealsObj = JSON.parse(existingEntry.meals as string); } catch { /* ignore */ }
-  }
-
-  // Build meals object:
-  //   - Locked meal WITH existing snapshot → preserve snapshot (immutable, blackout passed)
-  //   - Everything else → read current MealStatus (1 = eating, 0 = off)
-  const mealsObj: Record<string, number> = {};
-  let total = 0;
-  for (const meal of mealsList) {
-    const isLocked = lockedMeals?.includes(meal);
-    const hasSnapshot = meal in existingMealsObj;
-    if (isLocked && hasSnapshot) {
-      // Preserve the locked snapshot
-      mealsObj[meal] = existingMealsObj[meal];
-    } else {
-      // Live status (toggling still applies if blackout hasn't started, or manager override)
-      mealsObj[meal] = statusMap[meal] ? 0 : 1;
-    }
-    total += mealsObj[meal];
-  }
-
-  const breakfast = mealsObj["breakfast"] ?? 0;
-  const lunch = mealsObj["lunch"] ?? 0;
-  const dinner = mealsObj["dinner"] ?? 0;
-
-  if (existingEntry) {
-    await prisma.mealEntry.update({
-      where: { id: existingEntry.id },
-      data: { breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
-    });
-  } else {
-    await prisma.mealEntry.create({
-      data: { date, memberId, messId, breakfast, lunch, dinner, meals: JSON.stringify(mealsObj), total },
-    });
-  }
-}
 
 // GET - Get meal status for a date (or today + tomorrow)
 export async function GET(request: NextRequest) {
