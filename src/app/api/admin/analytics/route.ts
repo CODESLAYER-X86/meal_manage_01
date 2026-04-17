@@ -64,17 +64,28 @@ export async function GET() {
         purchaseCount: i._count,
       }));
 
-    // 4. Per-mess comparison (meal rate, members, total meals, total deposits)
+    // 4. Per-mess comparison — current month only (matches Mess Detail page methodology)
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
     const messes = await prisma.mess.findMany({
       include: {
         _count: { select: { members: true } },
-        deposits: { select: { amount: true } },
-        bazarTrips: { select: { totalCost: true } },
+        deposits: {
+          where: { date: { gte: monthStart, lte: monthEnd } },
+          select: { amount: true },
+        },
+        bazarTrips: {
+          where: { date: { gte: monthStart, lte: monthEnd } },
+          select: { totalCost: true },
+        },
       },
     });
 
     const mealSums = await prisma.mealEntry.groupBy({
       by: ["messId"],
+      where: { date: { gte: monthStart, lte: monthEnd } },
       _sum: { total: true },
     });
     const mealSumMap = Object.fromEntries(mealSums.map(m => [m.messId, m._sum.total || 0]));
@@ -87,7 +98,7 @@ export async function GET() {
       return {
         name: m.name,
         members: m._count.members,
-        totalMeals: totalMeals,
+        totalMeals: Math.round(totalMeals * 100) / 100,
         totalDeposits,
         totalBazar,
         mealRate: Math.round(mealRate * 100) / 100,

@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
         <div className="bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-pink-400" />
-            <h3 className="text-sm font-semibold text-white">Meal Rate by Mess (৳/meal)</h3>
+            <h3 className="text-sm font-semibold text-white">Meal Rate by Mess (৳/meal) — This Month</h3>
           </div>
           {data.messComparison.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
@@ -252,7 +252,7 @@ export default function AnalyticsPage() {
       {data.messComparison.length > 0 && (
         <div className="bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-white/5">
-            <h3 className="text-sm font-semibold text-white">Mess-by-Mess Comparison</h3>
+            <h3 className="text-sm font-semibold text-white">Mess-by-Mess Comparison — This Month</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
