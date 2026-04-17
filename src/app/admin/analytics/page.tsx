@@ -83,7 +83,7 @@ export default function AnalyticsPage() {
         {[
           { label: "Total Users", value: data.totals.users, color: "text-blue-400" },
           { label: "Total Messes", value: data.totals.messes, color: "text-emerald-400" },
-          { label: "Meal Entries", value: data.totals.mealEntries.toLocaleString(), color: "text-amber-400" },
+          { label: "Total Meals", value: Number(data.totals.mealEntries).toLocaleString(undefined, { maximumFractionDigits: 1 }), color: "text-amber-400" },
           { label: "Total Deposits", value: `৳${data.totals.deposits.toLocaleString()}`, color: "text-cyan-400" },
         ].map((c) => (
           <div key={c.label} className="bg-[#1a1a3e]/50 backdrop-blur border border-white/5 rounded-2xl p-4">
@@ -271,10 +271,10 @@ export default function AnalyticsPage() {
                   <tr key={m.name} className="hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-white font-medium">{m.name}</td>
                     <td className="px-4 py-3 text-slate-300 text-right">{m.members}</td>
-                    <td className="px-4 py-3 text-slate-300 text-right">{m.totalMeals.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-slate-300 text-right">{Number(m.totalMeals).toLocaleString(undefined, { maximumFractionDigits: 1 })}</td>
                     <td className="px-4 py-3 text-emerald-400 text-right">৳{m.totalDeposits.toLocaleString()}</td>
                     <td className="px-4 py-3 text-amber-400 text-right">৳{m.totalBazar.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-cyan-400 text-right font-semibold">৳{m.mealRate}</td>
+                    <td className="px-4 py-3 text-cyan-400 text-right font-semibold">৳{Number(m.mealRate).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
