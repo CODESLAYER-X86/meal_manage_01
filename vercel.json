@@ -7,6 +7,10 @@
     {
       "path": "/api/auto-notifications",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/system/heartbeat",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
