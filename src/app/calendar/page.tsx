@@ -19,6 +19,7 @@ interface BazarTrip {
   id: string;
   date: string;
   totalCost: number;
+  approved: boolean;
   buyer: { name: string };
   items: { serialNo: number; itemName: string; quantity: number; unit: string; price: number }[];
 }
@@ -106,7 +107,7 @@ export default function CalendarPage() {
 
   const getBazarForDate = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return bazarTrips.filter((t) => t.date.startsWith(dateStr));
+    return bazarTrips.filter((t) => t.approved && t.date.startsWith(dateStr));
   };
 
   const getWashroomForDate = (day: number) => {

@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         const totalDeposits = deposits.reduce((sum, d) => sum + d.amount, 0);
 
         const bazarTrips = await prisma.bazarTrip.findMany({
-          where: { messId, date: { gte: startOfMonth, lte: endOfMonth } },
+          where: { messId, approved: true, date: { gte: startOfMonth, lte: endOfMonth } },
         });
         const totalBazar = bazarTrips.reduce((sum, t) => sum + t.totalCost, 0);
 

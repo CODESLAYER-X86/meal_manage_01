@@ -77,7 +77,7 @@ export async function GET() {
           select: { amount: true },
         },
         bazarTrips: {
-          where: { date: { gte: monthStart, lte: monthEnd } },
+          where: { approved: true, date: { gte: monthStart, lte: monthEnd } },
           select: { totalCost: true },
         },
       },
@@ -114,7 +114,7 @@ export async function GET() {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const monthlyTrips = await prisma.bazarTrip.findMany({
-      where: { date: { gte: sixMonthsAgo } },
+      where: { approved: true, date: { gte: sixMonthsAgo } },
       select: { date: true, totalCost: true },
       orderBy: { date: "asc" },
     });

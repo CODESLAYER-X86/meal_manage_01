@@ -99,7 +99,7 @@ export default function TransparencyPage() {
 
   // ---- Computed data ----
   const memberNames = members.length > 0 ? members : [...new Map(meals.map((m) => [m.member.id, m.member])).values()];
-  const totalBazar = bazarTrips.reduce((sum, t) => sum + t.totalCost, 0);
+  const totalBazar = bazarTrips.filter((t) => t.approved).reduce((sum, t) => sum + t.totalCost, 0);
   const totalAllMeals = meals.reduce((sum, m) => sum + m.total, 0);
   const mealRate = totalAllMeals > 0 ? totalBazar / totalAllMeals : 0;
 

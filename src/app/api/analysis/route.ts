@@ -26,6 +26,7 @@ export async function GET() {
       where: {
         trip: {
           messId: messId,
+          approved: true,
           date: { gte: startOfCurrentMonth },
         },
       },
@@ -51,7 +52,7 @@ export async function GET() {
 
     // 2. Daily Trends (Current Month: Daily Cost)
     const bazarTrips = await prisma.bazarTrip.findMany({
-      where: { messId, date: { gte: startOfCurrentMonth } },
+      where: { messId, approved: true, date: { gte: startOfCurrentMonth } },
       select: { date: true, totalCost: true },
     });
 

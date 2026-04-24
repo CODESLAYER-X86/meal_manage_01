@@ -56,7 +56,7 @@ export async function GET(
       }),
       // This month's bazar trips
       prisma.bazarTrip.findMany({
-        where: { messId, date: { gte: monthStart, lte: monthEnd } },
+        where: { messId, approved: true, date: { gte: monthStart, lte: monthEnd } },
         include: {
           buyer: { select: { name: true } },
           items: true,

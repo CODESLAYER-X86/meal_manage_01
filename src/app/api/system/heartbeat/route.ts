@@ -119,7 +119,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, processedCount, message: "Heartbeat execution successful" });
+    const { hour, minute } = getBDTime();
+    return NextResponse.json({
+      success: true,
+      processedCount,
+      bdTime: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+      messCount: messes.length,
+      message: "Heartbeat execution successful",
+    });
 
   } catch (err: any) {
     console.error("Heartbeat error:", err);

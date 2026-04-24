@@ -35,10 +35,11 @@ export async function calculateMonthlyBill(
     },
   });
 
-  // Get total bazar expenses for the month in this mess
+  // Get total bazar expenses for the month in this mess (ONLY approved trips)
   const bazarTrips = await prisma.bazarTrip.findMany({
     where: {
       messId,
+      approved: true,
       date: { gte: startDate, lte: endDate },
     },
   });
